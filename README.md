@@ -1,6 +1,6 @@
 # C++ Reference
 0. [Types and Stuff](#1-types-and-stuff)<br>
-  1.1. [decltype and auto](#11-dectype-and-auto)<br>
+  1.1. [decltype and auto](#11-decltype-and-auto)<br>
   1.2. [typedef and using](#12-typedef-and-using)<br>
   1.3. [unions](#13-unions)<br>
   1.4. [enums](#14-enums)<br>
@@ -24,14 +24,14 @@
 5. [Inheritance](#5-inheritance)<br>
   5.1. [friend functions and classes](#51-friend-functions-and-classes)<br>
   5.2. [access specifiers](#52-access-specifiers)<br>
-  5.3. [what's inherited?](#53-whats-inherited)<br>
+  5.3. [what's inherited](#53-whats-inherited)<br>
   5.4. [base constructor](#54-base-constructor)<br>
   5.5. [virtual functions](#55-virtual-functions)<br>
   5.6. [pure virtual and abstract classes](#56-pure-virtual-and-abstract-classes)
-6. [Type Conversion](#6-type-conversion)
-  6.1. [through classes](#61-through-classes)
-  6.2. [explicit keyword](#62-explicit-keyword)
-  6.3. [type casting](#63-type-casting)
+6. [Type Conversion](#6-type-conversion)<br>
+  6.1. [through classes](#61-through-classes)<br>
+  6.2. [explicit keyword](#62-explicit-keyword)<br>
+  6.3. [type casting](#63-type-casting)<br>
   6.4. [typeid](#64-typeid)
 10. [Namespaces](#10-namespacs)
 ## 1. Types and Stuff
@@ -333,7 +333,7 @@ not members	                yes	    no        no
 public inheritance: all inherited members will keep their access specifiers in derived class
 protected inheritance : all inherited members will at most be proteted
 private inheritance : all inherited members will be private
-### 5.3. what's inherited ?
+### 5.3. what's inherited
 base' constructors and its destructor
 base' assignment operator members (operator=)
 base' friends
