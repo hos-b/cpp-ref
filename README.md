@@ -10,7 +10,8 @@
   1.8. [extern keyword](#18-extern-keyword)
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
-  2.2. [function pointers](#22-function-pointers)
+  2.2. [function pointers](#22-function-pointers)<br>
+  2.3. [reference variables](#23-reference-variables)
 3. [Dynamic Memory](#3-dynamic-memory)<br>
   3.1. [nothrow](#31-nothrow)
 4. [Class Basics](#4-class-basics)<br>
@@ -33,7 +34,15 @@
   6.2. [explicit keyword](#62-explicit-keyword)<br>
   6.3. [type casting](#63-type-casting)<br>
   6.4. [typeid](#64-typeid)
-10. [Namespaces](#10-namespacs)
+7. [Exception](#7-exception)<br>
+  7.1.[speicifcation](#71-specification)<br>
+  7.2.[standard exceptions](#72-standard-exceptions)
+8. [CPP lambdas](#8-cpp-lambdas)<br>
+9. [Misc.](#9-misc)<br>
+  9.1. [preprocessor-directives](#91-preprocessor-directives)<br>
+  9.2. [line control](#92-line-control)<br>
+  9.3. [error directives](#93-error-directives)<br>
+  9.4. [hidden namespaces](#94-hidden-namespaces)<br>
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
 ```cpp
@@ -160,6 +169,12 @@ int main ()
   int n = operation (20, m, minus);
 }
 ```
+### 2.3. reference variables
+```cpp
+int a = 5;
+int& ref = a;
+a = 10; // ref is now also 10
+```
 ## 3. Dynamic Memory
 ### 3.1. nothrow
 ```cpp
@@ -282,13 +297,15 @@ Compilers already optimize many cases that formally require a move-construction 
 
 Note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor. Rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track.
 ### 4.7. but wait, there's more
-Member function	      implicitly defined:	                                                  default definition:
-Default constructor	  if no other constructors	                                            does nothing
-Destructor	          if no destructor	                                                    does nothing
-Copy constructor	    if no move constructor and no move assignment	                        copies all members
-Copy assignment	      if no move constructor and no move assignment	                        copies all members
-Move constructor	    if no destructor, no copy constructor and no copy nor move assignment	moves all members
-Move assignment	      if no destructor, no copy constructor and no copy nor move assignment	moves all members
+| member function     | implicitly defined                                                    | default definition |
+|---------------------|-----------------------------------------------------------------------|--------------------|
+| default constructor | if no other constructors                                              | does nothing       |
+| destructor          | if no destructor                                                      | does nothing       |
+| copy constructor    | if no move constructor and no move assignment                         | copies all members |
+| copy assignment     | if no move constructor and no move assignment                         | copies all members |
+| move constructor    | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
+| move assignment     | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
+
 they're not always defined due to backward compatibility. if we want them to be (or not to be), we have to explicitly ask for an implicit declaration (or removal thereof) :
 ```cpp
 function_declaration = default;
@@ -325,10 +342,11 @@ class B{
 }
 ```
 ### 5.2. access specifiers
-Access	                    public	protected	private
-members of the same class	  yes	    yes	      yes
-members of derived class	  yes	    yes	      no
-not members	                yes	    no        no
+| access                    | public | private | protected |
+|---------------------------|--------|---------|-----------|
+| members of the same class | y      | y       | y         |
+| members of derived class  | y      | y       | n         |
+| not members               | y      | n       | n         |
 
 public inheritance: all inherited members will keep their access specifiers in derived class
 protected inheritance : all inherited members will at most be proteted
@@ -486,8 +504,176 @@ void main () {
 }
 ```
 Note: The string returned by member name of type_info depends on the specific implementation of your compiler and library. It is not necessarily a simple string with its typical type name, like in the compiler used to produce this output. If the type typeid evaluates is a pointer preceded by the dereference operator (*), and this pointer has a null value, typeid throws a bad_typeid exception.
-## 10. Namespaces
-### 10.1. hidden namespaces
+## 7. Exception
+thrown using `throw` keyword :
+```cpp
+int main () {
+  try
+  {
+    throw 20;
+  }
+  catch (int e)
+  {
+    cout << "An exception occurred. Exception Nr. " << e << '\n';
+  }
+  return 0;
+}
+```
+if an ellipsis `(...)` is used as the parameter of catch, that handler will catch any exception no matter what the type of the exception thrown.
+### 7.1. specification
+older code may contain dynamic exception specifications. They are now deprecated in C++, but still supported. A dynamic exception specification follows the declaration of a function, appending a throw specifier to it. For example:
+```cpp
+double myfunction (char param) throw (int);
+```
+this declares a function called myfunction, which takes one argument of type char and returns a value of type double. If this function throws an exception of some type other than int, the function calls ```std::unexpected``` instead of looking for a handler or calling ```std::terminate```. if this throw specifier is left empty with no type, this means that ```std::unexpected``` is called for any exception. Functions with no throw specifier (regular functions) never call ```std::unexpected```, but follow the normal path of looking for their exception handler.
+
+### 7.2. standard exceptions
+the C++ Standard library provides a base class specifically designed to declare objects to be thrown as exceptions. It is called `std::exception` and is defined in the `<exception>` header. This class has a virtual member function called what that returns a null-terminated character sequence (of type char *) and that can be overwritten in derived classes to contain some sort of description of the exception.
+```cpp
+#include <exception>
+class myexception: public std::exception
+{
+  virtual const char* what() const throw(){
+    return "My exception happened";
+  }
+} myex;
+
+int main () {
+  try{
+    throw myex;
+  }
+  catch (exception& e){
+    cout << e.what() << '\n';
+  }
+  return 0;
+}
+```
+standard exceptions are as follows :
+
+| exception         | description                                            |
+|-------------------|--------------------------------------------------------|
+| bad_alloc         | thrown by new on allocation failure                    |
+| bad_cast          | thrown by dynamic_cast when it fails in a dynamic cast |
+| bad_exception     | thrown by certain dynamic exception specifiers         |
+| bad_typeid        | thrown by typeid                                       |
+| bad_function_call | thrown by empty function objects                       |
+| bad_weak_ptr      | thrown by shared_ptr when passed a bad weak_ptr        |
+| logic_error       | error related to the internal logic of the program     |
+| runtime_error     | error detected during runtime                          |
+
+Also deriving from exception, header `<exception>` defines two generic exception types that can be inherited by custom exceptions to report errors:
+
+| exception         | description                                            |
+|-------------------|--------------------------------------------------------|
+| logic_error       | error related to the internal logic of the program     |
+| runtime_error     | error detected during runtime                          |
+
+### 8 CPP lambdas
+a simple example using `std::foreach` :
+```cpp
+vector<int> v;
+v.push_back(...);
+...
+int evenCount=0;
+for_each(v.begin(), v.end(), [&evenCount] (int n) {
+      cout << n;
+      if (n % 2 == 0) {
+         cout << " is even " << endl;
+         ++evenCount;
+      } else {
+         cout << " is odd " << endl;
+      }
+   });
+```
+lambdas are made of 6 parts : 
+```cpp
+[] () mutable throw() -> int
+{
+  
+}
+```
+1. capture clause (Also known as the lambda-introducer in the C++ specification.)
+2. parameter list Optional. (Also known as the lambda declarator)
+3. mutable specification Optional.
+4. exception-specification Optional.
+5. trailing-return-type Optional.
+6. lambda body.
+
+#### capture clause
+A lambda can introduce new variables in its body (in C++14), and it can also access, or capture, variables from the surrounding scope. A lambda begins with the capture clause (lambda-introducer in the Standard syntax), which specifies which variables are captured, and whether the capture is by value or by reference. Variables that have the ampersand `&` prefix are accessed by reference and variables that do not have it are accessed by value. An empty capture clause, `[ ]`, indicates that the body of the lambda expression accesses no variables in the enclosing scope.
+`[&]` means all variables that you refer to are captured by reference, and `[=]` means they are captured by value. You can use a default capture mode, and then specify the opposite mode explicitly for specific variables. For example, if a lambda body accesses the external variable total by reference and the external variable factor by value, then the following capture clauses are equivalent:
+```cpp
+[&total, factor]
+[factor, &total]
+[&, factor]
+[factor, &]
+[=, &total]
+[&total, =]
+```
+in C++14, you can introduce and initialize new variables in the capture clause, without the need to have those variables exist in the lambda function’s enclosing scope. 
+#### parameter list
+in addition to capturing variables, a lambda can accept input parameters. A parameter list is optional and in most aspects resembles the parameter list for a function. in C++ 14, if the parameter type is generic, you can use the auto keyword as the type specifier.
+```cpp
+auto y = [] (int first, int second)
+{
+    return first + second;
+};
+```
+#### mutable
+typically, a lambda's function call operator is const-by-value, but use of the mutable keyword cancels this out. It does not produce mutable data members. The mutable specification enables the body of a lambda expression to modify variables that are captured by value.
+#### exception specification
+you can use the noexcept exception specification to indicate that the lambda expression does not throw any exceptions. As with ordinary functions, the compiler generates warning C4297 if a lambda expression declares the noexcept exception specification and the lambda body throws an exception.
+#### return type
+the return type of a lambda expression is automatically deduced. You don't have to use the auto keyword unless you specify a trailing-return-type. The trailing-return-type resembles the return-type part of an ordinary method or function. However, the return type must follow the parameter list, and you must include the trailing-return-type keyword `->` before the return type.
+
+You can omit the return-type part of a lambda expression if the lambda body contains just one return statement or the expression does not return a value. If the lambda body contains one return statement, the compiler deduces the return type from the type of the return expression. Otherwise, the compiler deduces the return type to be void.
+```cpp
+auto x1 = [](int i){ return i; }; // OK: return type is int
+auto x2 = []{ return{ 1, 2 }; };  // ERROR: return type is void, deducing
+                                  // return type from braced-init-list is not valid
+```
+#### body
+The lambda body (compound-statement in the Standard syntax) of a lambda expression can contain anything that the body of an ordinary method or function can contain. The body of both an ordinary function and a lambda expression can access these kinds of variables:
+1. Captured variables from the enclosing scope, as described previously.
+2. Parameters
+3. Locally-declared variables
+4. Class data members, when declared inside a class and this is captured
+5. Any variable that has static storage duration—for example, global variables
+```cpp
+int main()
+{
+   int m = 0;
+   int n = 0;
+   [&, n] (int a) mutable { m = ++n + a; }(4); //m=5, n=0
+}
+```
+The `mutable` specification allows n to be modified within the lambda.
+## 9. Misc.
+### 9.1. preprocessor directives
+```cpp
+int main()
+{
+  cout << "This is the line number " << __LINE__;
+  cout << " of file " << __FILE__ << ".\n";
+  cout << "Its compilation began " << __DATE__;
+  cout << " at " << __TIME__ << ".\n";
+  cout << "The compiler gives a __cplusplus value of " << __cplusplus;
+  return 0;
+}
+```
+### 9.2. line control
+```cpp
+#line 20 "assigning variable"
+int a?;
+```
+this code will generate an error that will be shown as error in file "assigning variable", line 20.
+### 9.3. error directives
+```cpp
+#ifndef __cplusplus
+#error A C++ compiler is required!
+#endif 
+```
+### 9.4. hidden namespaces
 ```cpp
 namespace multiply
 {
