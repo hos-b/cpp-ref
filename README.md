@@ -1,15 +1,15 @@
 # C++ Reference
 0. [Types and Stuff](#1-types-and-stuff)<br>
-  1.1. [decltype and auto](#11-dectype-auto)<br>
-  1.2. [typedef and using](#12-typedef-using)<br>
+  1.1. [decltype and auto](#11-dectype-and-auto)<br>
+  1.2. [typedef and using](#12-typedef-and-using)<br>
   1.3. [unions](#13-unions)<br>
   1.4. [enums](#14-enums)<br>
-  1.5. [volatile keyword](#15-volatile)<br>
-  1.6. [static keyword](#16-static)<br>
-  1.7. [mutable keyword](#17-mutable)<br>
-  1.8. [extern keyword](#18-extern)
+  1.5. [volatile keyword](#15-volatile-keyword)<br>
+  1.6. [static keyword](#16-static-keyword)<br>
+  1.7. [mutable keyword](#17-mutable-keyword)<br>
+  1.8. [extern keyword](#18-extern-keyword)
 2. [Pointers](#2-pointers)<br>
-  2.1. [const keyword](#21-const)<br>
+  2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)
 3. [Dynamic Memory](#3-dynamic-memory)<br>
   3.1. [nothrow](#31-nothrow)
@@ -19,20 +19,20 @@
   4.3. [static members](#43-static-members)<br>
   4.4. [const objects and functions](#44-const-objects-and-functions)<br>
   4.5. [template specialization](#45-template-specialization)<br>
-  4.6. [move constructor and move assignment](#46-move-constructor-assignment)<br>
-  4.7. [but wait there's more](#47-more)
+  4.6. [move constructor and move assignment](#46-move-constructor-and-move-assignment)<br>
+  4.7. [but wait there's more](#47-but-wait-theres-more)
 5. [Inheritance](#5-inheritance)<br>
-  5.1. [friend functions and classes](#51-friend-functions-classes)<br>
+  5.1. [friend functions and classes](#51-friend-functions-and-classes)<br>
   5.2. [access specifiers](#52-access-specifiers)<br>
-  5.3. [what's inherited?](#53-inherited)<br>
+  5.3. [what's inherited?](#53-whats-inherited)<br>
   5.4. [base constructor](#54-base-constructor)<br>
-  5.5. [virtual functions](#55-virtual functions)<br>
-  5.6. [pure virtual and abstract classes](#56-pure-virtual-abstract)
+  5.5. [virtual functions](#55-virtual-functions)<br>
+  5.6. [pure virtual and abstract classes](#56-pure-virtual-and-abstract-classes)
 6. [Type Conversion](#6-type-conversion)
-  6.1. [through classes](#61-classes)
+  6.1. [through classes](#61-through-classes)
   6.2. [explicit keyword](#62-explicit-keyword)
   6.3. [type casting](#63-type-casting)
-  6.4. [typeid](#64-type-id)
+  6.4. [typeid](#64-typeid)
 10. [Namespaces](#10-namespacs)
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
