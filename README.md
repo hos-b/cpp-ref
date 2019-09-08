@@ -1,7 +1,7 @@
 # C++ Reference
 0. [Types and Stuff](#1-types-and-stuff)<br>
-  1.1. [arrays](#11)
-  1.2. [vectors](#12)
+  1.1. [arrays](#11)<br>
+  1.2. [vectors](#12)<br>
   1.3. [decltype and auto](#13-decltype-and-auto)<br>
   1.4. [typedef and using](#14-typedef-and-using)<br>
   1.5. [unions](#15-unions)<br>
