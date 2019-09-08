@@ -4,9 +4,9 @@
   1.1. [arrays](#11-arrays)<br>
   1.2. [vectors](#12-vectors)
 2. [Flow Control](#2-flow-control)<br>
-  2.1. [range for loop](#21-range-for-loop)<br>
+  2.1. [range for loop](#21-range-for-loop)
 10. [Compilation](#10-compilation)<br>
-  10.1. [flags](#101-flags)<br>
+  10.1. [flags](#101-flags)
   
 ## 1. Types and Stuff
 
