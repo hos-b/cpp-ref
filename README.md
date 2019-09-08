@@ -1,15 +1,13 @@
-# C++ Reference
-0. [Types and Stuff](#1-types-and-stuff)<br>
-  1.1. [arrays](#11-arrays)<br>
-  1.2. [vectors](#12-vectors)<br>
-  1.3. [decltype and auto](#13-decltype-and-auto)<br>
-  1.4. [typedef and using](#14-typedef-and-using)<br>
-  1.5. [unions](#15-unions)<br>
-  1.6. [enums](#16-enums)<br>
-  1.7. [volatile keyword](#17-volatile-keyword)<br>
-  1.8. [static keyword](#18-static-keyword)<br>
-  1.9. [mutable keyword](#19-mutable-keyword)<br>
-  1.10. [extern keyword](#110-extern-keyword)
+# Basic C++ Reference ([Modern C++](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
+1. [Types and Stuff](#1-types-and-stuff)<br>
+  1.1. [decltype and auto](#11-decltype-and-auto)<br>
+  1.2. [typedef and using](#12-typedef-and-using)<br>
+  1.3. [unions](#13-unions)<br>
+  1.4. [enums](#14-enums)<br>
+  1.5. [volatile keyword](#15-volatile-keyword)<br>
+  1.6. [static keyword](#16-static-keyword)<br>
+  1.7. [mutable keyword](#17-mutable-keyword)<br>
+  1.8. [extern keyword](#18-extern-keyword)
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)<br>
@@ -45,24 +43,21 @@
   9.2. [line control](#92-line-control)<br>
   9.3. [error directives](#93-error-directives)<br>
   9.4. [hidden namespaces](#94-hidden-namespaces)<br>
+
 ## 1. Types and Stuff
-### 1.1. arrays
-`#include<array>`, use `std::array<type, size>`, has constant size
-### 1.2. vectors
-`#include<array>`, use `std::vector<type>`, unkown amount of items. use `vec.emplace_back()` instead of `vec.push_back()` for efficiency. use `vec.reserve()` for large pushes to avoid consecutive table updates.
-### 1.3. decltype and auto
+### 1.1. decltype and auto
 ```cpp
 int a = 5;
 decltype(a) b;  // type of a without initialization
 auto c = a;     // type of a with initialization
 ```
-### 1.4. typedef and using
+### 1.2. typedef and using
 declaring new types :
 ```cpp
 typdef char C;
 using C = char;
 ```
-### 1.5. unions
+### 1.3. unions
 ```cpp
 union mix_t {
   int l;
@@ -73,7 +68,7 @@ union mix_t {
   char c[4];
 } mix;
 ```
-### 1.6. enums
+### 1.4. enums
 ```cpp
 //numbered starting from 0
 enum colors_t {black, blue, green, cyan, red, purple, yellow, white}; 
@@ -91,9 +86,9 @@ to determine type size :
 ```cpp
 enum class EyeColor : char {blue, green, brown}; 
 ```
-### 1.7. volatile keyword
+### 1.5. volatile keyword
 volatile is a hint to the implementation to avoid aggressive optimization involving the object because the value of the object might be changed by means undetectable by an implementation. the compiler might sometimes optimize objects that affect program flow e.g. a loop. from the compiler's perspective the object could be changed by a static value but that might not be the case. to avoid such faults, the volatile keyword should be used.
-### 1.8. static keyword
+### 1.6. static keyword
 ```cpp
 int f(void) {
   static int x = 0;
@@ -109,7 +104,7 @@ int main(void) {
 }
 ```
 returns 0 1 2 3 4
-### 1.9. mutable keyword
+### 1.7. mutable keyword
 The mutable storage class specifier is used only on a class data member to make it modifiable even though the member is part of an object declared as const. You cannot use the mutable specifier with names declared as static or const, or reference members.
 ```cpp
 class A
@@ -127,7 +122,7 @@ int main()
   var2.y = 2345; // not allowed
 }
 ```
-### 1.10. extern keyword
+### 1.8. extern keyword
 used to specify the type and the existance of an object. once all of the source files have been compiled, the linker will resolve all of the references to the one definition that it finds in one of the compiled source files. the definition of the object needs to have “external linkage”, which means that it needs to be declared outside of a function and without the static keyword.
 ```cpp
 ---header.h---
