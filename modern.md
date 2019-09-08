@@ -45,7 +45,8 @@ if container is `std::string` we go over the characters. for two containers, we 
 | -Wextra        | even more warnings     |
 | -Werror        | treat them as errors   |
 | -O0            | no optimization        |
-| -O3 || -Ofast  | full optimization      |
+| -O3 or -Ofast  | full optimization      |
+
 
 ### 10.2. gdb
 build using `-g` flag, `gdb a.out`. use `help`. some commands :
