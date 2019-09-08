@@ -179,7 +179,7 @@ a = 10; // ref is now also 10
 ### 3.1. nothrow
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
-if (ptr==nullptr) cout<<"producing null pointer instead runtime exception";
+if (ptr==nullptr) cout<<"producing null pointer instead of runtime exception";
 ```
 ## 4. Class Basics
 ### 4.1. new retarded ways of instantiating
