@@ -35,7 +35,7 @@
   6.3. [type casting](#63-type-casting)<br>
   6.4. [typeid](#64-typeid)
 7. [Exception](#7-exception)<br>
-  7.1.[speicifcation](#71-specification)<br>
+  7.1.[specifcation](#71-specification)<br>
   7.2.[standard exceptions](#72-standard-exceptions)
 8. [CPP lambdas](#8-cpp-lambdas)<br>
 9. [Misc.](#9-misc)<br>
