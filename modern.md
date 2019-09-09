@@ -66,7 +66,7 @@ pip3 install gdbgui; gdbgui a.out
 `.so`, slower, referenced by programs.
 ### 10.4. compilation chain
 #### stupid way
-comile modules<br>
+compile modules<br>
 `c++ -std=c++11 -c <input .cpp files> -o <output .o files>`<br>
 organize modules into libraries<br>
 `ar rcs libtest.a <.o modules>`<br>
