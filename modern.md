@@ -16,7 +16,7 @@
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
 ### 1.2. vectors
-`#include<array>`, use `std::vector<type>`, unkown amount of items. use `vec.emplace_back()` instead of `vec.push_back()` for efficiency. use `vec.reserve()` for large pushes to avoid consecutive table updates. other useful functions in `#include <algorithm>:
+`#include<array>`, use `std::vector<type>`, unkown amount of items. use `vec.emplace_back()` instead of `vec.push_back()` for efficiency. use `vec.reserve()` for large pushes to avoid consecutive table updates. other useful functions in `#include <algorithm>`:
 
 ```cpp
 std::sort(vec.begin(), vec.end());    //ascending sort
