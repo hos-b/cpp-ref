@@ -1,4 +1,4 @@
-# Modern C++ Reference([Basic C++](https://github.com/hos-b/cpp-ref))
+# Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
 
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [arrays](#11-arrays)<br>
