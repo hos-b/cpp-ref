@@ -5,8 +5,11 @@
   1.2. [vectors](#12-vectors)
 2. [Flow Control](#2-flow-control)<br>
   2.1. [range for loop](#21-range-for-loop)
-10. [Compilation](#10-compilation)<br>
-  10.1. [flags](#101-flags)
+3. [Compilation](#10-compilation)<br>
+  10.1. [flags](#101-flags)<br>
+  10.2. [gdb](#102-gdb)<br>
+  10.3. [libraries](#103-libraries)<br>
+  10.4. [compilation chain](#104-compilation-chain)
   
 ## 1. Types and Stuff
 
