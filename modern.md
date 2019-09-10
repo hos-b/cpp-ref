@@ -108,7 +108,7 @@ pip3 install gdbgui; gdbgui a.out
 `.a`, fast, is incorporated in the final binary. created using `ar rcs <libname.a> <modules>`
 #### dynamic
 `.so`, slower, referenced by programs.
-### 10.4. compilation chain
+### 4.4. compilation chain
 #### stupid way
 compile modules<br>
 `c++ -std=c++11 -c <input .cpp files> -o <output .o files>`<br>
