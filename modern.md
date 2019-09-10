@@ -5,11 +5,21 @@
   1.2. [vectors](#12-vectors)
 2. [Flow Control](#2-flow-control)<br>
   2.1. [range for loop](#21-range-for-loop)
-3. [Compilation](#10-compilation)<br>
-  10.1. [flags](#101-flags)<br>
-  10.2. [gdb](#102-gdb)<br>
-  10.3. [libraries](#103-libraries)<br>
-  10.4. [compilation chain](#104-compilation-chain)
+3. [Unit Tests](#3-unit-test)<br>
+  3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
+  3.2. [writing tests](#32-writing-tests)<br>
+  3.2. [running tests](#33-running-tests)
+4. [Compilation](#4-compilation)<br>
+  4.1. [flags](#41-flags)<br>
+  4.2. [gdb](#42-gdb)<br>
+  4.3. [libraries](#43-libraries)<br>
+  4.4. [compilation chain](#44-compilation-chain)
+5. [cmake](#5-cmake)<br>
+  5.1. [messages, warnings, errors](#51-messages-warnings-errors)<br>
+  5.2. [compiler flags](#52-compiler-flags)<br>
+  5.3. [using precompiled libraries](#53-using-precompiled-libraries)<br>
+  5.4. [building](#54-building)<br>
+  5.5. [functions](#55-functions)
   
 ## 1. Types and Stuff
 ### 1.1. arrays
