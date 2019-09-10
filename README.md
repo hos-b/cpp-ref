@@ -690,21 +690,18 @@ namespace multiply
             return a * b;
         }
     }
-
     int getFirst()
     {
         return first;
     }
-
     int getSecond()
     {
         return second;
     }
-
     int getProduct()    
     {
         return calc(first, second);
     }
 }
 ```
-calc is hidden from the user.
+calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
