@@ -12,20 +12,16 @@
   10.4. [compilation chain](#104-compilation-chain)
   
 ## 1. Types and Stuff
-
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
 ### 1.2. vectors
 `#include<array>`, use `std::vector<type>`, unkown amount of items. use `vec.emplace_back()` instead of `vec.push_back()` for efficiency. use `vec.reserve()` for large pushes to avoid consecutive table updates. other useful functions in `#include <algorithm>`:
-
 ```cpp
 std::sort(vec.begin(), vec.end());    //ascending sort
 float sum = std::accumulate (vec.begin(), vec.end(), 0.0f);
 float product = std::accumulate (vec.begin(), vec.end(), 1.0f, std::multiplies<float>());
 ```
-
 ## 2. Flow Control
-
 ### 2.1 range for loop
 iterates over standard containers like `array` or `vector`.
 ```cpp
@@ -35,7 +31,49 @@ for (const auto& value : container){
 ```
 naturally `const` and `&` are optional.
 if container is `std::string` we go over the characters. for two containers, we have to write a normal for loop.
+## 3. Unit Tests
+install `libgtest-dev`, make a test subdirectory, edit top CMakeLists.txt: 
+```cmake
+enable_testing()
+add_subdirectory(tests)
+```
+### 3.1. CMakeLists.txt
+```cmake
+add_subdirectory(/usr/src/gtest
+                 ${PROJECT_BINARY_DIR}/gtest)
+# include cmake testing package
+include(CTest)
+# 
+set(TEST_BINARY ${PROJECT_NAME}_test)
+add_executable(${TEST_BINARY} mylib_test.cpp)
+target_link_libraries(${TEST_BINARY}
+                      mylib               # libraries we are testing
+                      gtest gtest_main    # gtest libraries
+)
+add_test(
+  NAME ${TEST_BINARY}
+  COMMAND ${EXECUTABLE_OUTPUT_PATH}/${TEST_BINARY})
+```
+### 3.2. writing tests
+mylib_test.cpp
+```cpp
+#include <gtest/gtest.h>
+#include "mylib.h"
 
+TEST(MylibTest, DummyTest){
+  EXPECT_EQ(1, Sum(1,1));
+}
+```
+```cmake
+
+```
+### 3.3. running tests
+```bash
+cd build
+cmake ..
+make
+ctest -VV     # very verbose 
+```
 ## 10. Compilation
 
 ### 10.1. flags
@@ -50,7 +88,6 @@ if container is `std::string` we go over the characters. for two containers, we 
 | -O0            | no optimization        |
 | -O3 or -Ofast  | full optimization      |
 
-
 ### 10.2. gdb
 build using `-g` flag, `gdb a.out`. use `help`. some commands :
 
@@ -58,10 +95,8 @@ build using `-g` flag, `gdb a.out`. use `help`. some commands :
 `run` or `r`
 `print <variable>`
 `step` or `s`
-
 #### gdbgui
 pip3 install gdbgui; gdbgui a.out
-
 ### 10.3. libraries
 #### static
 `.a`, fast, is incorporated in the final binary. created using `ar rcs <libname.a> <modules>`
@@ -76,8 +111,9 @@ organize modules into libraries<br>
 link libraries<br>
 `c++ -std=c++11 main.cpp -L <lib path> -ltest -o <executable name>`<br>
 run
-#### cmake
+#### or cmake
 defines build receipt
+## 11. cmake
 ```cmake
 projec(name)
 cmake_minimum_requiired(VERSION 3.1)
@@ -89,13 +125,13 @@ add_library(tools tools.cpp)
 add_executable(main main.cpp)
 target_link_libraries(main tools)
 ```
-messages, warnings, errors
+### 11.1. messages, warnings, errors
 ```cmake
 message(STATUS "message")
 message(WARNING "message")
 message(FATAL_ERROR "message")
 ```
-flags
+### 11.2. compiler flags
 ```cmake
 set(CMAKE_CXX_STANDARD 11)
 if (NOT CMAKE_BUILD_TYPE)
@@ -107,17 +143,43 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ```
 by default, `CMAKE_BUILD_TYPE` is not set.
 
-using precompiled libraries
+### 11.3. using precompiled libraries
 ```cmake
 add_library(tools SHARED IMPORTED)
 set_property(TARGET tools
              PROPERTY IMPORTED_LOCATION
              "${LIBRARY_OUTPUT_PATH}/libtools.so")
 ```
-building:
+### 11.4. building
 ```bash
 mkdir build
 cd build
 cmake ..
 make -j2 #pass number of cores here
+```
+### 11.5. functions
+
+#### add_subdirectory
+add a subdirectory with its own CMakeLists.txt, helps modularity.
+```cmake
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+```
+src/CMakeLists.txt
+```cmake
+add_executable(program source.cpp)
+```
+#### include_directories
+additional seach path for header files
+```cmake
+include_directories(program source.cpp)
+```
+#### add_library, target_link_libraries
+adding source files to be compiled into libraries. afterwards we link them with our executable
+```cmake
+add_library(libstatic STATIC stat.cpp)
+add_library(libdynamic SHARED dyno.cpp)
+...
+add_executable(program source.cpp)
+target_link_libraries(program libstatic
+                              libdynamic)
 ```
