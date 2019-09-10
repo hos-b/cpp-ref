@@ -43,7 +43,6 @@ add_subdirectory(/usr/src/gtest
                  ${PROJECT_BINARY_DIR}/gtest)
 # include cmake testing package
 include(CTest)
-# 
 set(TEST_BINARY ${PROJECT_NAME}_test)
 add_executable(${TEST_BINARY} mylib_test.cpp)
 target_link_libraries(${TEST_BINARY}
@@ -63,9 +62,6 @@ mylib_test.cpp
 TEST(MylibTest, DummyTest){
   EXPECT_EQ(1, Sum(1,1));
 }
-```
-```cmake
-
 ```
 ### 3.3. running tests
 ```bash
