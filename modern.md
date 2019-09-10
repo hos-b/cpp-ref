@@ -80,9 +80,9 @@ cmake ..
 make
 ctest -VV     # very verbose 
 ```
-## 10. Compilation
+## 4. Compilation
 
-### 10.1. flags
+### 4.1. flags
 | flag           | role                   |
 |----------------|------------------------|
 | -std=c++11     | standard library       |
@@ -94,7 +94,7 @@ ctest -VV     # very verbose
 | -O0            | no optimization        |
 | -O3 or -Ofast  | full optimization      |
 
-### 10.2. gdb
+### 4.2. gdb
 build using `-g` flag, `gdb a.out`. use `help`. some commands :
 
 `break main`
@@ -103,7 +103,7 @@ build using `-g` flag, `gdb a.out`. use `help`. some commands :
 `step` or `s`
 #### gdbgui
 pip3 install gdbgui; gdbgui a.out
-### 10.3. libraries
+### 4.3. libraries
 #### static
 `.a`, fast, is incorporated in the final binary. created using `ar rcs <libname.a> <modules>`
 #### dynamic
@@ -119,7 +119,7 @@ link libraries<br>
 run
 #### or cmake
 defines build receipt
-## 11. cmake
+## 5. cmake
 ```cmake
 projec(name)
 cmake_minimum_requiired(VERSION 3.1)
@@ -131,13 +131,13 @@ add_library(tools tools.cpp)
 add_executable(main main.cpp)
 target_link_libraries(main tools)
 ```
-### 11.1. messages, warnings, errors
+### 5.1. messages, warnings, errors
 ```cmake
 message(STATUS "message")
 message(WARNING "message")
 message(FATAL_ERROR "message")
 ```
-### 11.2. compiler flags
+### 5.2. compiler flags
 ```cmake
 set(CMAKE_CXX_STANDARD 11)
 if (NOT CMAKE_BUILD_TYPE)
@@ -149,22 +149,21 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ```
 by default, `CMAKE_BUILD_TYPE` is not set.
 
-### 11.3. using precompiled libraries
+### 5.3. using precompiled libraries
 ```cmake
 add_library(tools SHARED IMPORTED)
 set_property(TARGET tools
              PROPERTY IMPORTED_LOCATION
              "${LIBRARY_OUTPUT_PATH}/libtools.so")
 ```
-### 11.4. building
+### 5.4. building
 ```bash
 mkdir build
 cd build
 cmake ..
 make -j2 #pass number of cores here
 ```
-### 11.5. functions
-
+### 5.5. functions
 #### add_subdirectory
 add a subdirectory with its own CMakeLists.txt, helps modularity.
 ```cmake
