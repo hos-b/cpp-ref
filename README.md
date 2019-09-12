@@ -300,10 +300,16 @@ Compilers already optimize many cases that formally require a move-construction 
 
 Note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor. Rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track.
 ### 4.7. but wait, there's more
-if *none* of the 5 special functions are explicitly defined, *all* will be automatically generated.
-if at least *one* of the 5 special functions are explicitly defined, *none* will be automatically generated.
+| member function     | implicitly defined                                                    | default definition |
+|---------------------|-----------------------------------------------------------------------|--------------------|
+| default constructor | if no other constructors                                              | does nothing       |
+| destructor          | if no destructor                                                      | does nothing       |
+| copy constructor    | if no move constructor and no move assignment                         | copies all members |
+| copy assignment     | if no move constructor and no move assignment                         | copies all members |
+| move constructor    | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
+| move assignment     | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
 
-if we want them to be (or not to be), we have to explicitly ask for an implicit declaration (or removal thereof) :
+they're not always defined due to backward compatibility. if we want them to be (or not to be), we have to explicitly ask for an implicit declaration (or removal thereof) :
 ```cpp
 function_declaration = default;
 function_declaration = delete;
