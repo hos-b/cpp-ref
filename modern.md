@@ -173,18 +173,41 @@ src/CMakeLists.txt
 ```cmake
 add_executable(program source.cpp)
 ```
-#### include_directories
+#### finding and including headers
 additional seach path for header files
 ```cmake
-include_directories(program source.cpp)
+find_path(INCLUDE_DIR 
+          include/somefile.h 
+          <path_to_search_1> <path_to_search_2>)
+include_directories(${INCLUDE_DIR})
 ```
-#### add_library, target_link_libraries
-adding source files to be compiled into libraries. afterwards we link them with our executable
+#### add_library
+adding source files to be compiled into libraries, to be linked in the same or another project.
 ```cmake
 add_library(libstatic STATIC stat.cpp)
 add_library(libdynamic SHARED dyno.cpp)
-...
+```
+#### finding and linking libraries
+```cpp
+find_library(LIBS
+             NAMES libstatic libdynamic
+             PATHS ../lib)
+
 add_executable(program source.cpp)
-target_link_libraries(program libstatic
-                              libdynamic)
+target_link_libraries(program ${LIBS})
+```
+#### finding package
+`find_package` calls multiple `find_path` and `find_library` functions. to find a package, cmake must have a file called `Find<pkg>.cmake` in `CMAKE_MODULE_PATH` folders. this variable can be augmented.
+
+`Find<pkg>.cmake` defines which libraries and headers belong to `pkg`. this is predefined for most popular libraries. 
+
+Example `Findsome_pkg.cmake`:
+```cmake
+find_path(PKG_INCLUDE_DIRS include/smth.h <folder_to_search>)
+message (STATUS "headers ${PKG_INCLUDE_DIRS})
+
+find_library(PKG_LIBRARIES
+             NAMES some_lib_names
+             PATHS <folder_to_search>)
+message (STATUS "libraries ${LIBS})
 ```
