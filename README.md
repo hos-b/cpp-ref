@@ -207,9 +207,9 @@ Rectangle rectd{}; // default constructor called
 For members of fundamental types, it makes no difference how the constructor is defined, because they are not initialized by default, but for member objects (those whose type is a class), if they are not initialized using member initializer list, they are default-constructed:
 ```cpp
 class A {
-  double _r;
+  double r_;
   public:
-  A(double r) : _r(r) { }
+  A(double r) : r_(r) { }
 };
 class B {
   A base;
