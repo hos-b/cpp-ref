@@ -43,7 +43,10 @@
   9.2. [line control](#92-line-control)<br>
   9.3. [error directives](#93-error-directives)<br>
   9.4. [hidden namespaces](#94-hidden-namespaces)<br>
-
+  9.5. [string streams](#95-string-streams)
+10. [File I/O] (#10-file-io)<br>
+  10.1. [reading](#101-reading)<br>
+  10.2. [writing](#101-writing)<br>
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
 ```cpp
@@ -707,3 +710,79 @@ namespace multiply
 }
 ```
 calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
+### 9.5. string streams
+c++ equivalent of sprintf. also good for reverse sprintf.
+#### writing
+```cpp
+#include <sstream>
+stringstream sstr;
+int i = 50;
+double d = 2;
+std::string str = "hi";
+sstr << i << str << d;
+std::cout << sstr.str();
+```
+#### clearing
+```cpp sstr.str("")```
+#### reading
+```cpp
+int i;
+double d;
+std::string str;
+stringstream sstr("23times5.4");
+sstr>> i >> str >> d;
+```
+## 10. File I/O
+```cpp
+#include <fstream>
+using Mode = std::ios_base::openmode;
+// input stream
+std::ifstream f_in(std::string& filename, Mode mode);
+// output stream
+std::ofstream f_in(std::string& filename, Mode mode);
+// IO stream
+std::fstream f_in(std::string& filename, Mode mode);
+```
+### 10.1. modes
+
+| `ios_base::app`     | append output           |
+|---------------------|-------------------------|
+| `ios_base ::ate`    | seek to EOF when opened |
+| `ios_base ::binary` | open in binary mode     |
+| `ios_base ::in`     | open for reading        |
+| `ios_base ::out`    | open for writing        |
+| `ios_base ::trunc`  | overwrite existing file |
+
+### 10.2. reading
+
+#### using streams
+```cpp
+ifstream in ("file.txt", ios_base::in);
+int a,b;
+std::string str;
+double d;
+while (in >> a >> str >> b >> d){
+  ...
+}
+```
+#### getline
+```cpp
+ifstream in ("file.txt", ios_base::in);
+std::string line;
+int value;
+while (getline(in, line)){
+  string::size_type loc = line.find("value", 0);
+  if (loc != string::npos)
+    value  = line.substr(line.find("=",0) + 1, string::npos);
+}
+```
+### 10.2. writing
+```cpp
+#include <iomanip>
+#include <fstream>
+
+ofstream outfile("file.txt");
+if(!outfile.isopen())
+  return EXIT_FAILURE;
+outfile << "stuff" << std::endl;
+```
