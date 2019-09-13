@@ -196,7 +196,7 @@ find_library(LIBS
 add_executable(program source.cpp)
 target_link_libraries(program ${LIBS})
 ```
-#### finding package
+#### finding packages
 `find_package` calls multiple `find_path` and `find_library` functions. to find a package, cmake must have a file called `Find<pkg>.cmake` in `CMAKE_MODULE_PATH` folders. this variable can be augmented.
 
 `Find<pkg>.cmake` defines which libraries and headers belong to `pkg`. this is predefined for most popular libraries. 
