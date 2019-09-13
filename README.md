@@ -44,7 +44,7 @@
   9.3. [error directives](#93-error-directives)<br>
   9.4. [hidden namespaces](#94-hidden-namespaces)<br>
   9.5. [string streams](#95-string-streams)
-10. [File I/O] (#10-file-i/o)<br>
+10. [File IO] (#10-file-io)<br>
   10.1. [modes](#101-modes)<br>
   10.2. [reading](#102-reading)<br>
   10.3. [writing](#103-writing)<br>
@@ -733,7 +733,7 @@ std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
 ```
-## 10. File I/O
+## 10. File IO
 ```cpp
 #include <fstream>
 using Mode = std::ios_base::openmode;
@@ -777,7 +777,7 @@ while (getline(in, line)){
     value  = line.substr(line.find("=",0) + 1, string::npos);
 }
 ```
-### 10.2. writing
+### 10.3. writing
 ```cpp
 #include <iomanip>
 #include <fstream>
