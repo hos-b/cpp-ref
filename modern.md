@@ -20,7 +20,10 @@
   5.3. [using precompiled libraries](#53-using-precompiled-libraries)<br>
   5.4. [building](#54-building)<br>
   5.5. [functions](#55-functions)
-  
+6. [Smart Pointers](#6-smart-pointers)<br>
+6.1.1. [unique pointers](#611-unique-pointers)<br>
+6.1.2. [shared pointers](#612-shared-pointers)<br>
+6.1.3. [examples](#613-examples)
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
@@ -211,3 +214,87 @@ find_library(PKG_LIBRARIES
              PATHS <folder_to_search>)
 message (STATUS "libraries ${LIBS})
 ```
+
+## 6. Smart Pointers
+they own the object they wrap. `#include <memory>` to use them. they have the same properties as raw pointers :
+
+* can be set to `nullptr`
+* `*ptr` for dereferencing
+* `ptr->` for member access
+* polymorphic
+
+additional functions
+
+* `ptr.get()` returns a raw pointer that the smart pointer manages
+* `ptr.reset(raw_ptr)` stops using the current raw pointer, frees its memory if needed, takes owenership of the new `raw_ptr`
+### 6.1. unique pointers
+constructor of the `unique_pointer` takes ownership of the provided raw pointer. *no runtime overhead over raw pointers*. 
+```cpp
+#include <memory>
+// C++11
+auto p = std::unique_ptr<Type>(new Type(<params>));
+// C++14 and later
+auto p = std::make_unique<Type>(<params>);
+```
+the copy constructor is explicitly deleted for the unique pointer, however it can be moved e.g. using `std::move`. accessing the unique pointer after move will *most likely* cause a runtime error.
+
+it gurarantees that memory is always owned by a single unique pointer.
+### 6.2. shared pointers
+just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. It can be initialized from a `unique_pointer`.
+```cpp
+#include <memory>
+// both work since C++11
+auto p = std::shared_ptr<Type>(new Type(<params>));
+//preferred
+auto p = std::make_shared<Type>(<params>);
+...
+std::cout << "use count : " << ptr.use_count();
+```
+### 6.3. examples
+beginner error : both stack and the smart pointer own the object -> it gets deleted twice and produces errors.
+```cpp
+int main(){
+  int a = 0;
+  auto a_ptr = std::unique_ptr<int>(&a);
+  return 0
+}
+```
+good use
+```cpp
+struct Shape{
+  ...
+}
+int main(){
+  std::vecotr<std::unique_tr<Shape>> shapes;
+  shapes.emplace_back(new Shape);
+  shapes.emplace_back(std::make_unique<Shape>());
+  auto lvalue_shape = unique_ptr<Shape>(new Shape);
+  shapes.emplace_back(std::move(lvalue_shape));
+}
+```
+## 7. Associative Containers
+
+### 7.1. map
+stores items under unique keys. usually implemented as red-black tree, i.e. random access in logarithmic time. key can be any type with `operator <` defined. 
+```cpp
+#include <map>
+...
+std::map<KeyType, ValueType> m = { {key, value}, {key, value}, {key, value} };
+m.emplace(key, value);
+// modify or add an item
+m[key] = new_value;
+// get (const) ref to an item
+const auto& = m.at(key);
+// check if key is present 
+m.count(key)>0
+// check size
+std::cout << m.size();
+// iteration
+for (const auto& kv : m) {
+  const auto& key = kv.first;
+  const auto& value = kv.second;
+}
+```
+one common mistake is using brackets to get const reference to that key. if it's not available, it will be created and initialized based on the default value.
+### 7.2. unordered map
+same purpose as `std::map` implemented with a hash table. key type has to be hashable, typically `int` or `std::string`. same interface as `std::map`.
