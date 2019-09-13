@@ -44,9 +44,10 @@
   9.3. [error directives](#93-error-directives)<br>
   9.4. [hidden namespaces](#94-hidden-namespaces)<br>
   9.5. [string streams](#95-string-streams)
-10. [File I/O] (#10-file-io)<br>
-  10.1. [reading](#101-reading)<br>
-  10.2. [writing](#101-writing)<br>
+10. [File I/O] (#10-file-i/o)<br>
+  10.1. [modes](#101-modes)<br>
+  10.2. [reading](#102-reading)<br>
+  10.3. [writing](#103-writing)<br>
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
 ```cpp
