@@ -21,9 +21,12 @@
   5.4. [building](#54-building)<br>
   5.5. [functions](#55-functions)
 6. [Smart Pointers](#6-smart-pointers)<br>
-6.1.1. [unique pointers](#611-unique-pointers)<br>
-6.1.2. [shared pointers](#612-shared-pointers)<br>
-6.1.3. [examples](#613-examples)
+  6.1.1. [unique pointers](#611-unique-pointers)<br>
+  6.1.2. [shared pointers](#612-shared-pointers)<br>
+  6.1.3. [examples](#613-examples)
+7. [Associative Containers](#7-associative-containers)<br>
+  7.1. [map](#71-map)<br>
+  7.2. [unordered map](#72-unordered-map)
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
