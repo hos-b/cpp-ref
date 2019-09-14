@@ -614,8 +614,9 @@ std::fstream f_in(std::string& filename, Mode mode);
 ```
 ### 8.1. modes
 
-| `ios_base::app`     | append output           |
+| mode                | effect                  |
 |---------------------|-------------------------|
+| `ios_base::app`     | append output           |
 | `ios_base ::ate`    | seek to EOF when opened |
 | `ios_base ::binary` | open in binary mode     |
 | `ios_base ::in`     | open for reading        |
