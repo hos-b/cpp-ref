@@ -15,7 +15,7 @@
 3. [Dynamic Memory](#3-dynamic-memory)<br>
   3.1. [nothrow](#31-nothrow)
 4. [Class Basics](#4-class-basics)<br>
-  4.1. [new retarded ways of instantiating](#41-new-retarded-ways-of-instantiating)<br>
+  4.1. [other ways of instantiating](#41-other-ways-of-instantiating)<br>
   4.2. [member initialization](#42-member-initialization)<br>
   4.3. [static members](#43-static-members)<br>
   4.4. [const objects and functions](#44-const-objects-and-functions)<br>
@@ -37,17 +37,19 @@
 7. [Exception](#7-exception)<br>
   7.1.[specifcation](#71-specification)<br>
   7.2.[standard exceptions](#72-standard-exceptions)
-8. [CPP lambdas](#8-cpp-lambdas)<br>
-9. [Misc.](#9-misc)<br>
+8. [File IO](#8-file-io)<br>
+  8.1. [modes](#81-modes)<br>
+  8.2. [ascii reading](#82-ascii-reading)<br>
+  8.3. [ascii writing](#83-ascii-writing)<br>
+  8.4. [binary reading](#84-binary-reading)<br>
+  8.5. [ascii writing](#85-binary-writing)<br>
+9. [Misc.](#8-misc)<br>
   9.1. [preprocessor-directives](#91-preprocessor-directives)<br>
   9.2. [line control](#92-line-control)<br>
   9.3. [error directives](#93-error-directives)<br>
   9.4. [hidden namespaces](#94-hidden-namespaces)<br>
   9.5. [string streams](#95-string-streams)
-10. [File IO](#10-file-io)<br>
-  10.1. [modes](#101-modes)<br>
-  10.2. [reading](#102-reading)<br>
-  10.3. [writing](#103-writing)<br>
+
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
 ```cpp
@@ -75,20 +77,33 @@ union mix_t {
 ### 1.4. enums
 ```cpp
 //numbered starting from 0
-enum colors_t {black, blue, green, cyan, red, purple, yellow, white}; 
-//numbered startin from 1 enum months_t { january=1, february, march, april,
-                may, june, july, august, september, october, november, december} y2k;
+enum colors_t {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE}; 
+//numbered startin from 1 
+enum months_t { JANUARY=1, FEBRUARY, MARCH, ...};
 ```
-real enum types that are neither implicitly convertible to int and that neither have enumerator values of type int, but of the enum type itself. enum class or enum struct :
+real enum types that are neither implicitly convertible to int and that neither have enumerator values of type int, but of the enum type itself. 
+
+#### enum class, enum struct
+enum class or enum struct helps avoid dumb misakes by preventing unwanted int casts.
 ```cpp
-enum class Colors {black, blue, green, cyan, red, purple, yellow, white};
+enum class Colors {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE};
 Colors mycolor;
-mycolor = Colors::blue;
-if (mycolor == Colors::green) mycolor = Colors::red;
+mycolor = Colors::BLUE;
+if (mycolor == Colors::GREEN) mycolor = Colors::RED;
 ```
-to determine type size :
+
+#### determine type size
 ```cpp
 enum class EyeColor : char {blue, green, brown}; 
+```
+#### explicit values
+usable for masks
+```cpp
+enum class EnumType {
+  OPTION_1 = 10,
+  OPTION_2 = 0xBE,
+  ...
+}
 ```
 ### 1.5. volatile keyword
 volatile is a hint to the implementation to avoid aggressive optimization involving the object because the value of the object might be changed by means undetectable by an implementation. the compiler might sometimes optimize objects that affect program flow e.g. a loop. from the compiler's perspective the object could be changed by a static value but that might not be the case. to avoid such faults, the volatile keyword should be used.
@@ -189,7 +204,7 @@ int *ptr = new (nothrow) int[1000000000];
 if (ptr==nullptr) cout<<"producing null pointer instead of runtime exception";
 ```
 ## 4. Class Basics
-### 4.1. new retarded ways of instantiating
+### 4.1. other ways of instantiating
 ```cpp
 class Circle {
   double radius;
@@ -223,6 +238,8 @@ class B {
 ```
 or just make a pointer to A like a decent person.
 ### 4.3. static members
+#### variables
+exist exactly once per type, not per object. the value is equal across all instances.
 ```cpp
 class Dummy{
   static int counter;
@@ -230,7 +247,12 @@ class Dummy{
 }
 Dummy::counter = 0;
 ```
-to avoid them being declared several times, they cannot be initialized directly in the class, but need to be initialized somewhere outside it.
+to avoid them being declared several times, they cannot be initialized directly in the class, but need to be initialized somewhere outside it (always in cpp files, never in headers).
+#### functions
+they do not have an object of the class. they can access private members if they are passed to them as parameters. syntax:
+```cpp
+ClassName::MethodName(<params>)
+```
 ### 4.4. const objects and functions
 ```cpp
 const Class object;
@@ -238,7 +260,7 @@ const Class object;
 * access to its data members from outside the class is restricted to read-only, as if all its data members were const for those accessing them from outside the class. member functions should be const if they are to be called outside the class.
 * member functions specified to be const cannot modify non-static data members nor call other non-const member functions. In essence, const members shall not modify the state of an object.
 * const objects are limited to access only member functions marked as const, but non-const objects are not restricted and thus can access both const and non-const member functions alike.
-Most functions taking classes as parameters actually take them by const reference, and thus, these functions can only access their const members, i.e. ensuring that the passed object does not changed. overloading constness is also a thing :
+Most functions taking classes as parameters actually take them by const reference, and thus, these functions can only access their const members, i.e. ensuring that the passed object does not change. overloading constness is also a thing :
 ```cpp
 class MyClass {
   int x;
@@ -294,8 +316,8 @@ in general :
 MyClass fn();            // function returning a MyClass object
 MyClass foo;             // default constructor
 MyClass bar = foo;       // copy constructor
-MyClass baz = fn();      // move constructor
 foo = bar;               // copy assignment
+MyClass baz = fn();      // move constructor
 baz = MyClass();         // move assignment
 ```
 Notes:
@@ -446,6 +468,8 @@ void main () {
 even though both are pointers of type Base*, pba actually points to an object of type Derived, while pbb points to an object of type Base. Therefore, when their respective type-casts are performed using dynamic_cast, pba is pointing to a full object of class Derived, whereas pbb is pointing to an object of class Base, which is an incomplete object of class Derived.
 
 If dynamic_cast is used to convert to a reference type and the conversion is not possible, an exception of type bad_cast is thrown instead. dynamic_cast can also perform the other implicit casts allowed on pointers: casting null pointers between pointers types (even between unrelated classes), and casting any pointer of any type to a void* pointer. 
+
+Google style suggests avoiding dynamic casts.
 #### static_cast
 static_cast can perform conversions between pointers to related classes, not only upcasts (from pointer-to-derived to pointer-to-base), but also downcasts (from pointer-to-base to pointer-to-derived). No checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. Therefore, it is up to the programmer to ensure that the conversion is safe. On the other side, it does not incur the overhead of the type-safety checks of dynamic_cast.
 ```cpp
@@ -577,86 +601,97 @@ Also deriving from exception, header `<exception>` defines two generic exception
 | logic_error       | error related to the internal logic of the program     |
 | runtime_error     | error detected during runtime                          |
 
-### 8 CPP lambdas
-a simple example using `std::foreach` :
+## 8. File IO
 ```cpp
-vector<int> v;
-v.push_back(...);
-...
-int evenCount=0;
-for_each(v.begin(), v.end(), [&evenCount] (int n) {
-      cout << n;
-      if (n % 2 == 0) {
-         cout << " is even " << endl;
-         ++evenCount;
-      } else {
-         cout << " is odd " << endl;
-      }
-   });
+#include <fstream>
+using Mode = std::ios_base::openmode;
+// input stream
+std::ifstream f_in(std::string& filename, Mode mode);
+// output stream
+std::ofstream f_in(std::string& filename, Mode mode);
+// IO stream
+std::fstream f_in(std::string& filename, Mode mode);
 ```
-lambdas are made of 6 parts : 
+### 8.1. modes
+
+| `ios_base::app`     | append output           |
+|---------------------|-------------------------|
+| `ios_base ::ate`    | seek to EOF when opened |
+| `ios_base ::binary` | open in binary mode     |
+| `ios_base ::in`     | open for reading        |
+| `ios_base ::out`    | open for writing        |
+| `ios_base ::trunc`  | overwrite existing file |
+
+### 8.2. ascii reading
+
+#### using streams
 ```cpp
-[] () mutable throw() -> int
-{
-  
+ifstream in ("file.txt", ios_base::in);
+int a,b;
+std::string str;
+double d;
+while (in >> a >> str >> b >> d){
+  ...
 }
 ```
-1. capture clause (Also known as the lambda-introducer in the C++ specification.)
-2. parameter list Optional. (Also known as the lambda declarator)
-3. mutable specification Optional.
-4. exception-specification Optional.
-5. trailing-return-type Optional.
-6. lambda body.
-
-#### capture clause
-A lambda can introduce new variables in its body (in C++14), and it can also access, or capture, variables from the surrounding scope. A lambda begins with the capture clause (lambda-introducer in the Standard syntax), which specifies which variables are captured, and whether the capture is by value or by reference. Variables that have the ampersand `&` prefix are accessed by reference and variables that do not have it are accessed by value. An empty capture clause, `[ ]`, indicates that the body of the lambda expression accesses no variables in the enclosing scope.
-`[&]` means all variables that you refer to are captured by reference, and `[=]` means they are captured by value. You can use a default capture mode, and then specify the opposite mode explicitly for specific variables. For example, if a lambda body accesses the external variable total by reference and the external variable factor by value, then the following capture clauses are equivalent:
+#### getline
 ```cpp
-[&total, factor]
-[factor, &total]
-[&, factor]
-[factor, &]
-[=, &total]
-[&total, =]
-```
-in C++14, you can introduce and initialize new variables in the capture clause, without the need to have those variables exist in the lambda function’s enclosing scope. 
-#### parameter list
-in addition to capturing variables, a lambda can accept input parameters. A parameter list is optional and in most aspects resembles the parameter list for a function. in C++ 14, if the parameter type is generic, you can use the auto keyword as the type specifier.
-```cpp
-auto y = [] (int first, int second)
-{
-    return first + second;
-};
-```
-#### mutable
-typically, a lambda's function call operator is const-by-value, but use of the mutable keyword cancels this out. It does not produce mutable data members. The mutable specification enables the body of a lambda expression to modify variables that are captured by value.
-#### exception specification
-you can use the noexcept exception specification to indicate that the lambda expression does not throw any exceptions. As with ordinary functions, the compiler generates warning C4297 if a lambda expression declares the noexcept exception specification and the lambda body throws an exception.
-#### return type
-the return type of a lambda expression is automatically deduced. You don't have to use the auto keyword unless you specify a trailing-return-type. The trailing-return-type resembles the return-type part of an ordinary method or function. However, the return type must follow the parameter list, and you must include the trailing-return-type keyword `->` before the return type.
-
-You can omit the return-type part of a lambda expression if the lambda body contains just one return statement or the expression does not return a value. If the lambda body contains one return statement, the compiler deduces the return type from the type of the return expression. Otherwise, the compiler deduces the return type to be void.
-```cpp
-auto x1 = [](int i){ return i; }; // OK: return type is int
-auto x2 = []{ return{ 1, 2 }; };  // ERROR: return type is void, deducing
-                                  // return type from braced-init-list is not valid
-```
-#### body
-The lambda body (compound-statement in the Standard syntax) of a lambda expression can contain anything that the body of an ordinary method or function can contain. The body of both an ordinary function and a lambda expression can access these kinds of variables:
-1. Captured variables from the enclosing scope, as described previously.
-2. Parameters
-3. Locally-declared variables
-4. Class data members, when declared inside a class and this is captured
-5. Any variable that has static storage duration—for example, global variables
-```cpp
-int main()
-{
-   int m = 0;
-   int n = 0;
-   [&, n] (int a) mutable { m = ++n + a; }(4); //m=5, n=0
+ifstream in ("file.txt", ios_base::in);
+std::string line;
+int value;
+while (getline(in, line)){
+  string::size_type loc = line.find("value", 0);
+  if (loc != string::npos)
+    value  = line.substr(line.find("=",0) + 1, string::npos);
 }
 ```
-The `mutable` specification allows n to be modified within the lambda.
+### 8.3. ascii writing
+```cpp
+#include <iomanip>
+#include <fstream>
+
+ofstream outfile("file.txt");
+if(!outfile.isopen())
+  return EXIT_FAILURE;
+outfile << "stuff" << std::endl;
+```
+### 8.4. binary reading
+must know the structure beforehand, syntax :
+```cpp
+file.read(reinterpret_cast<char*> (&a), sizeof(a));
+```
+```cpp
+#include <fstream>
+#include <vector>
+
+ifstream file("image.dat", ios_base::in | ios_base::binary);
+if (!file) return EXIT_FAILURE;
+int r = 0, c = 0;
+
+file.read(reinterpret_cast<char*>(&r), sizeof(r));
+file.read(reinterpret_cast<char*>(&c), sizeof(c));
+std::cout<<"dimensions " << r << "x" << c;
+vector<float> vec(r * c, 0);
+file.read(reinterpret_cast<char*>(&vec.front()), vec.size()*sizeof(vec.front()));
+```
+### 8.5. binary writing
+writing a sequence of byte, no precision loss for float types, fast. syntax:
+```cpp
+file.write(reinterpret_cast<char*> (&a), sizeof(a));
+```
+```cpp
+#include <fstream>
+#include <vector>
+
+ofstream file("image.dat", ios_base::out | ios_base::binary);
+if (!file) return EXIT_FAILURE;
+int r = 2, c = 3;
+
+vector<float> vec(r*c, 42);
+file.write(reinterpret_cast<char*>(&r), sizeof(r));
+file.write(reinterpret_cast<char*>(&c), sizeof(c));
+file.write(reinterpret_cast<char*>(&vec.front()), vec.size()*sizeof(vec.front()));
+```
 ## 9. Misc.
 ### 9.1. preprocessor directives
 ```cpp
@@ -732,58 +767,4 @@ double d;
 std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
-```
-## 10. File IO
-```cpp
-#include <fstream>
-using Mode = std::ios_base::openmode;
-// input stream
-std::ifstream f_in(std::string& filename, Mode mode);
-// output stream
-std::ofstream f_in(std::string& filename, Mode mode);
-// IO stream
-std::fstream f_in(std::string& filename, Mode mode);
-```
-### 10.1. modes
-
-| `ios_base::app`     | append output           |
-|---------------------|-------------------------|
-| `ios_base ::ate`    | seek to EOF when opened |
-| `ios_base ::binary` | open in binary mode     |
-| `ios_base ::in`     | open for reading        |
-| `ios_base ::out`    | open for writing        |
-| `ios_base ::trunc`  | overwrite existing file |
-
-### 10.2. reading
-
-#### using streams
-```cpp
-ifstream in ("file.txt", ios_base::in);
-int a,b;
-std::string str;
-double d;
-while (in >> a >> str >> b >> d){
-  ...
-}
-```
-#### getline
-```cpp
-ifstream in ("file.txt", ios_base::in);
-std::string line;
-int value;
-while (getline(in, line)){
-  string::size_type loc = line.find("value", 0);
-  if (loc != string::npos)
-    value  = line.substr(line.find("=",0) + 1, string::npos);
-}
-```
-### 10.3. writing
-```cpp
-#include <iomanip>
-#include <fstream>
-
-ofstream outfile("file.txt");
-if(!outfile.isopen())
-  return EXIT_FAILURE;
-outfile << "stuff" << std::endl;
 ```
