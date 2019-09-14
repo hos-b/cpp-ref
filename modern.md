@@ -30,8 +30,17 @@
   8.1. [map](#81-map)<br>
   8.2. [unordered map](#82-unordered-map)
 9. [Iterators]<br>
+  9.1. [properties](#91-properties)<br>
+  9.2. [examples](#92-examples)
 10. [CPP Lambdas](#10-cpp-lambdas)<br>
-
+11. [OpenCV](#11-opencv)<br>
+  11.1. [basic matrix type](#111-basic-matrix-type)<br>
+  11.2. [memory management](#112-memory-management)<br>
+  11.3. [IO](#113-io)<br>
+  11.4. [basic matrix type](#114-basic-matrix-type)<br>
+  11.5. [vector type](#115-vector-type)<br>
+  11.6. [SIFT descriptors](#116-sift-descriptors)
+  
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
@@ -352,6 +361,33 @@ one common mistake is using brackets to get const reference to that key. if it's
 ### 8.2. unordered map
 same purpose as `std::map` implemented with a hash table. key type has to be hashable, typically `int` or `std::string`. same interface as `std::map`.
 
+## 9. Iterators
+a type that iterates over a container. it can be regarded as a pointer:
+* access current element through '*iter*
+* accepts `->` operatpr
+* moves to the next element using `iter++`
+### 9.1 properties 
+* comparable with ==, !=, <
+* predefined iterators in STL : obj.begin(), obj.end()
+* range-based for loops preferred
+`begin()` points to the start of the container. `end()` points to one element after the last element, i.e. nothing
+### 9.2 examples
+#### simple iterator loops
+```cpp
+std::vector<double> x = {{1,2,3}};
+for (auto it = x.begin(), it != x.end(); ++it){
+    std::cout << *it << std::endl;
+}
+```
+#### map iterator
+```cpp
+std::map<int, std::string> m = {{1, "hello"}, {2, "world"}};
+std::map<int, std::string>::iterator m_iter = m.find(1);
+std::cout << m_iter->first << ":" << m_iter.second << endl;
+if (m.find(3) == m.end())
+  std::cout<< "key 3 not found\n" ;
+```
+in the case of `std::map` it's much more readable to write `if(m.count(3))` instead.
 ### 10. CPP lambdas
 a simple example using `std::foreach` :
 ```cpp
@@ -432,3 +468,125 @@ int main()
 }
 ```
 The `mutable` specification allows n to be modified within the lambda.
+## 11. OpenCV
+uses own types
+#### naming convention
+types follow the patern `CV_<bit_count><identifier><num_of_channels>` e.g. `CV_8UC3` is 8-bit unsigned char with 3 channels for RGB. `CV_8UC1` is 9-bit unsigned char grayscale. 
+
+it's better to use `DataType`. e.g. `DataType<uint>::type == CV_8UC1`
+### 11.1. basic matrix type
+#### constructors
+```cpp
+cv::Mat image(rows, cols, DataType, value);
+cv::Mat_<T> image(rows, cols, value);
+```
+#### initialization
+```
+cv::Mat iamge = cv::Mat::zeros(10, 10, CV_8UC3);
+using Matf = cv::Mat_<float>;
+Matf image = Matf::zeros(10, 10);
+```
+#### properties
+get type using `image.type()`<br>
+get size with `image.rows`, `image.cols`
+
+### 11.2. memory management
+`cv::Mat` is a shared pointer, although not a `std::shared_ptr`. cloning can be done :
+```cpp
+cv::Mat image = cv::Mat::zeros(10,10);
+cv::Mat nocopy = image;
+cv::Mat copy = image.clone();
+```
+#### command line compiling
+```bash
+c++ -std=c++11 -o main main.cpp `pkg-config --libs --cflags opencv`
+```
+
+### 11.3. IO
+#### reading
+```cpp
+Mat imread(const string& file, int mode=1)
+```
+modes<br>
+* unchanged   `CV_LOAD_IMAGE_UNCHANGED < 0`
+* 1 channel   `CV_LOAD_IMAGE_GRAYSCALE == 0`
+* 3 channels  `CV_LOAD_IMAGE_COLOR > 0`
+```cpp
+Mat i1 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
+Mat_<unit8_t> i2 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
+std::out << (i1.type == i2.type) << std::endl;
+```
+it's recommended to use typed matrices. This will help when we're assinging values to individual pixels.
+#### writing
+```cpp
+bool imwrite(const string& file, const Mat& img)
+```
+simple type conversion
+```cpp
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+int main(){
+  cv::Mat image = imread("logo.png", CV_LOAD_IMAGE_COLOR);
+  cv::imwrite("copy.jpg", image);
+  return 0;
+}
+```
+#### exr files
+when stroing floating point images, OpenCV expects the values to be in 0-1 range. when storing arbitrary values, there might be cutoffs. to avoid this, we can save to `.exr` files. they will store and read the values as is without losing precision.
+
+#### showing
+```cpp
+void imshow(const string& window_name, const Mat& mat);
+```
+use 
+```cpp
+#include <opencv2/opencv.hpp>
+int main(){
+  cv::Mat mat = cv::imread(...);
+  cv::namedWindow("window", cv::WINDOW_AUTOSIZE);
+  cv::imshow("window", mat);
+  cv::waitKey();
+}
+```
+### 11.4. vector type
+```cpp
+cv::Vec<Type, SIZE>
+```
+many typedefs available, e.g. `Vec3f`, `Vec3b`, etc. used ofr pixels in multidimensional images :
+```cpp
+cv::Mat mat = cv::Mat::zeros(10, 10, CV_8UC3);
+std::cout << mat.at<Vec3b>(5, 4);
+
+cv::Mat_<Vec3f> matf = cv::Mat_<Vec3f>::zeros(10, 10);
+std::cout << matf.at<Vec3f>(1, 5);
+```
+#### using wrong types
+will not produce bugs, but it will generate unwanted behavior. 
+
+### 11.5. SIFT descriptors
+we have `SiftFeatureDetector` to detect the keypoints and `SiftDescriptorExtractor` to compute the descriptors.
+```cpp
+// detect keypoints
+SiftFeatureDetector detector;
+vector<KeyPoint> keypoints;
+decetor.detect(input, keypoints);
+// show keypoints
+cv::Mat image_with_keypoints;
+drawKeypoints(input, keypoints, image_with_keypoitns);
+// extract SIFT descriptors
+SiftDescriptorExtractor extractor;
+extractor.comput(input, keypoints, descriptors);
+```
+### 11.6. FLANN
+Fast library for Aproximate Nearest Neighbors. builds K-d tree, searches for neighbors there.
+```cpp
+// create a kdtree for searching the data
+cv::flann::KDTreeIndexParams index_params;
+cv::flann::Index kdtree(data, index_params);
+// search the nearest vector to some query
+int k = 1;
+cv::Mat nearerst_vector_idx(1, k, DataType<int>::type);
+cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
+kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
+
+```
