@@ -20,13 +20,18 @@
   5.3. [using precompiled libraries](#53-using-precompiled-libraries)<br>
   5.4. [building](#54-building)<br>
   5.5. [functions](#55-functions)
-6. [Smart Pointers](#6-smart-pointers)<br>
-  6.1. [unique pointers](#61-unique-pointers)<br>
-  6.2. [shared pointers](#62-shared-pointers)<br>
-  6.3. [examples](#63-examples)
-7. [Associative Containers](#7-associative-containers)<br>
-  7.1. [map](#71-map)<br>
-  7.2. [unordered map](#72-unordered-map)
+6. [Move Semantics](#6-move-semantics)<br>
+  6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)
+7. [Smart Pointers](#7-smart-pointers)<br>
+  7.1. [unique pointers](#71unique-pointers)<br>
+  7.2. [shared pointers](#72-shared-pointers)<br>
+  7.3. [examples](#73-examples)
+8. [Associative Containers](#8-associative-containers)<br>
+  8.1. [map](#81-map)<br>
+  8.2. [unordered map](#82-unordered-map)
+9. [Iterators]<br>
+10. [CPP Lambdas](#10-cpp-lambdas)<br>
+
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
@@ -217,8 +222,53 @@ find_library(PKG_LIBRARIES
              PATHS <folder_to_search>)
 message (STATUS "libraries ${LIBS})
 ```
+## 6. Move Semantics
 
-## 6. Smart Pointers
+### 6.1. lvalue and rvalue
+* an expression is an lvalue when *it can* be written on the left side of the assignment operator `=`.
+* other expressions are rvalues. 
+* explicit rvalue defined using `&&`
+* `std::move()` used to convert an lvalue to an rvalue
+```cpp
+int a;                    // a = lvlaue
+int& a_ref = a;           // a_ref = reference to lvalue, a = lvalue
+a = 2+2;                  // a = lvlaue, 2+2 = rvalue
+int b = a+2;              // b = lvalue, a+2 = rvalue
+int &&c = std::move(a);   // c = rvalue
+```
+typically when using rvalues in functions, we want to move ownership, therefor using `const <type>&&` makes no senese.
+### 6.2. example
+```cpp
+void Print (const std::string& str){
+  std::cout << "lvalue : " << str;
+}
+void Print (std::string&& str){
+  std::cout << "rvalue : " << str;
+}
+int main(){
+  string hello = "hi";
+  Print(hello);               // lvalue
+  Print("world");             // rvalue
+  Print(std::move(hello));    // rvalue, should not access hello anymore
+  return 0;
+}
+```
+by c++ standard, after an object has been moved, it should be empty. moving a variable transfer ownership of its resource to another variable. runtime is better than copying, worse than passing by reference.
+### 6.3. move constructor and assignment
+```cpp
+MyClass::MyClass (MyClass&&);   // move-constructor
+MyClass& operator= (MyClass&&); // move-assignment
+```
+move constructor is automatically called when the object is moved.<br>
+move assignment is automatically called when the object is assigned a new value from an rvalue.
+```cpp
+MyClass a;
+MyClass b(std::move(a));    // move constructor
+MyClass c = std::move(a);   // move constructor
+b = std::move(c);           // move assignment
+```
+the last syntax explicitly calls the move assignment, however compilers tend to recognize when a copy assignment is needed, specially when a big object returned from a function is being assigned to a variable.
+## 7. Smart Pointers
 they own the object they wrap. `#include <memory>` to use them. they have the same properties as raw pointers :
 
 * can be set to `nullptr`
@@ -230,7 +280,7 @@ additional functions
 
 * `ptr.get()` returns a raw pointer that the smart pointer manages
 * `ptr.reset(raw_ptr)` stops using the current raw pointer, frees its memory if needed, takes owenership of the new `raw_ptr`
-### 6.1. unique pointers
+### 7.1. unique pointers
 constructor of the `unique_pointer` takes ownership of the provided raw pointer. *no runtime overhead over raw pointers*. 
 ```cpp
 #include <memory>
@@ -242,7 +292,7 @@ auto p = std::make_unique<Type>(<params>);
 the copy constructor is explicitly deleted for the unique pointer, however it can be moved e.g. using `std::move`. accessing the unique pointer after move will *most likely* cause a runtime error.
 
 it gurarantees that memory is always owned by a single unique pointer.
-### 6.2. shared pointers
+### 7.2. shared pointers
 just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. It can be initialized from a `unique_pointer`.
 ```cpp
 #include <memory>
@@ -253,7 +303,7 @@ auto p = std::make_shared<Type>(<params>);
 ...
 std::cout << "use count : " << ptr.use_count();
 ```
-### 6.3. examples
+### 7.3. examples
 beginner error : both stack and the smart pointer own the object -> it gets deleted twice and produces errors.
 ```cpp
 int main(){
@@ -275,9 +325,9 @@ int main(){
   shapes.emplace_back(std::move(lvalue_shape));
 }
 ```
-## 7. Associative Containers
+## 8. Associative Containers
 
-### 7.1. map
+### 8.1. map
 stores items under unique keys. usually implemented as red-black tree, i.e. random access in logarithmic time. key can be any type with `operator <` defined. 
 ```cpp
 #include <map>
@@ -299,5 +349,86 @@ for (const auto& kv : m) {
 }
 ```
 one common mistake is using brackets to get const reference to that key. if it's not available, it will be created and initialized based on the default value.
-### 7.2. unordered map
+### 8.2. unordered map
 same purpose as `std::map` implemented with a hash table. key type has to be hashable, typically `int` or `std::string`. same interface as `std::map`.
+
+### 10. CPP lambdas
+a simple example using `std::foreach` :
+```cpp
+vector<int> v;
+v.push_back(...);
+...
+int evenCount=0;
+for_each(v.begin(), v.end(), [&evenCount] (int n) {
+      cout << n;
+      if (n % 2 == 0) {
+         cout << " is even " << endl;
+         ++evenCount;
+      } else {
+         cout << " is odd " << endl;
+      }
+   });
+```
+lambdas are made of 6 parts : 
+```cpp
+[] () mutable throw() -> int
+{
+  
+}
+```
+1. capture clause (Also known as the lambda-introducer in the C++ specification.)
+2. parameter list Optional. (Also known as the lambda declarator)
+3. mutable specification Optional.
+4. exception-specification Optional.
+5. trailing-return-type Optional.
+6. lambda body.
+
+#### capture clause
+A lambda can introduce new variables in its body (in C++14), and it can also access, or capture, variables from the surrounding scope. A lambda begins with the capture clause (lambda-introducer in the Standard syntax), which specifies which variables are captured, and whether the capture is by value or by reference. Variables that have the ampersand `&` prefix are accessed by reference and variables that do not have it are accessed by value. An empty capture clause, `[ ]`, indicates that the body of the lambda expression accesses no variables in the enclosing scope.
+`[&]` means all variables that you refer to are captured by reference, and `[=]` means they are captured by value. You can use a default capture mode, and then specify the opposite mode explicitly for specific variables. For example, if a lambda body accesses the external variable total by reference and the external variable factor by value, then the following capture clauses are equivalent:
+```cpp
+[&total, factor]
+[factor, &total]
+[&, factor]
+[factor, &]
+[=, &total]
+[&total, =]
+```
+in C++14, you can introduce and initialize new variables in the capture clause, without the need to have those variables exist in the lambda function’s enclosing scope. 
+#### parameter list
+in addition to capturing variables, a lambda can accept input parameters. A parameter list is optional and in most aspects resembles the parameter list for a function. in C++ 14, if the parameter type is generic, you can use the auto keyword as the type specifier.
+```cpp
+auto y = [] (int first, int second)
+{
+    return first + second;
+};
+```
+#### mutable
+typically, a lambda's function call operator is const-by-value, but use of the mutable keyword cancels this out. It does not produce mutable data members. The mutable specification enables the body of a lambda expression to modify variables that are captured by value.
+#### exception specification
+you can use the noexcept exception specification to indicate that the lambda expression does not throw any exceptions. As with ordinary functions, the compiler generates warning C4297 if a lambda expression declares the noexcept exception specification and the lambda body throws an exception.
+#### return type
+the return type of a lambda expression is automatically deduced. You don't have to use the auto keyword unless you specify a trailing-return-type. The trailing-return-type resembles the return-type part of an ordinary method or function. However, the return type must follow the parameter list, and you must include the trailing-return-type keyword `->` before the return type.
+
+You can omit the return-type part of a lambda expression if the lambda body contains just one return statement or the expression does not return a value. If the lambda body contains one return statement, the compiler deduces the return type from the type of the return expression. Otherwise, the compiler deduces the return type to be void.
+```cpp
+auto x1 = [](int i){ return i; }; // OK: return type is int
+auto x2 = []{ return{ 1, 2 }; };  // ERROR: return type is void, deducing
+                                  // return type from braced-init-list is not valid
+```
+#### body
+The lambda body (compound-statement in the Standard syntax) of a lambda expression can contain anything that the body of an ordinary method or function can contain. The body of both an ordinary function and a lambda expression can access these kinds of variables:
+1. Captured variables from the enclosing scope, as described previously.
+2. Parameters
+3. Locally-declared variables
+4. Class data members, when declared inside a class and this is captured
+5. Any variable that has static storage duration—for example, global variables
+```cpp
+int main()
+{
+   int m = 0;
+   int n = 0;
+   [&, n] (int a) mutable { m = ++n + a; }(4); //m=5, n=0
+}
+```
+The `mutable` specification allows n to be modified within the lambda.
