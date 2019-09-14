@@ -37,9 +37,9 @@
   11.1. [basic matrix type](#111-basic-matrix-type)<br>
   11.2. [memory management](#112-memory-management)<br>
   11.3. [IO](#113-io)<br>
-  11.4. [basic matrix type](#114-basic-matrix-type)<br>
-  11.5. [vector type](#115-vector-type)<br>
-  11.6. [SIFT descriptors](#116-sift-descriptors)
+  11.4. [vector type](#114-vector-type)<br>
+  11.5. [SIFT descriptors](#115-sift-descriptors)<br>
+  11.6. [FLANN](#116-flann)
   
 ## 1. Types and Stuff
 ### 1.1. arrays
