@@ -63,6 +63,24 @@ declaring new types :
 typdef char C;
 using C = char;
 ```
+#### type aliasing
+`using` can be used in combination with classes, temlate types and functions.
+```cpp
+// inside classes
+template <class T, int SIZE>
+class Image{
+  using Ptr = std::unique_ptr<Image<T, SIZE>>;
+}
+// with template
+template <int SIZE>
+using Imagef = Image<float, SIZE>;
+
+// inside functions
+int main(){
+  using Image3f = Imagef<3>;
+  auto image_ptr = Image3f::Ptr(new Image3f);
+}
+```
 ### 1.3. unions
 ```cpp
 union mix_t {
@@ -601,6 +619,7 @@ Also deriving from exception, header `<exception>` defines two generic exception
 | logic_error       | error related to the internal logic of the program     |
 | runtime_error     | error detected during runtime                          |
 
+*Google Style : don't use exceptions*
 ## 8. File IO
 ```cpp
 #include <fstream>
