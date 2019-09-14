@@ -25,14 +25,19 @@
 7. [Smart Pointers](#7-smart-pointers)<br>
   7.1. [unique pointers](#71unique-pointers)<br>
   7.2. [shared pointers](#72-shared-pointers)<br>
-  7.3. [examples](#73-examples)
+  7.3. [weak pointers](#73-weak-pointers)<br>
+  7.4. [examples](#74-examples)
 8. [Associative Containers](#8-associative-containers)<br>
   8.1. [map](#81-map)<br>
   8.2. [unordered map](#82-unordered-map)
-9. [Iterators]<br>
+9. [Iterators](#9-iterators)<br>
   9.1. [properties](#91-properties)<br>
   9.2. [examples](#92-examples)
 10. [CPP Lambdas](#10-cpp-lambdas)<br>
+  10.1. [definition](#101-definition)<br>
+  10.2. [function pointers](#102-function-pointers)<br>
+  10.3. [std examples](#103-std-examples)<br>
+  10.4. [recursive lambdas](#104-recursive-lambdas)
 11. [OpenCV](#11-opencv)<br>
   11.1. [basic matrix type](#111-basic-matrix-type)<br>
   11.2. [memory management](#112-memory-management)<br>
@@ -298,9 +303,9 @@ auto p = std::unique_ptr<Type>(new Type(<params>));
 // C++14 and later
 auto p = std::make_unique<Type>(<params>);
 ```
-the copy constructor is explicitly deleted for the unique pointer, however it can be moved e.g. using `std::move`. accessing the unique pointer after move will *most likely* cause a runtime error.
-
-it gurarantees that memory is always owned by a single unique pointer.
+the copy constructor is explicitly deleted for the unique pointer, however it can be moved e.g. using `std::move`. accessing the unique pointer after move will *most likely* cause a runtime error.<br>
+it gurarantees that memory is always owned by a single unique pointer.<br>
+the `std::make_unique` constructor is preferred for exception safety.
 ### 7.2. shared pointers
 just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. It can be initialized from a `unique_pointer`.
 ```cpp
@@ -312,7 +317,30 @@ auto p = std::make_shared<Type>(<params>);
 ...
 std::cout << "use count : " << ptr.use_count();
 ```
-### 7.3. examples
+it's much more efficient to use `std::make_shared` because shared pointers also have a control block that keeps track of the reference count. if the `new` keyword is used, the control block and they type will be created seperately, but with `std::make_shared` they're created together.
+### 7.3. weak pointers
+this behaves the same as an extra instance of shared pointer without increasing the reference count. we would use this kind of pointer when we want access to the raw pointer, but don't want to take ownership.
+```cpp
+class Test{
+public:
+  Test() { std::cout << "created\n";}
+  ~Test() { std::cout << "destroyed\n";}
+}
+int main(){
+  {
+    std::weak_pointer weak;
+    {
+      std::shared_pointer<Test> shared = std::make_shared<Test>();
+      weak = shared;
+      std::cout << "original object managed by : "  << weak.use_count() << std::endl;
+    }
+    std::cout << "original object alive : "  << weak.expired() << std::endl;
+  }
+}
+```
+#### changed my mind
+we can use `weak_ptr.lock()` which returns a shared_ptr which shares ownership of the owned object if std::weak_ptr::expired returns false. Else returns default-constructed shared_ptr of type T. 
+### 7.4. examples
 beginner error : both stack and the smart pointer own the object -> it gets deleted twice and produces errors.
 ```cpp
 int main(){
@@ -388,7 +416,8 @@ if (m.find(3) == m.end())
   std::cout<< "key 3 not found\n" ;
 ```
 in the case of `std::map` it's much more readable to write `if(m.count(3))` instead.
-### 10. CPP lambdas
+## 10. CPP lambdas
+
 a simple example using `std::foreach` :
 ```cpp
 vector<int> v;
@@ -405,6 +434,7 @@ for_each(v.begin(), v.end(), [&evenCount] (int n) {
       }
    });
 ```
+### 10.1. definition
 lambdas are made of 6 parts : 
 ```cpp
 [] () mutable throw() -> int
@@ -440,7 +470,7 @@ auto y = [] (int first, int second)
 };
 ```
 #### mutable
-typically, a lambda's function call operator is const-by-value, but use of the mutable keyword cancels this out. It does not produce mutable data members. The mutable specification enables the body of a lambda expression to modify variables that are captured by value.
+typically, a lambda's function call operator is const-by-value, but use of the mutable keyword cancels this out. It does not produce mutable data members. The mutable specification enables the body of a lambda expression to modify variables that are captured by value. if we don't use `mutable` we'll get a compilation error.
 #### exception specification
 you can use the noexcept exception specification to indicate that the lambda expression does not throw any exceptions. As with ordinary functions, the compiler generates warning C4297 if a lambda expression declares the noexcept exception specification and the lambda body throws an exception.
 #### return type
@@ -468,6 +498,89 @@ int main()
 }
 ```
 The `mutable` specification allows n to be modified within the lambda.
+### 10.2. function pointers
+we can use lambdas wherever a function pointer is needed. e.g. here ForEach function needs a function pointer
+```cpp
+#include <algorithm>
+#include <iostream>
+#include <vector>
+
+void ForEach(const std::vector<int>& values, void (*func)(int))
+{
+  for (int value : values)
+    func(value);
+}
+int main()
+{
+  std::vector<int> values = {1,5,4,3,2};
+  ForEach(values, [](int value) { std::cout << "Value : " << value << std::endl;});
+}
+```
+we can also use `auto` to make pasing lambdas cleaner:
+```cpp
+auto lambda = [](int value) { std::cout << "Value : " << value << std::endl;};
+ForEach(values, lambda);
+```
+this is only doable when we don't want to pass any of the local variables to the lambda. if we do, then we can no longer use a traditional function pointer. instead we use `std::function<return_type(param types)& func`
+```cpp
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <functional>
+void ForEach(const std::vector<int>& values, const std::function<void(int)>& func)
+{
+  for (int value : values)
+    func(value);
+}
+int main()
+{
+  std::vector<int> values = {1,5,4,3,2};
+  ForEach(values, [=](int value) { std::cout << "Value : " << value << std::endl;});
+}
+```
+### 10.3. std examples
+a lot of std functions take lambdas. 
+#### find_if
+```cpp
+std::vector<int> values = {1,5,4,3,2};
+auto iter = std::find_if(values.begin(), values.end(), [](int value) { return value > 3; });
+std::cout << *iter << std::endl;
+```
+this finds the first element that is larger than 3, i.e. 5.
+#### sort
+```cpp
+std::vector<int> vec = {10, 21, 3, 19, 32};
+std::sort(vec.begin(), vec.end(), [] (int x, int y) { return x<y ;});
+```
+#### copy_if
+```cpp
+std::vector<int> vec = {10, 21, 3, 19, 32};
+std::vector<int> even_vec;
+std::copy_if(vec.begin(), vec.end(), std::back_inserter(even_vec),
+              [] (int x) { return (x%2)==0 ;});
+```
+#### foreach
+```cpp
+std::vector<int> vec = {10, 21, 3, 19, 32};
+int sum = 0;
+std::for_each(vec.begin(), vec.end(), [&sum](int x){sum+=x;});
+```
+#### transform
+summing up two vectors:
+```cpp
+std::vector<int> vec1 = {10, 21, 3, 19, 32};
+std::vector<int> vec2 = {10, 21, 3, 19, 32};
+std::vector<int> vec3;
+std::transform(vec1.begin(), vec1.end(), vec2.begin(), vec3.begin(),
+              [](int x,int y){return x+y;} );
+```
+### 10.4. recursive lambdas
+by passing the reference of the `std::function` back to its lambda
+```cpp
+std::function<int(int)> Fib = [&Fib](int n) 
+                      { return n < 2 ? n : Fib(n - 1) + Fib(n - 2);};
+std::cout << "Fib(4) :" << Fib(4);
+```
 ## 11. OpenCV
 uses own types
 #### naming convention
