@@ -388,7 +388,38 @@ for (const auto& kv : m) {
 one common mistake is using brackets to get const reference to that key. if it's not available, it will be created and initialized based on the default value.
 ### 8.2. unordered map
 same purpose as `std::map` implemented with a hash table. key type has to be hashable, typically `int` or `std::string`. same interface as `std::map`.
+#### example
+here we can see what the default hash function does to a string :
+```cpp
+int main(int argc, char* argv[])
+{
+    cout << std::hash<const char *>()("Mark Nelson") << endl;
+    return 0;
+}
+output : 134514544
+```
+here's an example with custom key and hash fucnction
+```cpp
+size_t name_hash( const std::pair<string, string> &name)
+{
+    return hash<string>()(name.first) ^ hash<string>()(name.second);
+}
 
+int main(int argc, char* argv[])
+{
+	unordered_map<std::pair<string, string>,int ,decltype(&name_hash)> ids(100, name_hash );
+	ids[std::pair<string, string>("Mark", "Nelson")] = 40561;
+	ids[std::pair<string, string>("Andrew","Binstock")] = 40562;
+	for ( auto ii = ids.begin() ; ii != ids.end() ; ii++ )
+		cout << ii->first.first 
+                     << " "
+                     << ii->first.second 
+                     << " : "
+                     << ii->second
+                     << endl;
+	return 0;
+}
+```
 ## 9. Iterators
 a type that iterates over a container. it can be regarded as a pointer:
 * access current element through '*iter*
