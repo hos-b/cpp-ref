@@ -420,6 +420,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 ```
+more info [here](https://marknelson.us/posts/2011/09/03/hash-functions-for-c-unordered-containers.html).
 ## 9. Iterators
 a type that iterates over a container. it can be regarded as a pointer:
 * access current element through '*iter*
