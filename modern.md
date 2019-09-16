@@ -23,7 +23,7 @@
 6. [Move Semantics](#6-move-semantics)<br>
   6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)
 7. [Smart Pointers](#7-smart-pointers)<br>
-  7.1. [unique pointers](#71unique-pointers)<br>
+  7.1. [unique pointers](#71-unique-pointers)<br>
   7.2. [shared pointers](#72-shared-pointers)<br>
   7.3. [weak pointers](#73-weak-pointers)<br>
   7.4. [examples](#74-examples)
