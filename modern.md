@@ -304,7 +304,7 @@ auto p = std::unique_ptr<Type>(new Type(<params>));
 auto p = std::make_unique<Type>(<params>);
 ```
 the copy constructor is explicitly deleted for the unique pointer, however it can be moved e.g. using `std::move`. accessing the unique pointer after move will *most likely* cause a runtime error.<br>
-it gurarantees that memory is always owned by a single unique pointer.<br>
+it gurarantees that memory is always owned by a single unique pointer. to point to a new object use `ptr.reset(<new pointer>)`, most likely with `std::move` to take ownership. <br>
 the `std::make_unique` constructor is preferred for exception safety.
 ### 7.2. shared pointers
 just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. It can be initialized from a `unique_pointer`.
