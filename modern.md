@@ -38,13 +38,26 @@
   10.2. [function pointers](#102-function-pointers)<br>
   10.3. [std examples](#103-std-examples)<br>
   10.4. [recursive lambdas](#104-recursive-lambdas)
-11. [OpenCV](#11-opencv)<br>
-  11.1. [basic matrix type](#111-basic-matrix-type)<br>
-  11.2. [memory management](#112-memory-management)<br>
-  11.3. [IO](#113-io)<br>
-  11.4. [vector type](#114-vector-type)<br>
-  11.5. [SIFT descriptors](#115-sift-descriptors)<br>
-  11.6. [FLANN](#116-flann)
+11. [Multi-Threading](#11-multi-threading)<br>
+  11.1. [daemon processes](#111-daemon-processes)<br>
+  11.2. [passing parameters](#112-passing-parameters)
+12. [Mutex](#12-mutex)<br>
+  12.1. [lock_guard](#121-lock_guard)<br>
+  12.2. [multiple mutexes](#122-multiple-mutexes)<br>
+  12.3. [unique lock](#123-unique-lock)<br>
+  12.4. [sleeping and condition variable](#124-sleeping-and-condition-variable)<br>
+  12.5. [future](#125-future)<br>
+  12.6. [promise](#126-promise)<br>
+  12.7. [callable objects](#127-callable-objects)<br>
+  12.8. [packaged tasks](#128-packaged-tasks)<br>
+  12.9. [time constraints](#129-time-constraints)
+13. [OpenCV](#13-opencv)<br>
+  13.1. [basic matrix type](#131-basic-matrix-type)<br>
+  13.2. [memory management](#132-memory-management)<br>
+  13.3. [IO](#133-io)<br>
+  13.4. [vector type](#134-vector-type)<br>
+  13.5. [SIFT descriptors](#135-sift-descriptors)<br>
+  13.6. [FLANN](#136-flann)
   
 ## 1. Types and Stuff
 ### 1.1. arrays
@@ -613,13 +626,488 @@ std::function<int(int)> Fib = [&Fib](int n)
                       { return n < 2 ? n : Fib(n - 1) + Fib(n - 2);};
 std::cout << "Fib(4) :" << Fib(4);
 ```
-## 11. OpenCV
+
+## 11. Multi-Threading
+simple example
+```cpp
+#include <iostream>
+#include <thread>
+
+void thread_func(){
+  std::cout << "thread output" << std::endl;
+}
+int main(){
+  std::thread t1(thread_func);  // create and start thread
+  std::cout << "thread id : " << t1.get_id() << std::endl;
+  t1.join(); // wait for thread to finish
+  return 0;
+}
+```
+#### note
+threads cannot be copied because the copy constructor is explicitly removed. we can however transfer ownership using `std::move`.
+### 11.1. daemon processes
+usually it's on the main thread to reclaim the resources allocated to other threads. if a thread is supposed to run for a longer time, we detatch the thread. the c++ runtime library will be responsible for freeing the resources.
+```
+int main(){
+  std::thread t1(thread_func);  // create and start thread
+  t1.detatch();
+  return 0;
+}
+```
+a detatched thread is also referred to as a _daemon process_. they may run until system restart. <br>
+after a process has been detatched, it cannot be joined again. to check if it's possible to join a thread, we can use `thread.joinable()`
+
+### 11.2. passing parameters
+```cpp
+#include <iostream>
+#include <thread>
+
+class Functr{
+  void operator()(string &msg){
+    std::cout << "functor arg : " << msg << std::endl;
+    msg = "printer by functor";
+  }
+};
+
+void thread_func(string &msg){
+  std::cout << "function arg" << std::endl;
+  msg = "printed by function";
+}
+int main(){
+  string msg = "hello";
+  std::thread t1(thread_func, msg);
+  t1.join();
+  std::cout << msg << std::endl;
+  std::thread t2((Functr()), std::ref(msg));
+  t2.join();
+  std::cout << msg << std::endl;
+  return 0;
+}
+```
+normally all function parameters are passed by value, even if explicitly defined as reference. to pass the arguement as reference, additionally we have to use `std::ref(arg)`. <br>
+another aproach would be to just share the pointer to the object. if there is no need to share the object between threads, it's good practice to transfer its ownership to the thread using `std::move(arg)`.
+#### note
+the functor is additionally wrapepd in parentheses because otherwise it could be interpreted as a function declaration. in general anything that can be regarded as function declaration, will.
+### 11.3. oversubscription
+generally we make as many threads as we have cpu cores. to get a hint about how many is recommended, we can use the value of `std::thread::hardware_concurrency`.
+
+## 12. Mutex
+to control access to shared resources between threads, we need a control mechanism, namely a mutex. here we control access to `stdout`
+```cpp
+#include <iostream>
+#include <thread>
+#include <mutex>
+
+std::mutex mtx;
+
+void shared_print(string origin, int value){
+  mtx.lock();
+  std::cout << origin << value << std:: endl;
+  mtx.unlock();
+}
+
+void thr_func(){
+  for (int i=0; i<100 ; i++){
+    shared_print("t1 ", i);
+  }
+}
+int main(){
+  std::thread t1(thr_func);
+  for(int i=0; i<100; i++){
+    shared_print("main ", i);
+  }
+  t1.join();
+  return 0;
+}
+```
+this code is not _thread-safe_. if the resource access line produces an exception, we will have a locked out mutex. the standard library offers some alternatives.
+
+### 12.1. lock_guard
+```cpp
+void shared_print(string origin, int value){
+  std::lock_guard<std::mutex> guard(mtx);
+  std::cout << origin << value << std:: endl;
+}
+```
+as soon as the guard is defined, the mutex will be locked. it's unlocked when the guard goes out of scope. this declaration however does not prevent other threads from using `stdout`. <br>
+typically thread-safe resource management is done with a class where the resource is a private member and all the functions that access the resource, control access with a mutex. such classes have the following properties :
+* use mutex to synchronize resource access
+* never return the resource handle
+* never pass the resource handle as an argument to user provided functions
+* design resource interface appropriately
+### 12.2. multiple mutexes
+assuming we have multiple resources and use multiple mutexes to control access, it's very possible to reach a deadlock
+```cpp
+void shared_access_1(string origin, int value){
+  std::lock_guard<std::mutex> guard(mtx_1);
+  std::lock_guard<std::mutex> guard(mtx_2);
+  // access resources
+}
+void shared_access_2(string origin, int value){
+  std::lock_guard<std::mutex> guard(mtx_2);
+  std::lock_guard<std::mutex> guard(mtx_1);
+  // access resources
+}
+```
+#### solution 1
+always lock the mutexes in the same order
+#### solution 2
+we can simultaneously lock multiple mutexes using `std::lock`
+```cpp
+void shared_access(string origin, int value){
+  std::lock(mtx_1, mtx_2);
+  std::lock_guard<std::mutex> guard(mtx_1, std::adopt_lock);
+  std::lock_guard<std::mutex> guard(mtx_2, std::adopt_lock);
+  // access resources
+}
+```
+`std::adopt_lock` tells the guards that the mutex is already locked, but it should be unlocked when the guard goes out of scope.
+#### solution 3
+we can control the guards using arbitrary scopes
+```cpp
+void shared_access(string origin, int value){
+  {
+    std::lock_guard<std::mutex> guard(mtx_1, std::adopt_lock);
+    // access resource 1
+  }
+  {
+    std::lock_guard<std::mutex> guard(mtx_2, std::adopt_lock);
+    // access resources
+  }
+}
+```
+### 12.3. unique lock
+`unique_lock` provides more flexibility w.r.t `lock_guard` however it's at the cost of performance.
+```cpp
+void shared_access(string origin, int value){
+  std::unique_lock<std::mutex> u_lock(mtx);
+  // access resources
+  ulock.unlock();
+  // do something else
+}
+```
+it's possible to unlock `unique_lock` before it goes out of scope. we can also defer the lock
+```cpp
+void shared_access(string origin, int value){
+  std::unique_lock<std::mutex> u_lock(mtx, std::defer_lock);
+  // do something else
+  ulock.lock()
+  // access resources
+  ulock.unlock();
+  // do something else
+  ulock.lock()
+  // access resources
+  ulock.unlock();
+}
+```
+we can also transfer ownership of `unique_lock`s using `std::move` as opposed to `lock_guard`s.
+#### dealing with lazy initialization
+when we initialize a resource for the first time when we want to access it, we have lazy initialization. in this case we'd need two mutexes, one for initialization and one for access.
+```cpp
+class FileAccess{
+  std::mutex file_access_;
+  std::mutex file_open_;
+  
+  void shared_write(string msg){
+    std::unique_lock<mutex> ulock_open(file_open_);
+    if(!file_.open()){
+      file_.open("log.txt");
+    }
+    std::unique_lock<mutex> ulock_access(file_access_);
+    file_.write(...);
+    ulock_access.unlock();
+  }
+};
+```
+this program is now thread-safe but a lot of cpu cycles are wasted by waiting for the mutex just to check whether the already opened file is open. the standard library has a solution for this situation
+```cpp
+class FileAccess{
+  std::mutex file_access_;
+  std::once_flag open_flag_;
+  
+  void shared_write(string msg){
+    std::call_once(open_flag_, [&](){ file_.open("log.txt"); });
+    std::unique_lock<mutex> ulock_access(file_access_);
+    file_.write(...);
+    ulock_access.unlock(); // arbitrary
+  }
+};
+```
+`call_once` will execute the function (or callable object) passed to it only once across several threads.
+
+### 12.4. sleeping and condition variable
+```cpp
+#include <dequeue>
+#include <mutex>
+
+std::dequeue<int> queue;
+std::mutex mtx;
+
+void function_1(){
+  int count = 0;
+  while (count<10){
+    std::unique_lock<std::mutex> ulock(mtx);
+    queue.push_front(count);
+    ulock.unlock();
+    std::this_thread::sleep_for(chrono::seconds(1));
+    count++;
+  }
+}
+void function_2(){
+  int data=0;
+  while (data!=9){
+    std::unique_lock<std::mutex> ulock(mtx);
+    if(!queue.empty()){
+      data = queue.back();
+      queue.pop_back();
+      ulock.unlock();
+      std::cout << "got " << data << " from first thread" << std::endl;
+    }
+    else{
+      ulock.unlock();
+      std::this_thread::sleep_for(chrono::milliseconds(10));
+    }
+  }
+}
+```
+the first thread is creating data and the second thread is using it. if the second thread sleeps two shortly, it will use too many cpu cycles. if it sleeps for too long, we waste time. a solution to this problem is provided by the standard library. we declare a new global variable
+```cpp
+std::condition_variable cond;
+void function_1(){
+  ...
+  ulock.unlock();
+  cond.notify_one();
+}
+```
+this will notify one (if any) thread that's waiting on this condition variable.
+```cpp
+void function_2(){
+  while (data!=9){
+    std::unique_lock<std::mutex> ulock(mtx);
+    cond.wait(ulock);
+    // access
+    ulock.unlock();
+  }
+}
+```
+the wait function also takes the lock as a parameter to unlock the mutex while it's sleeping. when it wakes up, it will lock the mutex again.<br>
+*it's never a good idea to lock a mutex and go to sleep*<br>
+since we lock/unlock the mutex too many times, we can only use `unique_lock`. <br>
+this setup would be fine if thread #2  would only wake up by the notification from thread #1, however it can wake up on its own, also called a *spurious wake*. to put the thread back to sleep after a spurious wake, we can pass a predicate as the second arguement
+```cpp
+cond.wait(ulock, [](){ return !queue.empty(); });
+```
+if we want every thread waiting on the condition variable to wake up, we can use `cond.notify_all()`.
+
+### 12.5. future
+if we want to get the results back from a child thread, we can share a variable between the child and the parent. however since both might access it, we also need a `mutex`. the parent should access the variable after the child, so we also need a `condtion_variable`. <br>
+even for a simple task, we'd need to have 2 global variables and take care of locking and unlocking the mutex and the condition variable. standard library provides an interface for such cases
+```cpp
+#include <future>
+
+int funct(int param){
+   // do processing
+  return some_int;
+}
+int main(){
+  int x;
+  std::future<int> cmp = std::async(funct, 4);
+  x = cmp.get();
+  return 0;
+}
+```
+the get function waits until the child thread is done. calling this function twice will cause a crash.
+#### thread or no thread
+the async function takes a parameter that decides whether a thread is made for the function call or not
+```cpp
+// creates a thread
+std::future<int> cmp = std::async(std::launch::async, funct, 4);
+// direct call in the main thread
+std::future<int> cmp = std::async(std::launch::deferred, funct, 4);
+// default value, decided based on the implementation
+std::future<int> cmp = std::async(std::launch::async|std::launch::deferred, funct, 4);
+
+```
+### 12.6. promise
+we used future to send a variable from the child thread to the parent. we can do the reverse with a promise
+```cpp
+#include <future>
+
+int funct(std::future<int> &ftr){
+  ...
+  int param = ftr.get();
+  // do processing
+  return some_int;
+}
+int main(){
+  int x;
+  std::promise<int> prm;
+  std::future<int> ftr = p.get_future();
+  std::future<int> cmp = std::async(std::launch::async, funct, std::ref(ftr));
+  std::this_thread::sleep_for(chrono::milliseconds(20));
+  // keeping the promise
+  prm.set_value(4);
+  x = cmp.get();
+  return 0;
+}
+```
+if we do not keep our promise (and also don't wait for the return variable), we'll get an exception of type `std::future_error::broken_promise`. if something is preventing us from keeping the promise, we can set and exception instead
+```cpp
+prm.set_exception(std::make_exception_ptr(std::runtime("oops")));
+```
+futures and promises cannot be copied, they can only be moved.
+#### many promises
+if our function has to be executed e.g. 10 times, we cannot pass the same `std::future` & `std::promise` to them. one way is to create 10 of each. standard library also provides shared future
+```cpp
+int funct(std::shared_future<int> sftr){
+  ...
+}
+int main(){
+  int x;
+  std::promise<int> prm;
+  std::future<int> ftr = p.get_future();
+  std::shared_future sftr = ftr.share();
+  std::future<int> cmp = std::async(std::launch::async, funct, sftr);
+  std::future<int> cmp = std::async(std::launch::async, funct, sftr);
+  std::future<int> cmp = std::async(std::launch::async, funct, sftr);  
+  ...
+  prm.set_value(4);
+  ...
+}
+```
+a `shared_future` can be copied which means we can also send it to the threads by value.
+### 12.7. callable objects
+the standard library has a uniform interface when it comes to callable objects. e.g. we have a functor A
+```cpp
+class A{
+  void func(int x, char c) {}
+  int operator()(int N){ return 0; }
+};
+void foo(int x) {}
+int main(){
+  A a;
+  std::thread t1(a, 6);
+  std::async(std::launch::async, a, 6);
+  std::bind(a, 6);
+  std::call_once(once_flag, a, 6);
+  return 0;
+}
+```
+#### ways to call them
+```cpp 
+int main(){
+  A a;
+  std::thread t1(a, 6);  		// copy of a() as functor in a different thread
+  std::thread t2(std::ref(a), 6);	// a() as functor in a different thread
+  std::thread t2(std::move(a), 6);	// a() as functor moved to a different thread
+  std::thread t4(A(), 6);		// temporary A moved to a different thread
+  std::thread t5([](int x){ return x*x;}, 6);
+  std::thread t6(foo, 7);
+  std::thread t7(&A::f, a, 8, 'w');	// copy of a.func(8, 'w') in a different thread
+  std::thread t8(&A::f, &a, 8, 'w');	// a.f(8, 'w') in a different thread
+}
+```
+### 12.8. packaged tasks
+tasks that can be package and sent to different functions, objects or threads. tasks can be executed in different contexts from where they were created.
+```cpp
+int funct(int N){
+  // do processing
+  return some_int;
+}
+int main(){
+  std::packaged_task<int(int)> task(funct);
+  // some stuff
+  task(4);
+  int ret_value = task.get_future().get();
+  return 0;
+}
+```
+we cannot create tasks with parameters as we would do with threads. to do this we have to use `std::bind` to bind our function with the parameters that we want, returning a function object. 
+```cpp
+std::packaged_task<int()> task(std::bind(funct, 10));
+// some stuff
+task();
+```
+note that this new function object cannot take a parameter anymore because it's already bundled with the function.
+#### why not just use the function object?
+```cpp
+auto func_obj = std::bind(func, 10);
+// some stuff
+func_obj();
+```
+a `packaged_task` can link a callable object to a `future` which is very useful in threading. e.g. here we push the task in a queue so that another thread can execute it.
+```cpp
+std::deque<std::packaged_task<int()>> task_queue;
+std::mutex mtx;
+
+void thread_func(){
+  std::packaged_task<int()> task;
+  {
+    std::unique_lock<std::mutex> ulock(mtx);
+    cond.wait(ulock, []() { return !task_queue.empty(); });
+    task = std::move(task_queue.front());
+    task_queue.pop_front();
+  }
+  task();
+}
+
+int main(){
+  std::thread thread(thread_func);
+  std::packaged_task<int()> task(std::bind(funct, 10));
+  std::future<int> ftr = task.get_future();
+  {
+    std::lock_guard<std::mutex> lock(mtx);
+    task_queue.push_back(std::move(task));
+  }
+  cond.notify_one();
+  std::cout << "output of a task, created in main, executed in another thread, received in main "<< ftr.get();
+  thr.join();
+  return 0;
+}
+```
+thread-safe and useless.
+### 12.9. time constraints
+#### thread
+```cpp
+std::this_thread::sleep_for(chrono::milliseconds(3));
+chrono::steady_clock::time_point tp = chrono::steady_clock::now() + chorno::microseconds(4);
+std::this_thread::sleep_until(tp);
+```
+#### mutex
+```cpp
+std::unique_lock<std::mutex> ulock(mtx, std::defer_lock);
+ulock.try_lock();
+ulock.try_lock_for(chrono::nanoseconds(500));
+ulock.try_lock_until(tp); 
+```
+`try_lock` returns if it cannot lock the mutex.
+#### condition variable
+```cpp
+std::condition_variable cond;
+cond.wait_for(ulock, chrono::microseconds(2));
+cond.wait_until(ulock, tp);
+```
+#### future
+```cpp
+std::future<int> ftr;
+ftr.wait();
+ftr.wait_for(chorno::seconds(10));
+ftr.wait_until(tp);
+```
+the wait function waits until the output of future is read.`ftr.get()` internally calls the wait function.
+#### chorno literals
+for easier use of sleep functions
+```cpp
+using namespace std::literals::chrono_literals;
+std::this_thread::sleep_for(1s);
+```
+## 13. OpenCV
 uses own types
 #### naming convention
 types follow the patern `CV_<bit_count><identifier><num_of_channels>` e.g. `CV_8UC3` is 8-bit unsigned char with 3 channels for RGB. `CV_8UC1` is 9-bit unsigned char grayscale. 
 
 it's better to use `DataType`. e.g. `DataType<uint>::type == CV_8UC1`
-### 11.1. basic matrix type
+### 13.1. basic matrix type
 #### constructors
 ```cpp
 cv::Mat image(rows, cols, DataType, value);
@@ -635,7 +1123,7 @@ Matf image = Matf::zeros(10, 10);
 get type using `image.type()`<br>
 get size with `image.rows`, `image.cols`
 
-### 11.2. memory management
+### 13.2. memory management
 `cv::Mat` is a shared pointer, although not a `std::shared_ptr`. cloning can be done :
 ```cpp
 cv::Mat image = cv::Mat::zeros(10,10);
@@ -647,7 +1135,7 @@ cv::Mat copy = image.clone();
 c++ -std=c++11 -o main main.cpp `pkg-config --libs --cflags opencv`
 ```
 
-### 11.3. IO
+### 13.3. IO
 #### reading
 ```cpp
 Mat imread(const string& file, int mode=1)
@@ -693,7 +1181,7 @@ int main(){
   cv::waitKey();
 }
 ```
-### 11.4. vector type
+### 13.4. vector type
 ```cpp
 cv::Vec<Type, SIZE>
 ```
@@ -708,7 +1196,7 @@ std::cout << matf.at<Vec3f>(1, 5);
 #### using wrong types
 will not produce bugs, but it will generate unwanted behavior. 
 
-### 11.5. SIFT descriptors
+### 13.5. SIFT descriptors
 we have `SiftFeatureDetector` to detect the keypoints and `SiftDescriptorExtractor` to compute the descriptors.
 ```cpp
 // detect keypoints
@@ -722,7 +1210,7 @@ drawKeypoints(input, keypoints, image_with_keypoitns);
 SiftDescriptorExtractor extractor;
 extractor.comput(input, keypoints, descriptors);
 ```
-### 11.6. FLANN
+### 13.6. FLANN
 Fast library for Aproximate Nearest Neighbors. builds K-d tree, searches for neighbors there.
 ```cpp
 // create a kdtree for searching the data
