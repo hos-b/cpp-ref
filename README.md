@@ -205,7 +205,7 @@ int call (int x, int y, int (*functocall)(int,int))
 int main ()
 {
   int (*minus)(int,int) = subtraction;
-  int m = operation (7, 5, addition);int a = 5;
+  int m = operation (7, 5, addition);
   int n = operation (20, m, minus);
 }
 ```
