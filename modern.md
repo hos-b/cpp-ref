@@ -58,7 +58,7 @@
   13.4. [vector type](#134-vector-type)<br>
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
-  
+14. [Structured Bindings](#14-structured-bindings)<br>
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
@@ -1221,5 +1221,30 @@ int k = 1;
 cv::Mat nearerst_vector_idx(1, k, DataType<int>::type);
 cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
 kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
-
+```
+## 14. Structured Bindings
+this is a new future is C++17. when dealing with multiple return types we had several options
+```cpp
+std::tuple<std::string, int> CreatePerson()
+{
+  return {"cherno", 48};
+}
+```
+### struct
+this is the old fashioned way. we'd create a struct containing both types, instead of using tuple.
+### std::get
+```cpp
+auto person = CreatePerson();
+std::string name = std::get<0>(person);
+int age = std::get<1>(person);
+```
+### std::tie
+```cpp
+std::string name;
+int age;
+std::tie(name, age) = CreatePerson();
+```
+### structured binding
+```cpp
+auto[name, age] = CreatePerson();
 ```
