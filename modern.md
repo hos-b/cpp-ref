@@ -58,7 +58,10 @@
   13.4. [vector type](#134-vector-type)<br>
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
-14. [Structured Bindings](#14-structured-bindings)<br>
+14. [Misc.](#14-misc.)<br>
+  14.1. [structural bindings](#141-structural-bindings)<br>
+  14.2. [timing](#142-timing)<br>
+  
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
@@ -1095,12 +1098,6 @@ ftr.wait_for(chorno::seconds(10));
 ftr.wait_until(tp);
 ```
 the wait function waits until the output of future is read.`ftr.get()` internally calls the wait function.
-#### chorno literals
-for easier use of sleep functions
-```cpp
-using namespace std::literals::chrono_literals;
-std::this_thread::sleep_for(1s);
-```
 ## 13. OpenCV
 uses own types
 #### naming convention
@@ -1222,7 +1219,8 @@ cv::Mat nearerst_vector_idx(1, k, DataType<int>::type);
 cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
 kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
 ```
-## 14. Structured Bindings
+## 14. Misc.
+### 14.1. structured bindings
 this is a new feature is C++17. when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
@@ -1230,21 +1228,63 @@ std::tuple<std::string, int> CreatePerson()
   return {"cherno", 48};
 }
 ```
-### struct
+#### struct
 this is the old fashioned way. we'd create a struct containing both types, instead of using tuple.
-### std::get
+#### std::get
 ```cpp
 auto person = CreatePerson();
 std::string name = std::get<0>(person);
 int age = std::get<1>(person);
 ```
-### std::tie
+#### std::tie
 ```cpp
 std::string name;
 int age;
 std::tie(name, age) = CreatePerson();
 ```
-### structured binding
+#### structured binding
 ```cpp
 auto[name, age] = CreatePerson();
 ```
+### 14.2. timing
+`chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
+the following code measures duration in seconds
+```cpp
+#include <chrono>
+#include <iostream>
+#include <thread>
+
+int main(){
+  using namespace std::literals::chrono_literals;
+  auto start = std::chrono::high_resolution_clock::now();
+  std::this_thread:sleep(1s);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<float>  duration = end - start;
+  std::cout << duration.count() << "s" << std::endl;
+  return 0;
+}
+```
+for easier use of sleep functions we can use `chrono_literals`.
+#### structured timing
+```cpp
+struct Timer{
+  std::chrono::time_point<std::chrono::steady_clock> start, end;
+  std::chrono::duration<float>  duration;
+  Timer(){
+    start = std::chrono::high_resolution_clock::now();
+  }
+  ~Timer(){
+    end = std::chrono::high_resolution_clock::now();
+    duration = end-start;
+    float ms = duration.count()*1000.0f;
+    std::cout << "chrono timer " << ms << "ms" << std::endl;
+  }
+}
+void Function(){
+  Timer timer;
+  for(int i=0; i<100; i++){
+    std::cout << "hello" << std::endl;
+  }
+}
+```
+now any function that declares a `Timer` object will be timed.
