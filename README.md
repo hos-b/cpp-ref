@@ -40,7 +40,7 @@
   7.2. [ascii reading](#72-ascii-reading)<br>
   7.3. [ascii writing](#73-ascii-writing)<br>
   7.4. [binary reading](#74-binary-reading)<br>
-  7.5. [ascii writing](#75-binary-writing)
+  7.5. [binary writing](#75-binary-writing)
 8. [Functors](#8-functors)<br>
   8.1. [pros](#81-pros)<br>
   8.2. [runtime templates](#82-runtime-templates)<br>
