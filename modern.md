@@ -840,10 +840,10 @@ class FileAccess{
 
 ### 12.4. sleeping and condition variable
 ```cpp
-#include <dequeue>
+#include <deque>
 #include <mutex>
 
-std::dequeue<int> queue;
+std::deque<int> queue;
 std::mutex mtx;
 
 void function_1(){
