@@ -26,7 +26,8 @@
   4.3. [what's inherited](#43-whats-inherited)<br>
   4.4. [base constructor](#44-base-constructor)<br>
   4.5. [virtual functions](#45-virtual-functions)<br>
-  4.6. [pure virtual and abstract classes](#46-pure-virtual-and-abstract-classes)
+  4.6. [pure virtual and abstract classes](#46-pure-virtual-and-abstract-classes)<br>
+  4.7. [virtual destructors](#47-virtual-destructors)
 5. [Type Conversion](#5-type-conversion)<br>
   5.1. [through classes](#51-through-classes)<br>
   5.2. [explicit keyword](#52-explicit-keyword)<br>
@@ -51,15 +52,16 @@
   8.7. [functors and sorting](#87-functors-and-sorting)<br>
   8.8. [predicates](#88-predicates)<br>
   8.9. [template functors](#89-template-functors)
-9. [Misc.](#9-misc)<br>
-  9.1. [preprocessor-directives](#91-preprocessor-directives)<br>
-  9.2. [line control](#92-line-control)<br>
-  9.3. [error directives](#93-error-directives)<br>
-  9.4. [macros](#94-macros)<br>
-  9.5. [hidden namespaces](#95-hidden-namespaces)<br>
-  9.6. [string streams](#96-string-streams)<br>
-  9.7. [type punning](#97-type-punning)<br>
-  9.8. [nothrow](#98-nothrow)
+9. [Precompiled Headers](#9-precompiled-headers)<br>
+10. [Misc.](#10-misc)<br>
+  10.1. [preprocessor-directives](#101-preprocessor-directives)<br>
+  10.2. [line control](#102-line-control)<br>
+  10.3. [error directives](#103-error-directives)<br>
+  10.4. [macros](#104-macros)<br>
+  10.5. [hidden namespaces](#105-hidden-namespaces)<br>
+  10.6. [string streams](#106-string-streams)<br>
+  10.7. [type punning](#107-type-punning)<br>
+  10.8. [nothrow](#108-nothrow)
 
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
@@ -431,6 +433,45 @@ a pure virtual function is a virtual function whose definition is "=0". classes 
 ```cpp
 Base *base_ptr = new Child;
 ```
+### 4.7. virtual destructors
+```cpp
+class Base{
+public:
+  Base() { std::cout << "Base Constructor\n"; }
+  ~Base() { std::cout << "Base Destructor\n"; }
+}
+
+class Derived : public Base {
+public:
+  Derived() { memory = new int[500]; std::cout << "Derived Constructor\n"; }
+  ~Derived() { delete memory; std::cout << "Derived Destructor\n"; }
+private:
+  int *memory;
+}
+int main(){
+  Base *base = new Base();
+  delete base;
+  std::cout << "---------------\n";
+  Derived *derived = new Derived();
+  delete derived;
+  std::cout << "---------------\n";
+  Base *poly = new Derived();
+  delete poly;
+}
+output:
+Base Constructor
+Base Destructor
+---------------
+Base Constructor
+Derived Constructor
+Derived Destructor
+Base Destructor
+---------------
+Base Constructor
+Derived Constructor
+Base Destructor
+```
+when calling the destructor for `poly`, we don't know that the object might have another destructor, since it's cast to `Base` pointer. to overcome this issue we have to declare the Base destructor as `virtual`. this does not override the base destructor. it just lets C++ know that there might be another destructor further down in the hierrachy.
 ## 5. Type Conversion
 - If a negative integer value is converted to an unsigned type, the resulting value corresponds to its 2's complement bitwise representation (i.e., -1 becomes the largest value representable by the type, -2 the second largest, ...).
 - The conversions from/to bool consider false equivalent to zero (for numeric types) and to null pointer (for pointer types); true is equivalent to all other values and is converted to the equivalent of 1.
@@ -883,8 +924,37 @@ int main(){
   return 0;
 }
 ```
-## 9. Misc.
-### 9.1. preprocessor directives
+## 9. Precompiled Headers
+when we include a header file e.g. `vector`, we're potentially adding thousands of lines to be compiled each time we change anything in the project. this significantly increases compilation time. a precompiled header is already turned into a binary format that can easily be integrated into the chain. 
+### good practice
+precompiled headers are mostly used for external code. for example we won't ever change STL headers or `windows.h`
+### bad practice.
+a bad practice is to add all the dependencies to a PCH. this hides what is being used in each cpp file.<br>
+putting frequently changing headers into a PCH will only increase compile time.
+```c pp
+//pch.h
+#pragma once
+#include <algorithm>
+#include <vector>
+#include <deque>
+#include <stack>
+#include <array>
+#include <set>
+#include <map>
+#include <string>
+#include <thread>
+#include <memory>
+#include <Windows.h>
+```
+### compile using gcc
+we first compile the header, then the file that's using it.
+```bash
+g++ -std=c++11 pch.h
+g++ -std=c++11 main.cpp
+```
+not supported by gcc. workarounds are bad.
+## 10. Misc.
+### 10.1. preprocessor directives
 ```cpp
 int main()
 {
@@ -896,19 +966,19 @@ int main()
   return 0;
 }
 ```
-### 9.2. line control
+### 10.2. line control
 ```cpp
 #line 20 "assigning variable"
 int a?;
 ```
 this code will generate an error that will be shown as error in file "assigning variable", line 20.
-### 9.3. error directives
+### 10.3. error directives
 ```cpp
 #ifndef __cplusplus
 #error A C++ compiler is required!
 #endif 
 ```
-### 9.4. macros
+### 10.4. macros
 ```cpp
 #define WAIT std::cin.get();
 #ifdef DEBUG
@@ -921,7 +991,7 @@ int main(){
   LOG("hello");
 }
 ```
-### 9.5. hidden namespaces
+### 10.5. hidden namespaces
 ```cpp
 namespace multiply
 {
@@ -946,7 +1016,7 @@ namespace multiply
 }
 ```
 calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
-### 9.6. string streams
+### 10.6. string streams
 c++ equivalent of sprintf. also good for reverse sprintf.
 #### writing
 ```cpp
@@ -968,7 +1038,7 @@ std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
 ```
-### 9.7. type punning
+### 10.7. type punning
 low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
 ```cpp
 int main(){
@@ -1009,7 +1079,7 @@ int main(){
 }
 ```
 this struct is basically just a byte in the memory.
-### 9.8. nothrow
+### 10.8. nothrow
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
 if (ptr==nullptr) std::cout << "producing null pointer instead of runtime exception";
