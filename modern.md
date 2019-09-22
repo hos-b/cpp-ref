@@ -1223,7 +1223,7 @@ cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
 kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
 ```
 ## 14. Structured Bindings
-this is a new future is C++17. when dealing with multiple return types we had several options
+this is a new feature is C++17. when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
 {
