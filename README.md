@@ -42,13 +42,26 @@
   8.2. [ascii reading](#82-ascii-reading)<br>
   8.3. [ascii writing](#83-ascii-writing)<br>
   8.4. [binary reading](#84-binary-reading)<br>
-  8.5. [ascii writing](#85-binary-writing)<br>
-9. [Misc.](#8-misc)<br>
-  9.1. [preprocessor-directives](#91-preprocessor-directives)<br>
-  9.2. [line control](#92-line-control)<br>
-  9.3. [error directives](#93-error-directives)<br>
-  9.4. [hidden namespaces](#94-hidden-namespaces)<br>
-  9.5. [string streams](#95-string-streams)
+  8.5. [ascii writing](#85-binary-writing)
+9. [Functors](#9-functors)<br>
+  9.1. [pros](#91-pros)<br>
+  9.2. [runtime templates](#92-runtime-templates)<br>
+  9.3. [built-in functors](#93-built-in-functors)<br>
+  9.4. [parameter binding](#94-parameter-binding)<br>
+  9.5. [regular function to functor](#95-regular-function-to-functor)<br>
+  9.6. [getting more complex](#96-getting-more-complex)<br>
+  9.7. [functors and sorting](#97-functors-and-sorting)<br>
+  9.8. [predicates](#98-predicates)<br>
+  9.9. [template functors](#99-template-functors)
+10. [Misc.](#10-misc)<br>
+  10.1. [preprocessor-directives](#101-preprocessor-directives)<br>
+  10.2. [line control](#102-line-control)<br>
+  10.3. [error directives](#103-error-directives)<br>
+  10.4. [macros](#104-macros)<br>
+  10.5. [hidden namespaces](#105-hidden-namespaces)<br>
+  10.6. [string streams](#106-string-streams)<br>
+  10.7. [type punning](#107-type-punning)<br>
+  
 
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
@@ -712,8 +725,176 @@ file.write(reinterpret_cast<char*>(&r), sizeof(r));
 file.write(reinterpret_cast<char*>(&c), sizeof(c));
 file.write(reinterpret_cast<char*>(&vec.front()), vec.size()*sizeof(vec.front()));
 ```
-## 9. Misc.
-### 9.1. preprocessor directives
+## 9. Functors
+function objects
+```cpp
+struct X{
+  public:
+  void  operator()(string str){
+    std::cout << calling functor X with parameter << str << std::endl;
+  }
+};
+int main(){
+  X foo;
+  foo("Hi");
+  return 0;
+}
+```
+this is not to be mistaken with a type conversion function where the type comes after the `operator` keyword
+```cpp
+class X{
+  ...
+  operator string() const { return "X"; }
+};
+```
+### 9.1. pros
+* normal functions are only called with the `()` operator but functors can also remember states.
+* functors can have their own datatypes on top of their function signature
+### 9.2. runtime templates
+with templates we can customize how certain functions work, however their template has to be intialized at compile time. with functors we can do more
+```cpp
+struct AddValue{
+  int val_;
+  AddValue(int j): val_(j) {}
+  void operator()(int i){
+    std::cout << i + val << std::endl;
+  }
+};
+int main(){
+  std::vector<int> vec = {1, 5, 2, 3};
+  int x;
+  std::cin >> x;
+  std::for_each(vec.begin(), vec.end(), AddValue(x));
+}
+```
+### 9.3. built-in functors
+std has implemented some functors:
+```cpp
+less greater greater_equal less_equal not_equal_to
+logical_and logical_not logical_or
+multiplies minus plus divide modulus negate
+//example
+int x = std::multiplies<int>()(3, 4);
+if (not_equal_to<int>()(x, 10))
+  std::cout << x << std::endl;
+```
+### 9.4. parameter binding
+```cpp
+std::set<int> myset = {2, 3, 4, 5};
+vector<int> vec;
+
+// code to multiply each element of the set
+// by 10 and save in vector
+std::transform(myset.begin(), myset.end(),  // source
+          std::back_inserter(vec),          // destination
+          std::bind(multiplies<int>(), std::placeholders::_1, 10));
+```
+transform takes a function that accepts one arguement, however `multiplies<int>()` accepts two. we use `std::bind` to replace the first parameter with a member of `myset` using `std::placeholders::_1`.<br> <br>
+
+we can also use`std::bind` in the adding example. e.g. for adding with 2
+```cpp
+void AddVal(int i, int val){
+    std::cout << i + val << std::endl;
+}
+std::for_each(vec.begin(), vec.end(), bind(AddVal, std::placeholders::_1, 2);
+```
+### 9.5. regular function to functor
+```cpp
+double Pow(double x, double y){
+  return pow(x,y);
+}
+int main(){
+  std::set<int> myset = {3, 1, 25, 7, 12};
+  std::dequeue<int> d;
+  auto func = std::function<double(double, double)>(Pow);
+  std::transform(myset.begin(), myset.end(),
+                 std::back_inserter(d),
+                 std::bind(func, std::placeholders::_1, 2));
+  return 0;
+}
+```
+### 9.6. getting more complex
+```cpp
+bool ElgibileForCopy(int x){
+  return (x>20)||(x<5);
+}
+int main(){
+  std::set<int> myset = {3, 1, 25, 7, 12};
+  std::dequeue<int> d;   // x in myset : x<20 || x<5
+  auto func = std::function<double(double, double)>(Pow);
+  std::transform(myset.begin(), myset.end(),
+                 std::back_inserter(d),
+                 std::bind(std::logical_or<bool>,
+                           std::bind(greater<int>(), std::placeholders::_1, 20),
+                           std::bind(less<int>(), std::placeholders::_1, 5),
+                           );
+  // same as
+  std::transform(myset.begin(), myset.end(),
+                 std::back_inserter(d),
+                 ElgibileForCopy); // probably won't work. it's a function not a functor
+  return 0;
+  // same as
+  std::transform(myset.begin(), myset.end(),
+                 std::back_inserter(d),
+                 [] (int x) { return (x>20)||(x<5);});
+            
+}
+```
+### 9.7. functors and sorting
+we can choose how our containers are sorted.
+```cpp
+std::set<int> myset = {3, 1, 25, 7, 12}; // myset : {1, 3, 7, 12, 25}
+std::set<int, std::less<int>> myset = {3, 1, 25, 7, 12}; // myset : {1, 3, 7, 12, 25} 
+
+struct Lsb_less{
+  bool operator ()(int x, int y){
+    return (x%10) < (y%10);
+  }
+};
+int main(){
+  std::set<int, Lsb_less> myset = {3, 1, 25, 7, 12}; // myset : {1, 12, 3, 25, 7}
+
+}
+```
+### 9.8. predicates
+a predicate is a functor that
+* returns a boolean
+* does not modify data
+predicates are used for comparisons or condition checks.
+```cpp
+struct NeedCopy{
+  bool operator()(int x){
+    return (x>20)||(x<5);
+  }
+};
+std::transform(myset.begin(), myset.end(),
+               std::back_inserter(d),
+               NeedCopy());
+```
+### 9.9. template functors
+to reuse defined functors to some extent, we can make use of templates
+```cpp
+template <typename T>
+struct MatchFirstFunctor{
+  MatchFirstFunctor(T const& t) : m_t(t) {}
+  template<typename U>
+  bool operator()(U const& pair)
+  {
+    return pari.first == m_t;
+  }
+  T m_t;
+}
+int main(){
+  std::vector<pair<int, bool>> v1 = {std::make_pair(1, true), std::make_pair(2, false)};
+  std::vector<pair<bool, floa>> v2 = {std::make_pair(true, 1.0f), std::make_pair(false, 1.2f)};
+  std::find(v1.begin(), v1.end(), std::make_pair(1, true));
+  std::find_if(v1.begin(), v1.end(), MatchFirstFunctor<int>(2));
+  std::find_if(v2.begin(), v2.end(), MatchFirstFunctor<bool>(false));
+  return 0;
+}
+```
+## 10. Misc.
+### 10.1. preprocessor directives
 ```cpp
 int main()
 {
@@ -725,19 +906,32 @@ int main()
   return 0;
 }
 ```
-### 9.2. line control
+### 10.2. line control
 ```cpp
 #line 20 "assigning variable"
 int a?;
 ```
 this code will generate an error that will be shown as error in file "assigning variable", line 20.
-### 9.3. error directives
+### 10.3. error directives
 ```cpp
 #ifndef __cplusplus
 #error A C++ compiler is required!
 #endif 
 ```
-### 9.4. hidden namespaces
+### 10.4. macros
+```cpp
+#define WAIT std::cin.get();
+#ifdef DEBUG
+#define LOG(x) std::cout << x << std::endl
+#else
+#define LOG(x)
+#endif
+int main(){
+  WAIT;
+  LOG("hello");
+}
+```
+### 10.5. hidden namespaces
 ```cpp
 namespace multiply
 {
@@ -766,7 +960,7 @@ namespace multiply
 }
 ```
 calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
-### 9.5. string streams
+### 10.6. string streams
 c++ equivalent of sprintf. also good for reverse sprintf.
 #### writing
 ```cpp
@@ -788,3 +982,44 @@ std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
 ```
+### 10.7. type punning
+low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
+```cpp
+int main(){
+  int a = 50;
+  double value = a;
+  std::cout << value << std::endl;
+}
+```
+this will implicitly convert our int into a double but the variables are not gonna have the same bytes in the memory.
+```cpp
+int main(){
+  int a = 50;
+  double value = *(double*)&a;
+  std::cout << value << std::endl;
+}
+```
+dereferenced int pointer cast to double pointer. we own every byte of `value` and writing to it is safe, however when we cast `int*` to `double*`, instead of reading 4 bytes, we read 8, 4 of which is not ours. we could even do worse 
+```cpp
+int main(){
+  int a = 50;
+  double& value = *(double*)&a;
+  value = 0.0;
+}
+```
+this also writes to memory that's not ours and will probably crash.
+#### useful stuff
+```cpp
+struct Entity{
+  int x,y;
+}
+int main(){
+  Entity entity = {5, 8};
+  int *position = (int*)&e;
+  std::cout << position[0] << " " << position[1] << std::endl;
+  int y = *(int*)((char*)&e+4)
+  std::cout << "reading y like there's no tomorrow " << y << std::endl;
+  return 0;
+}
+```
+this struct is basically just a byte in the memory.
