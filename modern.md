@@ -59,7 +59,7 @@
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
 14. [Misc.](#14-misc.)<br>
-  14.1. [structural bindings](#141-structural-bindings)<br>
+  14.1. [structured bindings](#141-structured-bindings)<br>
   14.2. [timing](#142-timing)<br>
   
 ## 1. Types and Stuff
