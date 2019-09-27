@@ -153,7 +153,9 @@ int main(void) {
   return 0;
 }
 ```
-returns 0 1 2 3 4
+returns 0 1 2 3 4<br>
+static member functions of a class can be accessed without an object using the scope operator `::`. they can only access static members of the class and don't have access to `this` pointer. <br>
+static functions outside classes are only declared in the scope of their respective files. they cannot be used outside that file, even when explicitly mentioned in a header file as a prototype.
 ### 1.7. mutable keyword
 The mutable storage class specifier is used only on a class data member to make it modifiable even though the member is part of an object declared as const. You cannot use the mutable specifier with names declared as static or const, or reference members.
 ```cpp
