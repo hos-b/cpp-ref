@@ -5,7 +5,7 @@
   1.2. [vectors](#12-vectors)
 2. [Flow Control](#2-flow-control)<br>
   2.1. [range for loop](#21-range-for-loop)
-3. [Unit Tests](#3-unit-test)<br>
+3. [Unit Tests](#3-unit-tests)<br>
   3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
   3.2. [writing tests](#32-writing-tests)<br>
   3.2. [running tests](#33-running-tests)
