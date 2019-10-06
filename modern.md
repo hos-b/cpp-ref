@@ -61,6 +61,7 @@
 14. [Misc.](#14-misc.)<br>
   14.1. [structured bindings](#141-structured-bindings)<br>
   14.2. [timing](#142-timing)<br>
+  14.3. [templates with variable parameter length](#143-templates-with-variable-parameter-length)
   
 ## 1. Types and Stuff
 ### 1.1. arrays
@@ -1288,3 +1289,54 @@ void Function(){
 }
 ```
 now any function that declares a `Timer` object will be timed.
+
+### 14.3. templates with variable parameter length
+In C++11 there are two new options, as the Variadic functions reference page in the Alternatives section states:
+* Variadic templates can also be used to create functions that take variable number of arguments. They are often the better choice because they do not impose restrictions on the types of the arguments, do not perform integral and floating-point promotions, and are type safe. (since C++11)
+* If all variable arguments share a common type, a std::initializer_list provides a convenient mechanism (albeit with a different syntax) for accessing variable arguments.
+```cpp
+#include <iostream>
+#include <string>
+#include <initializer_list>
+
+template <typename T>
+void func(T t) 
+{
+    std::cout << t << std::endl ;
+}
+
+template<typename T, typename... Args>
+void func(T t, Args... args) // recursive variadic function
+{
+    std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
+    func(args...) ;
+}
+
+template <class T>
+void func2( std::initializer_list<T> list )
+{
+    for( auto elem : list )
+    {
+        std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
+    }
+}
+
+int main()
+{
+    std::string
+        str1( "Hello" ),
+        str2( "world" );
+
+    func(1,2.5,'a',str1);
+
+    func2( {10, 20, 30, 40 }) ;
+    func2( {str1, str2 } ) ;
+}
+```
+the `__PRETTY_FUNCTION__` directive only works with gcc and clang. the output would be 
+``` cpp
+void func(T, Args...) [T = int, Args = <double, char, std::basic_string<char>>]: 1
+void func(T, Args...) [T = double, Args = <char, std::basic_string<char>>]: 2.5
+void func(T, Args...) [T = char, Args = <std::basic_string<char>>]: a
+void func(T) [T = std::basic_string<char>]: Hello
+```
