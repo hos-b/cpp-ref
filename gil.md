@@ -1,12 +1,13 @@
 # Boost General Image Library
 
 ## naming conventions in GIL
+```cpp
 _ColorSpace_ + _BitDepth_ + [f | s]+ [c] + [_planar] + [_step] + _ClassType_ + _t
 bgr8_image_t             a;    // 8-bit interleaved BGR image
 cmyk16_pixel_t           b;    // 16-bit CMYK pixel value;
 cmyk16c_planar_ref_t     c(b); // const reference to a 16-bit planar CMYK pixel.
 rgb32f_planar_step_ptr_t d;    // step pointer to a 32-bit planar RGB pixel.
-
+```
 
 ## creating image view from raw data
 ```cpp
