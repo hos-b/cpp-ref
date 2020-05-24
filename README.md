@@ -1,4 +1,4 @@
-# Basic C++ Reference ([Modern C++](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
+# Basic C++ Reference ([More C++](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [decltype and auto](#11-decltype-and-auto)<br>
   1.2. [typedef and using](#12-typedef-and-using)<br>
@@ -11,7 +11,8 @@
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)<br>
-  2.3. [reference variables](#23-reference-variables)
+  2.3. [reference variables](#23-reference-variables)<br>
+  2.4. [function pointers](#24-function-pointers)<br>
 3. [Class Basics](#3-class-basics)<br>
   3.1. [other ways of instantiating](#31-other-ways-of-instantiating)<br>
   3.2. [member initialization](#32-member-initialization)<br>
@@ -207,6 +208,7 @@ int const * p2b = &x;  // also non-const pointer to const int
 #### google style
 CamelCase starting with `k`.
 ### 2.2. function pointers
+#### standalone functions
 ```cpp
 int addition (int a, int b)
 { return (a+b); }
@@ -220,9 +222,35 @@ int call (int x, int y, int (*functocall)(int,int))
 int main ()
 {
   int (*minus)(int,int) = subtraction;
-  int m = operation (7, 5, addition);
-  int n = operation (20, m, minus);
+  int m =   7, 5, addition);
+  int n = call(20, m, minus);
 }
+```
+#### member functions
+```cpp
+struct Num {
+  int a = 10;
+  int add(int b) {
+    return a + b;
+  }
+  int subtract(int b) {
+    return a - b;
+  }
+};
+int main() {
+  bool perform_add;
+  std::cin >> perform_add;
+  Num num_obj;
+  int (Num::*fptr)(int) = nullptr;
+  if (perform_add) {
+    fptr = &Num::add;
+  } else {
+    fptr = &Num::subtract;
+  }
+  std::cout << (num_obj.*fptr)(20) << std::endl;
+  // also possible with
+  std::cout << std::invoke(&Num::add, num_obj, 13) << std::endl;
+};
 ```
 ### 2.3. reference variables
 ```cpp
@@ -230,6 +258,7 @@ int a = 5;
 int& ref = a;
 a = 10; // ref is now also 10
 ```
+
 ## 3. Class Basics
 ### 3.1. other ways of instantiating
 ```cpp
@@ -351,7 +380,7 @@ Notes:
 
 Compilers already optimize many cases that formally require a move-construction call in what is known as Return Value Optimization. Most notably, when the value returned by a function is used to initialize an object. In these cases, the move constructor may actually never get called.
 
-Note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor. Rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track.
+Note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor. Rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track down.
 ### 3.7. but wait, there's more
 | member function     | implicitly defined                                                    | default definition |
 |---------------------|-----------------------------------------------------------------------|--------------------|
@@ -589,19 +618,42 @@ int main () {
 }
 ```
 when typeid is applied to classes, typeid uses the RTTI to keep track of the type of dynamic objects. When typeid is applied to an expression whose type is a polymorphic class, the result is the type of the most derived complete object.
-```
+```cpp
 class Base { virtual void f(){} };
 class Derived : public Base {};
-void main () {
+int main () {
     Base* a = new Base;
     Base* b = new Derived;
-    cout << "a is: " << typeid(a).name() << '\n';     // Base*
-    cout << "b is: " << typeid(b).name() << '\n';     // Base*
-    cout << "*a is: " << typeid(*a).name() << '\n';   // Base
-    cout << "*b is: " << typeid(*b).name() << '\n';   // Derived
+    cout << "Base is: " << typeid(&Base).name() << '\n';        // Base
+    cout << "Derived is: " << typeid(&Derived).name() << '\n';  // Derived
+    cout << "a is: " << typeid(a).name() << '\n';               // Base*
+    cout << "b is: " << typeid(b).name() << '\n';               // Base*
+    cout << "*a is: " << typeid(*a).name() << '\n';             // Base
+    cout << "*b is: " << typeid(*b).name() << '\n';             // Derived
 }
 ```
 Note: The string returned by member name of type_info depends on the specific implementation of your compiler and library. It is not necessarily a simple string with its typical type name, like in the compiler used to produce this output. If the type typeid evaluates is a pointer preceded by the dereference operator (*), and this pointer has a null value, typeid throws a bad_typeid exception.
+#### mangled names
+Depending on the object, typeid might return mangled names. GCC offers a demangle functionality. It can received a buffer but it can resize it so there's basically no point.
+```cpp
+#include <cxxabi.h>
+char* abi::__cxa_demangle(const char* mangled_name, char* output_buffer, size_t* length, int* status);
+```
+Example (creates a memory leak):
+```cpp
+#include <typeinfo>
+#include <cxxabi.h>
+#include <vector>
+#include <string>
+
+struct ExStruct {
+    std::vector<std::vector<std::string>> data;
+};
+int main () {
+    int status;
+    cout << "Base is: " << abi::__cxa_demangle(typeid(&ExStruct::data).name(), nullptr, 0, &status) << '\n';
+}
+```
 ## 6. Exception
 thrown using `throw` keyword :
 ```cpp
