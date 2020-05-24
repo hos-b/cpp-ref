@@ -8,7 +8,7 @@
 3. [Unit Tests](#3-unit-tests)<br>
   3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
   3.2. [writing tests](#32-writing-tests)<br>
-  3.2. [running tests](#33-running-tests)
+  3.3. [running tests](#33-running-tests)
 4. [Compilation](#4-compilation)<br>
   4.1. [flags](#41-flags)<br>
   4.2. [gdb](#42-gdb)<br>
@@ -22,6 +22,8 @@
   5.5. [functions](#55-functions)
 6. [Move Semantics](#6-move-semantics)<br>
   6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)
+  6.2. [example](#62-example)
+  6.3. [move constructor and assignment](#63-move-constructor-and-assignment)
 7. [Smart Pointers](#7-smart-pointers)<br>
   7.1. [unique pointers](#71-unique-pointers)<br>
   7.2. [shared pointers](#72-shared-pointers)<br>
@@ -58,11 +60,20 @@
   13.4. [vector type](#134-vector-type)<br>
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
-14. [Misc.](#14-misc.)<br>
-  14.1. [structured bindings](#141-structured-bindings)<br>
-  14.2. [timing](#142-timing)<br>
-  14.3. [templates with variable parameter length](#143-templates-with-variable-parameter-length)
-  
+14. [bind](#14-bind)<br>
+  14.1. [binding with reference](#141-binding-with-reference)<br>
+  14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
+  14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
+  14.4. [binding with template functions](#144-binding-with-template-functions)
+99. [Misc.](#99-misc.)<br>
+  99.1. [structured bindings](#991-structured-bindings)<br>
+  99.2. [timing](#992-timing)<br>
+  99.3. [templates with variable parameter length](#993-templates-with-variable-parameter-length)<br>
+  99.4. [any](#994-any)<br>
+	99.5. [next](#995-next)<br>
+	99.6. [exchange](#996-exchange)<br>
+	99.7. [if and switch initialization](#997-if-and-switch-initialization)
+
 ## 1. Types and Stuff
 ### 1.1. arrays
 `#include<array>`, use `std::array<type, size>`, has constant size
@@ -284,7 +295,7 @@ int main(){
   return 0;
 }
 ```
-by c++ standard, after an object has been moved, it should be empty. moving a variable transfer ownership of its resource to another variable. runtime is better than copying, worse than passing by reference.
+by c++ standard, after an object has been moved, it should be empty. moving a variable transfers ownership of its resource to another variable. runtime is better than copying, worse than passing by reference.
 ### 6.3. move constructor and assignment
 ```cpp
 MyClass::MyClass (MyClass&&);   // move-constructor
@@ -983,7 +994,7 @@ a `shared_future` can be copied which means we can also send it to the threads b
 ### 12.7. callable objects
 the standard library has a uniform interface when it comes to callable objects. e.g. we have a functor A
 ```cpp
-class A{
+class A {
   void func(int x, char c) {}
   int operator()(int N){ return 0; }
 };
@@ -1220,8 +1231,100 @@ cv::Mat nearerst_vector_idx(1, k, DataType<int>::type);
 cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
 kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
 ```
-## 14. Misc.
-### 14.1. structured bindings
+
+## 14. bind
+it "binds" parameters to callables and returns a new callable. usually `auto` is used to catch the return type but it can be cast to a `std::function` to pass it around. for better or worse callable objects returned by bind swallow all the extra parameters. bind has a bit of an overhead and in most cases can be replaced with lambdas.
+
+```cpp
+#include <functional>
+#include <iostream>
+
+void Print(int i) {
+	std::cout << i << '\n';
+}
+int main()
+{
+	int i = 5;
+	auto f = std::bind(&Print, i);
+	f();
+}
+```
+### 14.1. binding with reference
+```cpp
+void Print(const int& i) {
+	std::cout << i << '\n';
+}
+int main()
+{
+	int i = 5;
+	auto f = std::bind(&Print, i);
+	f();	// 5
+	i = 6;
+	f();	// 5
+	f = std::bind(&Print, std::ref(i));
+	f();	// 5
+	i = 6;
+	f();	// 6
+}
+```
+### 14.2. binding arbitrary arguments
+```cpp
+void Print(const int& i, const std::string& str) {
+	std::cout << i << ' ' << str << '\n';
+}
+int main()
+{
+	int i = 5;
+	auto f = std::bind(&Print, std::ref(i), std::placeholders::_1);
+	f("hi");
+}
+```
+### 14.3. binding with arbitrary order
+```cpp
+void Print(const int& i, const std::string& str) {
+	std::cout << i << ' ' << str << '\n';
+}
+int main()
+{
+	int i = 5;
+	auto f = std::bind(&Print, std::placeholders::_2, std::placeholders::_1);
+	f("hi", 20);
+}
+```
+### 14.4. binding with template functions
+```cpp
+template<typename T>
+void Print(T i, const std::string& str) {
+	std::cout << i << ' ' << str << '\n';
+}
+int main()
+{
+	int i = 5;
+	auto f = std::bind(&Print, std::placeholders::_2, std::placeholders::_1); 		// fails
+	auto f = std::bind(&Print<int>, std::placeholders::_2, std::placeholders::_1);	// works
+	f("hi", 20);
+}
+```
+### 14.5. bind sucks
+same thing can be done with a lambda, maybe even with more flexibility. the variadic arg is added to swallow extra args just like bind would. we could also add another argument to be swallowed in the front by adding `auto &&`. doing the same thing with bind is up to 20x slower. it also removes the need to specifiy templates during declaration.
+```cpp
+template<typename T>
+void Print(T i, const std::string& str) {
+    std::cout << i << ' ' << str << '\n';
+}
+int main()
+{
+	int i = 5;
+	const auto f = [] (const std::string &arg1, auto &&arg2, auto &&...) {
+		print(arg2, arg1);
+	};
+	f("hello", i, 5);
+	i = 6;
+	f("hello", i, 5, 2, 1.2f);
+}
+```
+## 99. Misc.
+### 99.1. structured bindings
 this is a new feature is C++17. when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
@@ -1247,7 +1350,7 @@ std::tie(name, age) = CreatePerson();
 ```cpp
 auto[name, age] = CreatePerson();
 ```
-### 14.2. timing
+### 99.2. timing
 `chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
 the following code measures duration in seconds
 ```cpp
@@ -1255,7 +1358,7 @@ the following code measures duration in seconds
 #include <iostream>
 #include <thread>
 
-int main(){
+int main() {
   using namespace std::literals::chrono_literals;
   auto start = std::chrono::high_resolution_clock::now();
   std::this_thread:sleep(1s);
@@ -1268,7 +1371,7 @@ int main(){
 for easier use of sleep functions we can use `chrono_literals`.
 #### structured timing
 ```cpp
-struct Timer{
+struct Timer {
   std::chrono::time_point<std::chrono::steady_clock> start, end;
   std::chrono::duration<float>  duration;
   Timer(){
@@ -1281,16 +1384,16 @@ struct Timer{
     std::cout << "chrono timer " << ms << "ms" << std::endl;
   }
 }
-void Function(){
+void Function() {
   Timer timer;
-  for(int i=0; i<100; i++){
+  for(int i=0; i<100; ++i){
     std::cout << "hello" << std::endl;
   }
 }
 ```
 now any function that declares a `Timer` object will be timed.
 
-### 14.3. templates with variable parameter length
+### 99.3. templates with variable parameter length
 In C++11 there are two new options, as the Variadic functions reference page in the Alternatives section states:
 * Variadic templates can also be used to create functions that take variable number of arguments. They are often the better choice because they do not impose restrictions on the types of the arguments, do not perform integral and floating-point promotions, and are type safe. (since C++11)
 * If all variable arguments share a common type, a std::initializer_list provides a convenient mechanism (albeit with a different syntax) for accessing variable arguments.
@@ -1339,4 +1442,98 @@ void func(T, Args...) [T = int, Args = <double, char, std::basic_string<char>>]:
 void func(T, Args...) [T = double, Args = <char, std::basic_string<char>>]: 2.5
 void func(T, Args...) [T = char, Args = <std::basic_string<char>>]: a
 void func(T) [T = std::basic_string<char>]: Hello
+```
+
+### 99.4. any
+an experimental feature of C++17, it's a type-safe container that can contain any single object:
+```cpp
+#include <experimental/any>
+#include <vector>
+#include <string>
+
+int main()
+{
+	std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"));
+	std::cout << vec.size() << '\n';
+	std::cout << std::experimental::fundamentals_v1::any_cast<int>(v[0]) << '`\n';
+	std::cout << std::experimental::fundamentals_v1::any_cast<float>(v[0]) << '`\n'; // throws bad any_cast exception
+	std::cout << vec[1].type().name() << '`\n';
+}
+```
+the type might require demangling as explained in the `typeid` section. for on-the-fly demangling : `./a.out | c++-filt -t`
+
+#### copy-constructible
+all objects pushed into std::any must be copy constructible. e.g. this wouldn't compile:
+```cpp
+struct S {
+	S(const S &s) = delete; // explicitly deleting copy constructor (implicitely deletes default constructors)
+	S() = default;          // explicitly redefining default constructor
+};
+int main()
+{
+	std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"), S());
+}
+
+```
+implementations are encouraged to avoid dynamic allocations as long as the object is small and `std::is_nothrow_move_constructible`.
+#### copies and references
+the bracket operator doesn't return a reference as expected. we can only get points :
+```cpp
+int main()
+{
+	std::vector<std::experimental::fundamentals_v1::any> vec(1, 2);
+	int &i = std::experimental::fundamentals_v1::any_cast<int>(v[0]);   // fails
+	int &i = std::experimental::fundamentals_v1::any_cast<int&>(v[0]);  // fails
+	int *i = std::experimental::fundamentals_v1::any_cast<int>(&v[0]);  // works
+}
+```
+
+### 99.5. next
+gets the next iterator. for vector, we can directly increment the iterator because they're random access. list on the other hand isn't.
+
+```cpp
+#include <list>
+#include <algorithm>
+#include <iostream>
+int main() 
+{
+	std::list<int> lst(10, 1, 2, 3, 4, 5);
+	std::cout << std::is_sorted(std::begin(lst), std::end(lst)) << '\n';        // false
+	std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
+}
+```
+### 99.6. exchange
+uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
+
+```cpp
+#include <list>
+#include <algorithm>
+#include <iostream>
+int main() 
+{
+	int var, var_last;
+	while (condition_not_met) {
+		// inefficient
+		var_last = var;
+		var = new_value;
+		// efficient
+		var_last = std::exchange(var, new_value);
+	}
+}
+```
+### 99.7. if and switch initialization
+(since C++17) it's possible to initialize the expression that is used in an if or switch statement. it lives on for the entire scope of if/else or switch. it's simillar to having opening/closing braces around the entire scope.
+```cpp
+#include <vector>
+
+int main()
+{
+	std::vector<int> vec{1,2,3,4};
+	if (auto itr = vec.find(2);
+			itr != vec.end()) {
+		*itr = 5;
+	} else {
+		vec.emplace_back(2);
+	}
+}
 ```
