@@ -60,10 +60,9 @@
   10.3. [error directives](#103-error-directives)<br>
   10.4. [macros](#104-macros)<br>
   10.5. [hidden namespaces](#105-hidden-namespaces)<br>
-  10.6. [nested namespaces](#106-nested-namespaces)<br>
-  10.7. [string streams](#107-string-streams)<br>
-  10.8. [type punning](#108-type-punning)<br>
-  10.9. [nothrow](#109-nothrow)
+  10.6. [string streams](#106-string-streams)<br>
+  10.7. [type punning](#107-type-punning)<br>
+  10.8. [nothrow](#108-nothrow)
 
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
@@ -1071,15 +1070,8 @@ namespace multiply
 }
 ```
 calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
-### 10.6. nested namespaces
-to avoid having multiple levels braces for nested namespaces, we can directly use the nested namespace (since C++17):
-```cpp
-namespace torch::tensor::float
-{
 
-}
-```
-### 10.7. string streams
+### 10.6. string streams
 c++ equivalent of sprintf. also good for reverse sprintf.
 #### writing
 ```cpp
@@ -1101,7 +1093,7 @@ std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
 ```
-### 10.8. type punning
+### 10.7. type punning
 low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
 ```cpp
 int main(){
@@ -1142,7 +1134,7 @@ int main(){
 }
 ```
 this struct is basically just a byte in the memory.
-### 10.9. nothrow
+### 10.8. nothrow
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
 if (ptr==nullptr) std::cout << "producing null pointer instead of runtime exception";

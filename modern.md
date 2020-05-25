@@ -39,7 +39,8 @@
   10.1. [definition](#101-definition)<br>
   10.2. [function pointers](#102-function-pointers)<br>
   10.3. [std examples](#103-std-examples)<br>
-  10.4. [recursive lambdas](#104-recursive-lambdas)
+  10.4. [recursive lambdas](#104-recursive-lambdas)<br>
+  10.5. [stateful lambdas](#105-stateful-lambdas)
 11. [Multi-Threading](#11-multi-threading)<br>
   11.1. [daemon processes](#111-daemon-processes)<br>
   11.2. [passing parameters](#112-passing-parameters)
@@ -65,14 +66,27 @@
   14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
+15. [C++14](#15-c++14)<br>
+  15.1. [exchange](#151-exchange)
+16. [C++17](#16-c++17)<br>
+  16.1. [structured bindings](#161-structured-bindings)<br>
+  16.2. [any](#162-any)<br>
+  16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
+  16.4. [nested namespaces](#164-nested-namespaces)
+  16.5. [has include](#165-has-include)
+  16.6. [aggregate initialization](#166-aggregate-initialization)
+17. [C++20](#17-c++20)<br>
+18. [Attributes](#18-attributes)<br>
+  18.1. [fallthrough](#181-fallthrough)<br>
+  18.2. [unused](#182-unused)<br>
+  18.3. [maybe_unused](#183-maybe_unused)<br>
+  18.4. [nodiscard](#184-nodiscard)
 99. [Misc.](#99-misc.)<br>
-  99.1. [structured bindings](#991-structured-bindings)<br>
-  99.2. [timing](#992-timing)<br>
-  99.3. [templates with variable parameter length](#993-templates-with-variable-parameter-length)<br>
-  99.4. [any](#994-any)<br>
-	99.5. [next](#995-next)<br>
-	99.6. [exchange](#996-exchange)<br>
-	99.7. [if and switch initialization](#997-if-and-switch-initialization)
+  99.1. [timing](#991-timing)<br>
+  99.2. [variadic templates](#992-variadic-templates)<br>
+	99.3. [next](#993-next)<br>
+
+
 
 ## 1. Types and Stuff
 ### 1.1. arrays
@@ -641,7 +655,27 @@ std::function<int(int)> Fib = [&Fib](int n)
                       { return n < 2 ? n : Fib(n - 1) + Fib(n - 2);};
 std::cout << "Fib(4) :" << Fib(4);
 ```
-
+### 10.5. stateful lambdas
+when values are captured by copy, they are not mutable unless the lambda is defined as one. afterwards they can be used as a state:
+```cpp
+int main()
+{
+  int i = 1;
+  auto lambd = [i]() mutable {return ++i;};
+  lambd();
+  return lambd(); // returns 3
+}
+```
+we can also skip the variable definition and directly put it in the capture clause:
+```cpp
+int main()
+{
+  auto lambd = [i = 1, ptr = std::unique_ptr<int>(3)]() mutable {return ++i;};
+  lambd();
+  auto lamb2 = lambd;   // not allowed, unique_ptrs cannot be copied
+  return lambd();       // returns 3
+}
+```
 ## 11. Multi-Threading
 simple example
 ```cpp
@@ -1323,9 +1357,28 @@ int main()
 	f("hello", i, 5, 2, 1.2f);
 }
 ```
-## 99. Misc.
-### 99.1. structured bindings
-this is a new feature is C++17. when dealing with multiple return types we had several options
+## 15. C++14
+### 15.1. exchange
+uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
+```cpp
+#include <list>
+#include <algorithm>
+#include <iostream>
+int main() 
+{
+	int var, var_last;
+	while (condition_not_met) {
+		// inefficient
+		var_last = var;
+		var = new_value;
+		// efficient
+		var_last = std::exchange(var, new_value);
+	}
+}
+```
+## 16. C++17
+### 16.1. structured bindings
+when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
 {
@@ -1350,101 +1403,8 @@ std::tie(name, age) = CreatePerson();
 ```cpp
 auto[name, age] = CreatePerson();
 ```
-### 99.2. timing
-`chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
-the following code measures duration in seconds
-```cpp
-#include <chrono>
-#include <iostream>
-#include <thread>
 
-int main() {
-  using namespace std::literals::chrono_literals;
-  auto start = std::chrono::high_resolution_clock::now();
-  std::this_thread:sleep(1s);
-  auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<float>  duration = end - start;
-  std::cout << duration.count() << "s" << std::endl;
-  return 0;
-}
-```
-for easier use of sleep functions we can use `chrono_literals`.
-#### structured timing
-```cpp
-struct Timer {
-  std::chrono::time_point<std::chrono::steady_clock> start, end;
-  std::chrono::duration<float>  duration;
-  Timer(){
-    start = std::chrono::high_resolution_clock::now();
-  }
-  ~Timer(){
-    end = std::chrono::high_resolution_clock::now();
-    duration = end-start;
-    float ms = duration.count()*1000.0f;
-    std::cout << "chrono timer " << ms << "ms" << std::endl;
-  }
-}
-void Function() {
-  Timer timer;
-  for(int i=0; i<100; ++i){
-    std::cout << "hello" << std::endl;
-  }
-}
-```
-now any function that declares a `Timer` object will be timed.
-
-### 99.3. templates with variable parameter length
-In C++11 there are two new options, as the Variadic functions reference page in the Alternatives section states:
-* Variadic templates can also be used to create functions that take variable number of arguments. They are often the better choice because they do not impose restrictions on the types of the arguments, do not perform integral and floating-point promotions, and are type safe. (since C++11)
-* If all variable arguments share a common type, a std::initializer_list provides a convenient mechanism (albeit with a different syntax) for accessing variable arguments.
-```cpp
-#include <iostream>
-#include <string>
-#include <initializer_list>
-
-template <typename T>
-void func(T t) 
-{
-    std::cout << t << std::endl ;
-}
-
-template<typename T, typename... Args>
-void func(T t, Args... args) // recursive variadic function
-{
-    std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
-    func(args...) ;
-}
-
-template <class T>
-void func2( std::initializer_list<T> list )
-{
-    for( auto elem : list )
-    {
-        std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
-    }
-}
-
-int main()
-{
-    std::string
-        str1( "Hello" ),
-        str2( "world" );
-
-    func(1,2.5,'a',str1);
-
-    func2( {10, 20, 30, 40 }) ;
-    func2( {str1, str2 } ) ;
-}
-```
-the `__PRETTY_FUNCTION__` directive only works with gcc and clang. the output would be 
-``` cpp
-void func(T, Args...) [T = int, Args = <double, char, std::basic_string<char>>]: 1
-void func(T, Args...) [T = double, Args = <char, std::basic_string<char>>]: 2.5
-void func(T, Args...) [T = char, Args = <std::basic_string<char>>]: a
-void func(T) [T = std::basic_string<char>]: Hello
-```
-
-### 99.4. any
+### 16.2. any
 an experimental feature of C++17, it's a type-safe container that can contain any single object:
 ```cpp
 #include <experimental/any>
@@ -1487,42 +1447,8 @@ int main()
 	int *i = std::experimental::fundamentals_v1::any_cast<int>(&v[0]);  // works
 }
 ```
-
-### 99.5. next
-gets the next iterator. for vector, we can directly increment the iterator because they're random access. list on the other hand isn't.
-
-```cpp
-#include <list>
-#include <algorithm>
-#include <iostream>
-int main() 
-{
-	std::list<int> lst(10, 1, 2, 3, 4, 5);
-	std::cout << std::is_sorted(std::begin(lst), std::end(lst)) << '\n';        // false
-	std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
-}
-```
-### 99.6. exchange
-uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
-
-```cpp
-#include <list>
-#include <algorithm>
-#include <iostream>
-int main() 
-{
-	int var, var_last;
-	while (condition_not_met) {
-		// inefficient
-		var_last = var;
-		var = new_value;
-		// efficient
-		var_last = std::exchange(var, new_value);
-	}
-}
-```
-### 99.7. if and switch initialization
-(since C++17) it's possible to initialize the expression that is used in an if or switch statement. it lives on for the entire scope of if/else or switch. it's simillar to having opening/closing braces around the entire scope.
+### 16.3. if and switch initialization
+it's possible to initialize the expression that is used in an if or switch statement. it lives on for the entire scope of if/else or switch. it's simillar to having opening/closing braces around the entire scope.
 ```cpp
 #include <vector>
 
@@ -1535,5 +1461,248 @@ int main()
 	} else {
 		vec.emplace_back(2);
 	}
+}
+```
+### 16.4. nested namespaces
+to avoid having multiple levels braces for nested namespaces, we can directly use the nested namespace:
+```cpp
+namespace torch::tensor::float
+{
+
+}
+```
+### 16.5. has include
+this macro gives us the ability to check the availability of header files
+```cpp
+// before C++17
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__) || defined(__HAIKU)
+#include <unistd.h>
+#endif
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+// after C++17
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if __has_include(<windows.h>)
+#include <windows.h>
+#endif
+```
+### 16.6. aggregate initialization
+C++11 allowed uniform intializations even in the absence of a constructor using `{}`. this however runs into problems if the object we're initializing is from a child class.
+```cpp
+struct Base {
+  double d;
+};
+struct Child : Base {
+  int i;
+  float f;
+};
+int main()
+{
+  Child ch_1{1, 2.4f};      // error: implicit copy constructor requires 1 argument
+                            //        implicit move constructor requires 1 argument
+                            //        implicit default constructor requires 0 arguments
+  Child ch_2{{}, 1, 2.4f};  // using default intialization for q from base class
+  Child ch_3{{15.1}, 1, 2.4f};
+
+}
+```
+### 16.7. deduction guides
+we can help the compiler deduce types where it's confused. it has to be in the same namespace:
+```cpp
+#include <functional>
+
+namespace std // same namespace has std::function
+{
+  // deduce an std::function from a standalone function pointer
+  template<typename ReturnType, typename ...Args> function(Ret (*)Args...) -> function<ReturnType(Args..)>;
+  // deduce an std::function standalone from a member function pointer
+  template<typename ReturnType, typename Class, typename ...Args> function(ReturnType(Class::*)(Args...)) 
+    -> function<ReturnType(Class&, Args..)>;
+  // deduce an std::function standalone from a const member function pointer
+  template<typename ReturnType, typename Class, typename ...Args> function(ReturnType(Class::*)(Args...) const) 
+    -> function<ReturnType(const Class&, Args..)>;
+}
+struct MyClass {
+  void member_function();
+  void const_member_function() const;
+}
+void standalone_function(int, char) {
+
+};
+int main()
+{
+  std::function sa_f(&standalone_function);
+  sa_f(1, 'c');
+  std::function m_f(&MyClass::member_function);
+  std::function cm_f(&MyClass::const_member_function);
+}
+```
+## 17. C++20
+
+## 18. Attributes
+any code that contains attributes is automatically c++98 incompatible but who cares.
+### 18.1. fallthrough
+`[[C++17]]` in switch statements we might need to only slightly differentiate between two cases, i.e. do a bunch of stuff for case A and proceed with what we would've done for case B. if they're identical, we won't have any problems but otherwise the compiler issues a fallthrough warning.
+```cpp
+switch(expression) {
+  case 1:
+    do_some_stuff();
+    [[fallthrough]];
+  case 2:
+    do_other_stuff;
+    break;
+}
+```
+### 18.2. unused
+`[[C++17]]` there are cases where it's possible to have a local variable that is technically unused but not needed. e.g. :
+```cpp
+int main()
+{
+  [[unused]] int i = 6;
+  assert(i == 6);
+}
+```
+### 18.3. maybe_unused
+`[[C++17]]` there are a couple of ways to deal with unused arguements in a function.
+* don't give it a name
+* comment out the name
+* `[[maybe_unused]]`
+```cpp
+int main(int /*argc*/, [[maybe_unused]] const char** argv)
+{
+
+}
+```
+functions can also be `[[maybe_unused]]`:
+```cpp
+[[maybe_unused]] void do_nothing() {
+
+}
+```
+### 18.4. nodiscard
+`[[C++17]]` one difference between returned error codes & exceptions is that error codes can be ignored. it is possible to enforce a check and ignoring it requires a lot more effort.
+```cpp
+[[nodiscard]] int read_file(const char* name, char* buf, int length) {
+
+}
+int main()
+{
+  char *buff[200];
+  [[maybe_unused]] int ret = read_file("text.txt", buff, 200);
+}
+```
+it can also be applied to structs, classes, enums, unions, etc. 
+## 99. Misc.
+### 99.1. timing
+`chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
+the following code measures duration in seconds
+```cpp
+#include <chrono>
+#include <iostream>
+#include <thread>
+
+int main() {
+  using namespace std::literals::chrono_literals;
+  auto start = std::chrono::high_resolution_clock::now();
+  std::this_thread:sleep(1s);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<float>  duration = end - start;
+  std::cout << duration.count() << "s" << std::endl;
+  return 0;
+}
+```
+for easier use of sleep functions we can use `chrono_literals`.
+#### structured timing
+```cpp
+struct Timer {
+  std::chrono::time_point<std::chrono::steady_clock> start, end;
+  std::chrono::duration<float>  duration;
+  Timer(){
+    start = std::chrono::high_resolution_clock::now();
+  }
+  ~Timer(){
+    end = std::chrono::high_resolution_clock::now();
+    duration = end-start;
+    float ms = duration.count()*1000.0f;
+    std::cout << "chrono timer " << ms << "ms" << std::endl;
+  }
+}
+void Function() {
+  Timer timer;
+  for(int i=0; i<100; ++i){
+    std::cout << "hello" << std::endl;
+  }
+}
+```
+now any function that declares a `Timer` object will be timed.
+
+### 99.2. variadic templates
+In C++11 there are two new options, as the Variadic functions reference page in the Alternatives section states:
+* Variadic templates can also be used to create functions that take variable number of arguments. They are often the better choice because they do not impose restrictions on the types of the arguments, do not perform integral and floating-point promotions, and are type safe. (since C++11)
+* If all variable arguments share a common type, a std::initializer_list provides a convenient mechanism (albeit with a different syntax) for accessing variable arguments.
+```cpp
+#include <iostream>
+#include <string>
+#include <initializer_list>
+
+template <typename T>
+void func(T t) 
+{
+    std::cout << t << std::endl ;
+}
+
+template<typename T, typename... Args>
+void func(T t, Args... args) // recursive variadic function
+{
+    std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
+    func(args...) ;
+}
+
+template <class T>
+void func2(std::initializer_list<T> list )
+{
+    for( auto elem : list )
+    {
+        std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
+    }
+}
+
+int main()
+{
+    std::string
+    str1( "Hello" ),
+    str2( "world" );
+
+    func(1,2.5,'a',str1);
+
+    func2( {10, 20, 30, 40 }) ;
+    func2( {str1, str2 } ) ;
+}
+```
+the `__PRETTY_FUNCTION__` directive only works with gcc and clang. the output would be 
+``` cpp
+void func(T, Args...) [T = int, Args = <double, char, std::basic_string<char>>]: 1
+void func(T, Args...) [T = double, Args = <char, std::basic_string<char>>]: 2.5
+void func(T, Args...) [T = char, Args = <std::basic_string<char>>]: a
+void func(T) [T = std::basic_string<char>]: Hello
+```
+
+
+
+### 99.3. next
+gets the next iterator. for vector, we can directly increment the iterator because they're random access. list on the other hand isn't.
+
+```cpp
+#include <list>
+#include <algorithm>
+#include <iostream>
+int main() 
+{
+	std::list<int> lst(10, 1, 2, 3, 4, 5);
+	std::cout << std::is_sorted(std::begin(lst), std::end(lst)) << '\n';        // false
+	std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
 }
 ```
