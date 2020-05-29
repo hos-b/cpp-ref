@@ -1,4 +1,4 @@
-# Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
+const FreiCarCarlaProxy&# Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
 
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [arrays](#11-arrays)<br>
@@ -21,8 +21,8 @@
   5.4. [building](#54-building)<br>
   5.5. [functions](#55-functions)
 6. [Move Semantics](#6-move-semantics)<br>
-  6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)
-  6.2. [example](#62-example)
+  6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)<br>
+  6.2. [example](#62-example)<br>
   6.3. [move constructor and assignment](#63-move-constructor-and-assignment)
 7. [Smart Pointers](#7-smart-pointers)<br>
   7.1. [unique pointers](#71-unique-pointers)<br>
