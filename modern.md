@@ -72,8 +72,8 @@
   16.1. [structured bindings](#161-structured-bindings)<br>
   16.2. [any](#162-any)<br>
   16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
-  16.4. [nested namespaces](#164-nested-namespaces)
-  16.5. [has include](#165-has-include)
+  16.4. [nested namespaces](#164-nested-namespaces)<br>
+  16.5. [has include](#165-has-include)<br>
   16.6. [aggregate initialization](#166-aggregate-initialization)
 17. [C++20](#17-c++20)<br>
 18. [Attributes](#18-attributes)<br>
