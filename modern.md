@@ -66,16 +66,18 @@ Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
   14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
-15. [C++14](#15-c++14)<br>
+15. [C++14](#15-cpp14)<br>
   15.1. [exchange](#151-exchange)
-16. [C++17](#16-c++17)<br>
+16. [C++17](#16-cpp17)<br>
   16.1. [structured bindings](#161-structured-bindings)<br>
   16.2. [any](#162-any)<br>
   16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
   16.4. [nested namespaces](#164-nested-namespaces)<br>
   16.5. [has include](#165-has-include)<br>
-  16.6. [aggregate initialization](#166-aggregate-initialization)
-17. [C++20](#17-c++20)<br>
+  16.6. [aggregate initialization](#166-aggregate-initialization)<br>
+  16.7. [deduction guides](#167-deduction-guides)<br>
+  16.8. [enable_if](#168-enable_if)
+17. [C++20](#17-cpp20)<br>
 18. [Attributes](#18-attributes)<br>
   18.1. [fallthrough](#181-fallthrough)<br>
   18.2. [unused](#182-unused)<br>
@@ -84,8 +86,8 @@ Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
 99. [Misc.](#99-misc.)<br>
   99.1. [timing](#991-timing)<br>
   99.2. [variadic templates](#992-variadic-templates)<br>
-	99.3. [next](#993-next)<br>
-
+  99.3. [next](#993-next)<br>
+  99.4. [type traits](#994-type-traits)<br>
 
 
 ## 1. Types and Stuff
@@ -1357,7 +1359,7 @@ int main()
 	f("hello", i, 5, 2, 1.2f);
 }
 ```
-## 15. C++14
+## 15. CPP14
 ### 15.1. exchange
 uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
 ```cpp
@@ -1376,7 +1378,7 @@ int main()
 	}
 }
 ```
-## 16. C++17
+## 16. CPP17
 ### 16.1. structured bindings
 when dealing with multiple return types we had several options
 ```cpp
@@ -1540,7 +1542,58 @@ int main()
   std::function cm_f(&MyClass::const_member_function);
 }
 ```
-## 17. C++20
+
+### 16.8. enable_if
+can be used to specialize the underlying structure by deducing the template type in conjunction with SFINAE.
+```cpp
+#include <type_traits>
+namespace algo
+{
+    class A {};
+    class B {};
+    // ...
+}
+template <class T>
+struct uses_A {
+    static const bool value = false;
+};
+template <>
+struct uses_A<algo::A> {
+    static const bool value = true;
+};
+template <typename T>
+class Task
+{
+public:
+    template <typename U = T,
+              typename std::enable_if<uses_A<U>::value>::type* = nullptr>
+    void SpecializedExecute(); 
+    void SharedExecute(const char* msg);
+};
+
+template<>
+template<>
+void Task<algo::A>::SpecializedExecute<>() {
+    std::cout << "using algorithm A\n";
+}
+
+template <typename T>
+void Task<T>::SharedExecute(const char* msg) {
+    std::cout << "shared function from " << msg << "\n";
+}
+int main() {
+    Task<algo::A> t1;
+    Task<algo::B> t2;
+    t1.SpecializedExecute();
+    t2.SpecializedExecute();
+    t1.SharedExecute("algo A");
+    t2.SharedExecute("algo B");
+    return 0;
+}
+```
+
+## 17. CPP20
+nothing yet. TODO: add all the stuff about concepts & generators.
 
 ## 18. Attributes
 any code that contains attributes is automatically c++98 incompatible but who cares.
@@ -1689,9 +1742,6 @@ void func(T, Args...) [T = double, Args = <char, std::basic_string<char>>]: 2.5
 void func(T, Args...) [T = char, Args = <std::basic_string<char>>]: a
 void func(T) [T = std::basic_string<char>]: Hello
 ```
-
-
-
 ### 99.3. next
 gets the next iterator. for vector, we can directly increment the iterator because they're random access. list on the other hand isn't.
 
@@ -1705,4 +1755,22 @@ int main()
 	std::cout << std::is_sorted(std::begin(lst), std::end(lst)) << '\n';        // false
 	std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
 }
+```
+### 99.4. type traits
+used to infer information about the underlying template type. they're usually implemented using template specialization. the boolean value can be further used in the standard library, or statically analyzed e.g. using `if constexpr`.
+```cpp
+namespace algo
+{
+    class A {};
+    class B {};
+    // ...
+}
+template <class T>
+struct uses_A {
+    static const bool value = false;
+};
+template <>
+struct uses_A<algo::A> {
+    static const bool value = true;
+};
 ```
