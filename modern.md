@@ -1,4 +1,4 @@
-Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
+cpp-refModern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
 
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [arrays](#11-arrays)<br>
@@ -1585,7 +1585,7 @@ int main() {
     Task<algo::A> t1;
     Task<algo::B> t2;
     t1.SpecializedExecute();
-    t2.SpecializedExecute();
+    t2.SpecializedExecute(); // error: Task<algo::B> does not have the implementation of SpecializedExecute()
     t1.SharedExecute("algo A");
     t2.SharedExecute("algo B");
     return 0;
