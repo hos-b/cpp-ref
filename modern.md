@@ -78,7 +78,8 @@
   16.7. [deduction guides](#167-deduction-guides)<br>
   16.8. [enable_if](#168-enable_if)
 17. [C++20](#17-cpp20)<br>
-18. [Attributes](#18-attributes)<br>
+  17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
+19. [Attributes](#18-attributes)<br>
   18.1. [fallthrough](#181-fallthrough)<br>
   18.2. [unused](#182-unused)<br>
   18.3. [maybe_unused](#183-maybe_unused)<br>
@@ -1593,7 +1594,33 @@ int main() {
 ```
 
 ## 17. CPP20
-nothing yet. TODO: add all the stuff about concepts & generators.
+nothing yet. TODO: add all the stuff about concepts & generators, constexpr new and delete.
+
+### 17.1. constexpr vector and string
+since Visual Studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
+this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
+
+```cpp
+constexpr int get_constexpr_sum() {
+    std::vector<int> vec{10, 20, 30, 40};
+    if (vec[2] == 30) {
+    	vec.push_back(200);
+    }
+    return std::accumulate(std::begin(vec), std::end(vec), 0);
+}
+constexpr std::vector get_constexpr_vec() {
+    std::vector<int> vec;
+    return vec;
+}
+
+int main()
+{
+    constexpr int value = get_constexpr_sum(); // ok
+    constexpr auto vec = get_constexpr_vec(); // still not allowed
+    return 0;
+}
+```
+the second expression is not allowed because memory allocated inside a `constexpr` context must be freed before leaving said context. it is however possible to create another constexpr context (e.g. a function) that copies that data into a static storage such as `std::array<>`. this still is happening at compile time but we maintain some of the runtime flexibility.
 
 ## 18. Attributes
 any code that contains attributes is automatically c++98 incompatible but who cares.
