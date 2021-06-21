@@ -1141,7 +1141,7 @@ int *ptr = new (nothrow) int[1000000000];
 if (ptr==nullptr) std::cout << "producing null pointer instead of runtime exception";
 ```
 
-### 10.9. typname keyword
+### 10.9. typename keyword
 `typename` is also used in contexts where the template resolution might confuse the compiler. For example if we want to create a pointer or use the value type of a templated type, it might be misconstrued as a multiplication wtih a member variable or a member variable on its own. Here we need the `typename` keyword to indicate that the identifier that follows is a type.
 
 ```cpp
