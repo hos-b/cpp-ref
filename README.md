@@ -222,7 +222,7 @@ int call (int x, int y, int (*functocall)(int,int))
 int main ()
 {
   int (*minus)(int,int) = subtraction;
-  int m =   7, 5, addition);
+  int m = call(7, 5, addition);
   int n = call(20, m, minus);
 }
 ```
