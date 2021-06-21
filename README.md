@@ -62,7 +62,8 @@
   10.5. [hidden namespaces](#105-hidden-namespaces)<br>
   10.6. [string streams](#106-string-streams)<br>
   10.7. [type punning](#107-type-punning)<br>
-  10.8. [nothrow](#108-nothrow)
+  10.8. [nothrow](#108-nothrow)<br>
+  10.9. [typename keyword](#109-typename-keyword)
 
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
@@ -1138,4 +1139,18 @@ this struct is basically just a byte in the memory.
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
 if (ptr==nullptr) std::cout << "producing null pointer instead of runtime exception";
+```
+
+### 10.9. typname keyword
+`typename` is also used in contexts where the template resolution might confuse the compiler. For example if we want to create a pointer or use the value type of a templated type, it might be misconstrued as a multiplication wtih a member variable or a member variable on its own. Here we need the `typename` keyword to indicate that the identifier that follows is a type.
+
+```cpp
+template <typename T>
+class Test {
+    T::subtype *ptr; // Error: multiplying T::subtype member variable with something called ptr?
+    typename T::subtype *ptr; // Ok
+    
+    T::subtype pop(); // Error: is the member variable T::subtype a return type?
+    typename T::subtype pop(); // Ok
+};
 ```
