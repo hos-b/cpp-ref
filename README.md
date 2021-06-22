@@ -1,4 +1,4 @@
-# Basic C++ Reference ([More C++](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
+# C++ Reference ([Part 2](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [decltype and auto](#11-decltype-and-auto)<br>
   1.2. [typedef and using](#12-typedef-and-using)<br>
@@ -7,7 +7,9 @@
   1.5. [volatile keyword](#15-volatile-keyword)<br>
   1.6. [static keyword](#16-static-keyword)<br>
   1.7. [mutable keyword](#17-mutable-keyword)<br>
-  1.8. [extern keyword](#18-extern-keyword)
+  1.8. [extern keyword](#18-extern-keyword)<br>
+  1.9. [typename keyword](#19-typename-keyword)<br>
+  1.10. [type deduction with declval](#110-type-deduction-with-declval)
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)<br>
@@ -18,9 +20,7 @@
   3.2. [member initialization](#32-member-initialization)<br>
   3.3. [static members](#33-static-members)<br>
   3.4. [const objects and functions](#34-const-objects-and-functions)<br>
-  3.5. [template specialization](#35-template-specialization)<br>
-  3.6. [move constructor and move assignment](#36-move-constructor-and-move-assignment)<br>
-  3.7. [but wait there's more](#37-but-wait-theres-more)
+  3.5. [template specialization](#35-template-specialization)
 4. [Inheritance](#4-inheritance)<br>
   4.1. [friend functions and classes](#41-friend-functions-and-classes)<br>
   4.2. [access specifiers](#42-access-specifiers)<br>
@@ -56,17 +56,13 @@
 9. [Precompiled Headers](#9-precompiled-headers)<br>
 10. [Misc.](#10-misc)<br>
   10.1. [preprocessor-directives](#101-preprocessor-directives)<br>
-  10.2. [line control](#102-line-control)<br>
-  10.3. [error directives](#103-error-directives)<br>
-  10.4. [macros](#104-macros)<br>
-  10.5. [hidden namespaces](#105-hidden-namespaces)<br>
-  10.6. [string streams](#106-string-streams)<br>
-  10.7. [type punning](#107-type-punning)<br>
-  10.8. [nothrow](#108-nothrow)<br>
-  10.9. [typename keyword](#109-typename-keyword)
+  10.2. [hidden namespaces](#102-hidden-namespaces)<br>
+  10.3. [string streams](#103-string-streams)<br>
+  10.4. [type punning](#104-type-punning)<br>
+  10.5. [nothrow](#105-nothrow)<br>
 
 ## 1. Types and Stuff
-### 1.1. decltype and auto
+### 1.1. decltype, auto
 ```cpp
 int a = 5;
 decltype(a) b;  // type of a without initialization
@@ -83,38 +79,41 @@ using C = char;
 ```cpp
 // inside classes
 template <class T, int SIZE>
-class Image{
-  using Ptr = std::unique_ptr<Image<T, SIZE>>;
-}
+class Image
+{
+    using Ptr = std::unique_ptr<Image<T, SIZE>>;
+};
 // with template
 template <int SIZE>
 using Imagef = Image<float, SIZE>;
 
 // inside functions
-int main(){
-  using Image3f = Imagef<3>;
-  auto image_ptr = Image3f::Ptr(new Image3f);
+int main()
+{
+    using Image3f = Imagef<3>;
+    auto image_ptr = Image3f::Ptr(new Image3f);
 }
 ```
 ### 1.3. unions
 ```cpp
-union mix_t {
-  int l;
-  struct {
-    short hi;
-    short lo;
-    } s;
-  char c[4];
-} mix;
+union mix_t
+{
+    int l;
+    struct {
+        short hi;
+        short lo;
+    }s;
+    char c[4];
+}mix;
 ```
 ### 1.4. enums
 ```cpp
 //numbered starting from 0
-enum colors_t {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE}; 
-//numbered startin from 1 
+enum colors_t {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE};
+//numbered startin from 1
 enum months_t { JANUARY=1, FEBRUARY, MARCH, ...};
 ```
-real enum types that are neither implicitly convertible to int and that neither have enumerator values of type int, but of the enum type itself. 
+real enum types that are neither implicitly convertible to int and that neither have enumerator values of type int, but of the enum type itself.
 
 #### enum class, enum struct
 enum class or enum struct helps avoid dumb misakes by preventing unwanted int casts.
@@ -127,7 +126,7 @@ if (mycolor == Colors::GREEN) mycolor = Colors::RED;
 
 #### determine type size
 ```cpp
-enum class EyeColor : char {blue, green, brown}; 
+enum class EyeColor : char {blue, green, brown};
 ```
 #### explicit values
 usable for masks
@@ -143,16 +142,17 @@ volatile is a hint to the implementation to avoid aggressive optimization involv
 ### 1.6. static keyword
 ```cpp
 int f(void) {
-  static int x = 0;
-  x++;
-  return x;
+    static int x = 0;
+    x++;
+    return x;
 }
-int main(void) {
-  int j;
-  for (j = 0; j < 5; j++) {
-    printf("Value of f(): %d\n", f());
-  }
-  return 0;
+int main(void)
+{
+    int j;
+    for (j = 0; j < 5; ++j) {
+        printf("value of f(): %d\n", f());
+    }
+    return 0;
 }
 ```
 returns 0 1 2 3 4<br>
@@ -163,17 +163,16 @@ The mutable storage class specifier is used only on a class data member to make 
 ```cpp
 class A
 {
-  public:
-    A() : x(4), y(5) { };
+public:
+    A() : x(4), y(5) {};
     mutable int x;
     int y;
 };
-
 int main()
 {
-  const A var2;
-  var2.x = 345;
-  var2.y = 2345; // not allowed
+    const A var2;
+    var2.x = 345;
+    var2.y = 2345; // not allowed
 }
 ```
 ### 1.8. extern keyword
@@ -185,16 +184,36 @@ void print_gloabl_x();
 ---source1.cpp---
 #include "header.h"
 int gloabl_X;
-void main(){
-  gloabl_x =5;
-  print_global_x()
+void main()
+{
+    gloabl_x = 5;
+    print_global_x();
 }
 ---source 2---
 #include "header.h"
-void print_gloabl_x(){
-  std::cout<<global_x;
+void print_gloabl_x() {
+    std::cout << global_x;
 }
 ```
+### 1.9. typename keyword
+`typename` is also used in contexts where the template resolution might confuse the compiler. For example if we want to create a pointer or use the value type of a templated type, it might be misconstrued as a multiplication wtih a member variable or a member variable on its own. Here we need the `typename` keyword to indicate that the identifier that follows is a type.
+
+```cpp
+template <typename T>
+class Test {
+    T::subtype *ptr; // Error: multiplying T::subtype member variable with something called ptr?
+    typename T::subtype *ptr; // Ok
+
+    T::subtype pop(); // Error: is the member variable T::subtype a return type?
+    typename T::subtype pop(); // Ok
+};
+```
+### 1.10. type deduction with declval
+`std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors. E.g. if we want to get the type of the result of multiplciation for two types:
+```cpp
+#define mul_decltype(U, V) decltype(std::declval<U&>() * std::declval<V&>())
+```
+
 ## 2. Pointers
 ### 2.1. const keyword
 ```cpp
@@ -211,47 +230,46 @@ CamelCase starting with `k`.
 ### 2.2. function pointers
 #### standalone functions
 ```cpp
-int addition (int a, int b)
-{ return (a+b); }
-int subtraction (int a, int b)
-{ return (a-b); }
-int call (int x, int y, int (*functocall)(int,int))
+int addition (int a, int b) { return a + b; }
+int subtraction (int a, int b) { return a - b; }
+int call (int x, int y, int (*functocall)(int, int))
 {
-  int g;
-  return (*functocall)(x,y);
+    return (*functocall)(x, y);
 }
 int main ()
 {
-  int (*minus)(int,int) = subtraction;
-  int m = call(7, 5, addition);
-  int n = call(20, m, minus);
+    int (*minus)(int,int) = subtraction;
+    int m = call(7, 5, addition);
+    int n = call(20, m, minus);
 }
 ```
 #### member functions
 ```cpp
-struct Num {
-  int a = 10;
-  int add(int b) {
-    return a + b;
-  }
-  int subtract(int b) {
-    return a - b;
-  }
+struct Num
+{
+    int a = 10;
+    int add(int b) {
+        return a + b;
+    }
+    int subtract(int b) {
+        return a - b;
+    }
 };
-int main() {
-  bool perform_add;
-  std::cin >> perform_add;
-  Num num_obj;
-  int (Num::*fptr)(int) = nullptr;
-  if (perform_add) {
-    fptr = &Num::add;
-  } else {
-    fptr = &Num::subtract;
-  }
-  std::cout << (num_obj.*fptr)(20) << std::endl;
-  // also possible with
-  std::cout << std::invoke(&Num::add, num_obj, 13) << std::endl;
-};
+int main()
+{
+    bool perform_add;
+    std::cin >> perform_add;
+    Num num_obj;
+    int (Num::*fptr)(int) = nullptr;
+    if (perform_add) {
+        fptr = &Num::add;
+    } else {
+        fptr = &Num::subtract;
+    }
+    std::cout << (num_obj.*fptr)(20) << std::endl;
+    // also possible with
+    std::cout << std::invoke(&Num::add, num_obj, 13) << std::endl;
+}
 ```
 ### 2.3. reference variables
 ```cpp
@@ -263,17 +281,18 @@ a = 10; // ref is now also 10
 ## 3. Class Basics
 ### 3.1. other ways of instantiating
 ```cpp
-class Circle {
-  double radius;
-  public:
-  Circle(double r) { radius = r; }
+class Circle
+{
+    double radius;
+    public:
+    Circle(double r) { radius = r; }
 };
 Circle foo (10.0);   // functional form
 Circle bar = 20.0;   // assignment init.
 Circle baz {30.0};   // uniform init.
 Circle qux = {40.0}; // POD-like
 ```
-which also means 
+which also means
 ```cpp
 Rectangle rectb;   // default constructor called
 Rectangle rectc(); // function declaration (default constructor NOT called)
@@ -282,15 +301,17 @@ Rectangle rectd{}; // default constructor called
 ### 3.2. member initialization
 For members of fundamental types, it makes no difference how the constructor is defined, because they are not initialized by default, but for member objects (those whose type is a class), if they are not initialized using member initializer list, they are default-constructed:
 ```cpp
-class A {
-  double r_;
-  public:
-  A(double r) : r_(r) { }
+class A
+{
+    double r_;
+public:
+    A(double r) : r_(r) {}
 };
-class B {
-  A base;
-  public:
-  Cylinder(double r) : base {r} {} //let's be retarded
+class B
+{
+    A base;
+public:
+    Cylinder(double r) : base{r} {}
 };
 ```
 or just make a pointer to A like a decent person.
@@ -298,10 +319,11 @@ or just make a pointer to A like a decent person.
 #### variables
 exist exactly once per type, not per object. the value is equal across all instances.
 ```cpp
-class Dummy{
+class Dummy
+{
   static int counter;
-  Dummy(){counter++;}
-}
+  Dummy() {counter++;}
+};
 Dummy::counter = 0;
 ```
 to avoid them being declared several times, they cannot be initialized directly in the class, but need to be initialized somewhere outside it (always in cpp files, never in headers).
@@ -320,11 +342,15 @@ const Class object;
 Most functions taking classes as parameters actually take them by const reference, and thus, these functions can only access their const members, i.e. ensuring that the passed object does not change. overloading constness is also a thing :
 ```cpp
 class MyClass {
-  int x;
-  public:
-  MyClass(int val) : x(val) {}
-  const int& get() const {return x;}
-  int& get() {return x;}
+    int x;
+public:
+    MyClass(int val) : x(val) {}
+    const int& get() const {
+        return x;
+    }
+    int& get() {
+        return x;
+    }
 };
 ```
 ### 3.5. template specialization
@@ -333,98 +359,56 @@ if the class uses templates but for a special data type, it should be declared a
 // class template:
 template <class T>
 class mycontainer {
-  T element;
-  public:
-  mycontainer (T arg) {element=arg;}
-  T increase () {return ++element;}
+T element;
+public:
+    mycontainer (T arg) {
+        element = arg;
+    }
+    T increase () {
+        return ++element;
+    }
 };
 // class template specialization:
 template <>
-class mycontainer <char> {
-  char element;
-  public:
-  mycontainer (char arg) {element=arg;}
-  char uppercase ()
-  {
-    if ((element>='a')&&(element<='z'))
-    element+='A'-'a';
-    return element;
-  }
+class mycontainer <char>
+{
+char element;
+public:
+    mycontainer(char arg) {
+        element = arg;
+    }
+    char uppercase()
+    {
+        if (element>= 'a' && element <= 'z') {
+            element += 'A' - 'a';
+        }
+        return element;
+    }
 };
 ```
-notice that we precede the class name with template<> , including an empty parameter list. This is because all types are known and no template arguments are required for this specialization, but still, it is the specialization of a class template, and thus it requires to be noted as such. 
+notice that we precede the class name with template<> , including an empty parameter list. This is because all types are known and no template arguments are required for this specialization, but still, it is the specialization of a class template, and thus it requires to be noted as such.
 When we declare specializations for a template class, we must also define all its members, even those identical to the generic template class, because there is no "inheritance" of members from the generic template to the specialization.
-### 3.6. move constructor and move assignment
-for copy contstructor,assignment we had to define the following:
-```cpp
-MyClass::MyClass (const MyClass&);    // copy-constructor
-MyClass& operator= (const MyClass&);  // copy-constructor
-```
-*similar to copying*, moving also uses the value of an object to set the value to another object. But, unlike copying, the content is actually transferred from one object (the source) to the other (the destination): the source loses that content, which is taken over by the destination. This moving only happens when the source of the value is an unnamed object. The move constructor and move assignment are members that take a parameter of type rvalue reference to the class itself:
-```cpp
-MyClass::MyClass (MyClass&&);   // move-constructor
-MyClass& operator= (MyClass&&); // move-assignment
-```
-An rvalue reference is specified by following the type with two ampersands (&&). As a parameter, an rvalue reference matches arguments of temporaries of this type. the concept of moving is most useful for objects that manage the storage they use, such as objects that allocate storage with new and delete. In such objects, copying and moving are really different operations:
-- Copying from A to B means that new memory is allocated to B and then the entire content of A is copied to this new memory allocated for B.
-- Moving from A to B means that the memory already allocated to A is transferred to B without allocating any new storage. It involves simply copying the pointer.
-in general :
-```cpp
-MyClass fn();            // function returning a MyClass object
-MyClass foo;             // default constructor
-MyClass bar = foo;       // copy constructor
-foo = bar;               // copy assignment
-MyClass baz = fn();      // move constructor
-baz = MyClass();         // move assignment
-```
-Notes:
 
-Compilers already optimize many cases that formally require a move-construction call in what is known as Return Value Optimization. Most notably, when the value returned by a function is used to initialize an object. In these cases, the move constructor may actually never get called.
-
-Note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor. Rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track down.
-### 3.7. but wait, there's more
-| member function     | implicitly defined                                                    | default definition |
-|---------------------|-----------------------------------------------------------------------|--------------------|
-| default constructor | if no other constructors                                              | does nothing       |
-| destructor          | if no destructor                                                      | does nothing       |
-| copy constructor    | if no move constructor and no move assignment                         | copies all members |
-| copy assignment     | if no move constructor and no move assignment                         | copies all members |
-| move constructor    | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
-| move assignment     | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
-
-they're not always defined due to backward compatibility. if we want them to be (or not to be), we have to explicitly ask for an implicit declaration (or removal thereof) :
-```cpp
-function_declaration = default;
-function_declaration = delete;
-```
-for example after this decalaration, the rectangle class can no longer use the copy constructor :
-```cpp
-class Rect{
-  Rect (const Rect& other) = delete;
-  ...
-};
-Rect b;
-Rect a(b);  // error
-```
-in general, and for future compatibility, classes that explicitly define one copy/move constructor or one copy/move assignment but not both, are encouraged to specify either delete or default on the other special member functions they don't explicitly define.
 ## 4. Inheritance
 ### 4.1. friend functions and classes
 A non-member function can access the private and protected members of a class if it is declared a friend of that class. That is done by including a declaration of this external function within the class, and preceding it with the keyword friend.
 ```cpp
-class A:{
-  private:
-  int a;
-  friend void setA(A obj);
-  friend class B;
-}
-void setA(A obj){
+class A
+{
+private:
+    int a;
+    friend void setA(A obj);
+    friend class B;
+};
+void setA(A obj) {
   A.a=10;
-}
-class B{
-  void changeA(A ojb){
-    obj.a=14;
-  }
-}
+};
+class B
+{
+    void changeA(A obj) {
+        obj.a = 14;
+    }
+};
 ```
 ### 4.2. access specifiers
 | access                    | public | private | protected |
@@ -441,25 +425,29 @@ base' constructors and its destructor
 base' assignment operator members (operator=)
 base' friends
 base' private members
-
 ### 4.4. base constructor
 base' default constructor is called with every child class object instantiation. a specific base constructor can also be called after colon when declaring child constructors.
 ```cpp
-class Base{
-  public:
-  Base() {std::cout<<"default base constructor";
-  Base(int a) {std::cout<<a<<" base constructor";
+class Base
+{
+    public:
+    Base() {
+        std::cout << "default base constructor";
+    }
+    Base(int a) {
+        std::cout << a << " base constructor";
+    }
 };
-class Derived : public Base{
-  public:
-  Derived(int b) : Base(b)
+class Derived : public Base
+{
+public:
+  Derived(int b) : Base(b) {}
 }
 ```
 ### 4.5. virtual functions
 are made in the base class to be overridden in the derived class. they can still be called though. if a function is not defined as virtual and still overridden in the child class, a base class pointer that was initialized with the adress of a child object will always call the function in the base class (power of polymorphism goes to shit).
 
 since C++11, it is recommended to add `override` after function declaration in the child class. This keyword helps the compiler detect if a virtual function has been overloaded, instead of overridden. for example if in the derived class, we forget the const keyword.
-
 ### 4.6. pure virtual and abstract classes
 a pure virtual function is a virtual function whose definition is "=0". classes with at least one pure virtual function are called abstract. we cannot create objects of abstract classes but can create pointers for polymorphism. this also doesn't mean that they can't have useful callable functions.
 ```cpp
@@ -467,28 +455,31 @@ Base *base_ptr = new Child;
 ```
 ### 4.7. virtual destructors
 ```cpp
-class Base{
+class Base
+{
 public:
-  Base() { std::cout << "Base Constructor\n"; }
-  ~Base() { std::cout << "Base Destructor\n"; }
-}
+    Base() { std::cout << "Base Constructor\n"; }
+    ~Base() { std::cout << "Base Destructor\n"; }
+};
 
-class Derived : public Base {
+class Derived : public Base
+{
 public:
-  Derived() { memory = new int[500]; std::cout << "Derived Constructor\n"; }
-  ~Derived() { delete memory; std::cout << "Derived Destructor\n"; }
+    Derived() { memory = new int[500]; std::cout << "Derived Constructor\n"; }
+    ~Derived() { delete memory; std::cout << "Derived Destructor\n"; }
 private:
-  int *memory;
+    int *memory;
 }
-int main(){
-  Base *base = new Base();
-  delete base;
-  std::cout << "---------------\n";
-  Derived *derived = new Derived();
-  delete derived;
-  std::cout << "---------------\n";
-  Base *poly = new Derived();
-  delete poly;
+int main()
+{
+    Base *base = new Base();
+    delete base;
+    std::cout << "---------------\n";
+    Derived *derived = new Derived();
+    delete derived;
+    std::cout << "---------------\n";
+    Base *poly = new Derived();
+    delete poly;
 }
 output:
 Base Constructor
@@ -504,33 +495,34 @@ Derived Constructor
 Base Destructor
 ```
 when calling the destructor for `poly`, we don't know that the object might have another destructor, since it's cast to `Base` pointer. to overcome this issue we have to declare the Base destructor as `virtual`. this does not override the base destructor. it just lets C++ know that there might be another destructor further down in the hierrachy.
+
 ## 5. Type Conversion
 - If a negative integer value is converted to an unsigned type, the resulting value corresponds to its 2's complement bitwise representation (i.e., -1 becomes the largest value representable by the type, -2 the second largest, ...).
 - The conversions from/to bool consider false equivalent to zero (for numeric types) and to null pointer (for pointer types); true is equivalent to all other values and is converted to the equivalent of 1.
 - If the conversion is from a floating-point type to an integer type, the value is truncated (the decimal part is removed). If the result lies outside the range of representable values by the type, the conversion causes undefined behavior.
 - Otherwise, if the conversion is between numeric types of the same kind (integer-to-integer or floating-to-floating), the conversion is valid, but the value is implementation-specific (and may not be portable).
-
 ### 5.1. through classes
 coverting A ojects to B and vice versa.
 ```cpp
 class A {};
-class B {
+class B
+{
 public:
-  // conversion from A (constructor):
-  B (const A& x) {}
-  // conversion from A (assignment):
-  B& operator= (const A& x) {return *this;}
-  // conversion to A (type-cast operator)
-  operator A() {return A();}
+    // conversion from A (constructor):
+    B (const A& x) {}
+    // conversion from A (assignment):
+    B& operator=(const A& x) {return *this;}
+    // conversion to A (type-cast operator)
+    operator A() {return A();}
 };
 
 int main ()
 {
-  A foo;
-  B bar = foo;    // calls constructor
-  bar = foo;      // calls assignment
-  foo = bar;      // calls type-cast operator
-  return 0;
+    A foo;
+    B bar = foo;    // calls constructor
+    bar = foo;      // calls assignment
+    foo = bar;      // calls type-cast operator
+    return 0;
 }
 ```
 the type-cast operator uses a particular syntax: it uses the operator keyword followed by the destination type and an empty set of parentheses. Notice that the return type is the destination type and thus is not specified before the operator keyword.
@@ -540,7 +532,6 @@ if we add the function `void fn (B arg) {}` to the previous example, it can be c
 additionally, constructors marked with explicit cannot be called with the assignment-like syntax; In the above example, bar could not have been constructed with: `B bar = foo`.
 
 type-cast member functions (those described in the previous section) can also be specified as explicit. This prevents implicit conversions in the same way as explicit-specified constructors do for the destination type.
-
 ### 5.3. type casting
 there are two main syntaxes for generic type casting:
 - `c like     : int b = (int)a;`
@@ -551,7 +542,8 @@ dynamic_cast can only be used with pointers and references to classes (or with v
 ```cpp
 class Base { virtual void dummy() {} };
 class Derived: public Base { int a; };
-void main () {
+int main ()
+{
     Base *pba = new Derived;
     Base *pbb = new Base;
     Derived *pd;
@@ -562,7 +554,7 @@ void main () {
 ```
 even though both are pointers of type Base*, pba actually points to an object of type Derived, while pbb points to an object of type Base. Therefore, when their respective type-casts are performed using dynamic_cast, pba is pointing to a full object of class Derived, whereas pbb is pointing to an object of class Base, which is an incomplete object of class Derived.
 
-If dynamic_cast is used to convert to a reference type and the conversion is not possible, an exception of type bad_cast is thrown instead. dynamic_cast can also perform the other implicit casts allowed on pointers: casting null pointers between pointers types (even between unrelated classes), and casting any pointer of any type to a void* pointer. 
+If dynamic_cast is used to convert to a reference type and the conversion is not possible, an exception of type bad_cast is thrown instead. dynamic_cast can also perform the other implicit casts allowed on pointers: casting null pointers between pointers types (even between unrelated classes), and casting any pointer of any type to a void* pointer.
 
 Google style suggests avoiding dynamic casts.
 #### static_cast
@@ -588,15 +580,14 @@ This code compiles, although it does not make much sense, since now b points to 
 #### const_cast
 This type of casting manipulates the constness of the object pointed by a pointer, either to be set or to be removed. For example, in order to pass a const pointer to a function that expects a non-const argument.
 ```cpp
-void print (char * str)
-{
-  cout << str << '\n';
+void print (char * str) {
+    std::cout << str << '\n';
 }
-
-int main () {
-  const char * c = "sample text";
-  print ( const_cast<char *> (c) );
-  return 0;
+int main ()
+{
+    const char *c = "sample text";
+    print(const_cast<char *>(c));
+    return 0;
 }
 ```
 The example above is guaranteed to work because function print does not write to the pointed object. Note though, that removing the constness of a pointed object to actually write to it causes undefined behavior
@@ -607,15 +598,14 @@ This operator returns a reference to a constant object of type type_info that is
 ```cpp
 #include <typeinfo>
 int main () {
-  int * a,b;
-  a=0; b=0;
-  if (typeid(a) != typeid(b))
-  {
-    cout << "a and b are of different types:\n";
-    cout << "a is: " << typeid(a).name() << '\n';
-    cout << "b is: " << typeid(b).name() << '\n';
-  }
-  return 0;
+    int *a,b;
+    a = 0; b = 0;
+    if (typeid(a) != typeid(b)) {
+        cout << "a and b are of different types:\n";
+        cout << "a is: " << typeid(a).name() << '\n';
+        cout << "b is: " << typeid(b).name() << '\n';
+    }
+    return 0;
 }
 ```
 when typeid is applied to classes, typeid uses the RTTI to keep track of the type of dynamic objects. When typeid is applied to an expression whose type is a polymorphic class, the result is the type of the most derived complete object.
@@ -655,19 +645,18 @@ int main () {
     cout << "Base is: " << abi::__cxa_demangle(typeid(&ExStruct::data).name(), nullptr, 0, &status) << '\n';
 }
 ```
+
 ## 6. Exception
 thrown using `throw` keyword :
 ```cpp
-int main () {
-  try
-  {
-    throw 20;
-  }
-  catch (int e)
-  {
-    cout << "An exception occurred. Exception Nr. " << e << '\n';
-  }
-  return 0;
+int main ()
+{
+    try {
+        throw 20;
+    } catch (int e) {
+        std::cout << "an exception occurred. Exception Nr. " << e << '\n';
+    }
+    return 0;
 }
 ```
 if an ellipsis `(...)` is used as the parameter of catch, that handler will catch any exception no matter what the type of the exception thrown.
@@ -677,26 +666,26 @@ older code may contain dynamic exception specifications. They are now deprecated
 double myfunction (char param) throw (int);
 ```
 this declares a function called myfunction, which takes one argument of type char and returns a value of type double. If this function throws an exception of some type other than int, the function calls ```std::unexpected``` instead of looking for a handler or calling ```std::terminate```. if this throw specifier is left empty with no type, this means that ```std::unexpected``` is called for any exception. Functions with no throw specifier (regular functions) never call ```std::unexpected```, but follow the normal path of looking for their exception handler.
-
 ### 6.2. standard exceptions
 the C++ Standard library provides a base class specifically designed to declare objects to be thrown as exceptions. It is called `std::exception` and is defined in the `<exception>` header. This class has a virtual member function called what that returns a null-terminated character sequence (of type char *) and that can be overridden in derived classes to contain some sort of description of the exception.
 ```cpp
 #include <exception>
+#include <iostream>
 class myexception: public std::exception
 {
-  virtual const char* what() const throw(){
-    return "My exception happened";
-  }
+    virtual const char* what() const throw() {
+        return "My exception happened";
+    }
 } myex;
 
-int main () {
-  try{
-    throw myex;
-  }
-  catch (exception& e){
-    cout << e.what() << '\n';
-  }
-  return 0;
+int main ()
+{
+    try {
+        throw myex;
+    } catch (std::exception& e) {
+        std::cout << e.what() << '\n';
+    }
+    return 0;
 }
 ```
 standard exceptions are as follows :
@@ -720,6 +709,7 @@ Also deriving from exception, header `<exception>` defines two generic exception
 | runtime_error     | error detected during runtime                          |
 
 *Google Style : don't use exceptions*
+
 ## 7. File IO
 ```cpp
 #include <fstream>
@@ -750,7 +740,7 @@ ifstream in ("file.txt", ios_base::in);
 int a,b;
 std::string str;
 double d;
-while (in >> a >> str >> b >> d){
+while (in >> a >> str >> b >> d) {
   ...
 }
 ```
@@ -759,10 +749,10 @@ while (in >> a >> str >> b >> d){
 ifstream in ("file.txt", ios_base::in);
 std::string line;
 int value;
-while (getline(in, line)){
-  string::size_type loc = line.find("value", 0);
-  if (loc != string::npos)
-    value  = line.substr(line.find("=",0) + 1, string::npos);
+while (getline(in, line)) {
+    string::size_type loc = line.find("value", 0);
+    if (loc != string::npos)
+        value  = line.substr(line.find("=",0) + 1, string::npos);
 }
 ```
 ### 7.3. ascii writing
@@ -772,7 +762,7 @@ while (getline(in, line)){
 
 ofstream outfile("file.txt");
 if(!outfile.isopen())
-  return EXIT_FAILURE;
+    return EXIT_FAILURE;
 outfile << "stuff" << std::endl;
 ```
 ### 7.4. binary reading
@@ -812,26 +802,30 @@ file.write(reinterpret_cast<char*>(&r), sizeof(r));
 file.write(reinterpret_cast<char*>(&c), sizeof(c));
 file.write(reinterpret_cast<char*>(&vec.front()), vec.size()*sizeof(vec.front()));
 ```
+
 ## 8. Functors
 function objects
 ```cpp
-struct X{
-  public:
-  void  operator()(string str){
-    std::cout << calling functor X with parameter << str << std::endl;
-  }
+struct X
+{
+public:
+    void  operator()(string str){
+        std::cout << calling functor X with parameter << str << std::endl;
+    }
 };
-int main(){
-  X foo;
-  foo("Hi");
-  return 0;
+int main()
+{
+    X foo;
+    foo("Hi");
+    return 0;
 }
 ```
 this is not to be mistaken with a type conversion function where the type comes after the `operator` keyword
 ```cpp
-class X{
-  ...
-  operator string() const { return "X"; }
+class X
+{
+    ...
+    operator string() const { return "X"; }
 };
 ```
 ### 8.1. pros
@@ -840,18 +834,20 @@ class X{
 ### 8.2. runtime templates
 with templates we can customize how certain functions work, however their template has to be intialized at compile time. with functors we can do more
 ```cpp
-struct AddValue{
-  int val_;
-  AddValue(int j): val_(j) {}
-  void operator()(int i){
-    std::cout << i + val << std::endl;
-  }
+struct AddValue
+{
+    int val_;
+    AddValue(int j): val_(j) {}
+    void operator()(int i){
+        std::cout << i + val << std::endl;
+    }
 };
-int main(){
-  std::vector<int> vec = {1, 5, 2, 3};
-  int x;
-  std::cin >> x;
-  std::for_each(vec.begin(), vec.end(), AddValue(x));
+int main()
+{
+    std::vector<int> vec = {1, 5, 2, 3};
+    int x;
+    std::cin >> x;
+    std::for_each(vec.begin(), vec.end(), AddValue(x));
 }
 ```
 ### 8.3. built-in functors
@@ -862,19 +858,20 @@ logical_and logical_not logical_or
 multiplies minus plus divide modulus negate
 //example
 int x = std::multiplies<int>()(3, 4);
-if (not_equal_to<int>()(x, 10))
-  std::cout << x << std::endl;
+if (not_equal_to<int>()(x, 10)) {
+    std::cout << x << std::endl;
+}
 ```
 ### 8.4. parameter binding
 ```cpp
 std::set<int> myset = {2, 3, 4, 5};
-vector<int> vec;
+std::vector<int> vec;
 
 // code to multiply each element of the set
 // by 10 and save in vector
 std::transform(myset.begin(), myset.end(),  // source
-          std::back_inserter(vec),          // destination
-          std::bind(multiplies<int>(), std::placeholders::_1, 10));
+               std::back_inserter(vec),     // destination
+               std::bind(multiplies<int>(), std::placeholders::_1, 10));
 ```
 transform takes a function that accepts one arguement, however `multiplies<int>()` accepts two. we use `std::bind` to replace the first parameter with a member of `myset` using `std::placeholders::_1`.<br> <br>
 
@@ -887,60 +884,61 @@ std::for_each(vec.begin(), vec.end(), bind(AddVal, std::placeholders::_1, 2);
 ```
 ### 8.5. regular function to functor
 ```cpp
-double Pow(double x, double y){
-  return pow(x,y);
+double Pow(double x, double y) {
+    return pow(x,y);
 }
-int main(){
-  std::set<int> myset = {3, 1, 25, 7, 12};
-  std::dequeue<int> d;
-  auto func = std::function<double(double, double)>(Pow);
-  std::transform(myset.begin(), myset.end(),
-                 std::back_inserter(d),
-                 std::bind(func, std::placeholders::_1, 2));
-  return 0;
+int main()
+{
+    std::set<int> myset = {3, 1, 25, 7, 12};
+    std::dequeue<int> d;
+    auto func = std::function<double(double, double)>(Pow);
+    std::transform(myset.begin(), myset.end(),
+                    std::back_inserter(d),
+                    std::bind(func, std::placeholders::_1, 2));
+    return 0;
 }
 ```
 ### 8.6. getting more complex
 ```cpp
-bool ElgibileForCopy(int x){
-  return (x>20)||(x<5);
+bool ElgibileForCopy(int x) {
+    return (x > 20) || (x < 5);
 }
-int main(){
-  std::set<int> myset = {3, 1, 25, 7, 12};
-  std::dequeue<int> d;   // x in myset : x<20 || x<5
-  auto func = std::function<double(double, double)>(Pow);
-  std::transform(myset.begin(), myset.end(),
-                 std::back_inserter(d),
-                 std::bind(std::logical_or<bool>,
-                           std::bind(greater<int>(), std::placeholders::_1, 20),
-                           std::bind(less<int>(), std::placeholders::_1, 5),
-                           );
-  // same as
-  std::transform(myset.begin(), myset.end(),
-                 std::back_inserter(d),
-                 ElgibileForCopy); // probably won't work. it's a function not a functor
-  return 0;
-  // same as
-  std::transform(myset.begin(), myset.end(),
-                 std::back_inserter(d),
-                 [] (int x) { return (x>20)||(x<5);});
-            
+int main()
+{
+    std::set<int> myset = {3, 1, 25, 7, 12};
+    std::dequeue<int> d;   // x in myset : x<20 || x<5
+    auto func = std::function<double(double, double)>(Pow);
+    std::transform(myset.begin(), myset.end(),
+                   std::back_inserter(d),
+                   std::bind(std::logical_or<bool>(
+                             std::bind(greater<int>(), std::placeholders::_1, 20),
+                             std::bind(less<int>(), std::placeholders::_1, 5)));
+    // same as
+    std::transform(myset.begin(), myset.end(),
+                    std::back_inserter(d),
+                    ElgibileForCopy); // probably won't work. it's a function not a functor
+    return 0;
+    // same as
+    std::transform(myset.begin(), myset.end(),
+                    std::back_inserter(d),
+                    [] (int x) { return (x>20)||(x<5);});
+
 }
 ```
 ### 8.7. functors and sorting
 we can choose how our containers are sorted.
 ```cpp
 std::set<int> myset = {3, 1, 25, 7, 12}; // myset : {1, 3, 7, 12, 25}
-std::set<int, std::less<int>> myset = {3, 1, 25, 7, 12}; // myset : {1, 3, 7, 12, 25} 
+std::set<int, std::less<int>> myset = {3, 1, 25, 7, 12}; // myset : {1, 3, 7, 12, 25}
 
-struct Lsb_less{
-  bool operator ()(int x, int y){
-    return (x%10) < (y%10);
-  }
+struct Lsb_less
+{
+    bool operator ()(int x, int y) {
+        return (x % 10) < (y % 10);
+    }
 };
-int main(){
-  std::set<int, Lsb_less> myset = {3, 1, 25, 7, 12}; // myset : {1, 12, 3, 25, 7}
-
+int main() {
+    std::set<int, Lsb_less> myset = {3, 1, 25, 7, 12}; // myset : {1, 12, 3, 25, 7}
 }
 ```
 ### 8.8. predicates
@@ -949,38 +947,39 @@ a predicate is a functor that
 * does not modify data
 predicates are used for comparisons or condition checks.
 ```cpp
-struct NeedCopy{
-  bool operator()(int x){
-    return (x>20)||(x<5);
-  }
+struct NeedCopy
+{
+    bool operator()(int x) {
+        return (x>20)||(x<5);
+    }
 };
-std::transform(myset.begin(), myset.end(),
-               std::back_inserter(d),
-               NeedCopy());
+std::transform(myset.begin(), myset.end(), std::back_inserter(d), NeedCopy());
 ```
 ### 8.9. template functors
 to reuse defined functors to some extent, we can make use of templates
 ```cpp
 template <typename T>
-struct MatchFirstFunctor{
-  MatchFirstFunctor(T const& t) : m_t(t) {}
-  template<typename U>
-  bool operator()(U const& pair){
-    return pari.first == m_t;
-  }
-  T m_t;
+struct MatchFirstFunctor
+{
+    MatchFirstFunctor(T const& t) : m_t(t) {}
+    template<typename U>
+    bool operator()(U const& pair) {
+        return pari.first == m_t;
+    }
+    T m_t;
 }
-int main(){
-  std::vector<pair<int, bool>> v1 = {std::make_pair(1, true), std::make_pair(2, false)};
-  std::vector<pair<bool, floa>> v2 = {std::make_pair(true, 1.0f), std::make_pair(false, 1.2f)};
-  std::find(v1.begin(), v1.end(), std::make_pair(1, true));
-  std::find_if(v1.begin(), v1.end(), MatchFirstFunctor<int>(2));
-  std::find_if(v2.begin(), v2.end(), MatchFirstFunctor<bool>(false));
-  return 0;
+int main() {
+    std::vector<std::pair<int, bool>> v1 = {std::make_pair(1, true), std::make_pair(2, false)};
+    std::vector<std::pair<bool, floa>> v2 = {std::make_pair(true, 1.0f), std::make_pair(false, 1.2f)};
+    std::find(v1.begin(), v1.end(), std::make_pair(1, true));
+    std::find_if(v1.begin(), v1.end(), MatchFirstFunctor<int>(2));
+    std::find_if(v2.begin(), v2.end(), MatchFirstFunctor<bool>(false));
+    return 0;
 }
 ```
+
 ## 9. Precompiled Headers
-when we include a header file e.g. `vector`, we're potentially adding thousands of lines to be compiled each time we change anything in the project. this significantly increases compilation time. a precompiled header is already turned into a binary format that can easily be integrated into the chain. 
+when we include a header file e.g. `vector`, we're potentially adding thousands of lines to be compiled each time we change anything in the project. this significantly increases compilation time. a precompiled header is already turned into a binary format that can easily be integrated into the chain.
 ### good practice
 precompiled headers are mostly used for external code. for example we won't ever change STL headers or `windows.h`
 ### bad practice.
@@ -1008,8 +1007,10 @@ g++ -std=c++11 pch.h
 g++ -std=c++11 main.cpp
 ```
 not supported by gcc. workarounds are bad.
+
 ## 10. Misc.
 ### 10.1. preprocessor directives
+#### predefined
 ```cpp
 int main()
 {
@@ -1021,19 +1022,19 @@ int main()
   return 0;
 }
 ```
-### 10.2. line control
+#### line control
 ```cpp
 #line 20 "assigning variable"
 int a?;
 ```
 this code will generate an error that will be shown as error in file "assigning variable", line 20.
-### 10.3. error directives
+#### error directives
 ```cpp
 #ifndef __cplusplus
 #error A C++ compiler is required!
-#endif 
+#endif
 ```
-### 10.4. macros
+#### macros
 ```cpp
 #define WAIT std::cin.get();
 #ifdef DEBUG
@@ -1042,11 +1043,11 @@ this code will generate an error that will be shown as error in file "assigning 
 #define LOG(x)
 #endif
 int main(){
-  WAIT;
-  LOG("hello");
+    WAIT;
+    LOG("hello");
 }
 ```
-### 10.5. hidden namespaces
+### 10.2. hidden namespaces
 ```cpp
 namespace multiply
 {
@@ -1055,24 +1056,23 @@ namespace multiply
         int first = 4;
         int second = 5;
 
-        int calc(int a, int b){
+        int calc(int a, int b) {
             return a * b;
         }
     }
-    int getFirst(){
+    int getFirst() {
         return first;
     }
-    int getSecond(){
+    int getSecond() {
         return second;
     }
-    int getProduct(){
+    int getProduct() {
         return calc(first, second);
     }
 }
 ```
 calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
-
-### 10.6. string streams
+### 10.3. string streams
 c++ equivalent of sprintf. also good for reverse sprintf.
 #### writing
 ```cpp
@@ -1085,7 +1085,9 @@ sstr << i << str << d;
 std::cout << sstr.str();
 ```
 #### clearing
-```cpp sstr.str("")```
+```cpp
+sstr.str("")
+```
 #### reading
 ```cpp
 int i;
@@ -1094,63 +1096,49 @@ std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
 ```
-### 10.7. type punning
+### 10.4. type punning
 low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
 ```cpp
-int main(){
-  int a = 50;
-  double value = a;
-  std::cout << value << std::endl;
+int main() {
+    int a = 50;
+    double value = a;
+    std::cout << value << std::endl;
 }
 ```
 this will implicitly convert our int into a double but the variables are not gonna have the same bytes in the memory.
 ```cpp
-int main(){
-  int a = 50;
-  double value = *(double*)&a;
-  std::cout << value << std::endl;
+int main() {
+    int a = 50;
+    double value = *(double*)&a;
+    std::cout << value << std::endl;
 }
 ```
-dereferenced int pointer cast to double pointer. we own every byte of `value` and writing to it is safe, however when we cast `int*` to `double*`, instead of reading 4 bytes, we read 8, 4 of which is not ours. we could even do worse 
+dereferenced int pointer cast to double pointer. we own every byte of `value` and writing to it is safe, however when we cast `int*` to `double*`, instead of reading 4 bytes, we read 8, 4 of which is not ours. we could even do worse
 ```cpp
-int main(){
-  int a = 50;
-  double& value = *(double*)&a;
-  value = 0.0;
+int main() {
+    int a = 50;
+    double& value = *(double*)&a;
+    value = 0.0;
 }
 ```
 this also writes to memory that's not ours and will probably crash.
 #### useful stuff
 ```cpp
 struct Entity{
-  int x,y;
+    int x,y;
 }
-int main(){
-  Entity entity = {5, 8};
-  int *position = (int*)&e;
-  std::cout << position[0] << " " << position[1] << std::endl;
-  int y = *(int*)((char*)&e+4)
-  std::cout << "reading y like there's no tomorrow " << y << std::endl;
-  return 0;
+int main() {
+    Entity entity = {5, 8};
+    int *position = (int*)&e;
+    std::cout << position[0] << " " << position[1] << std::endl;
+    int y = *(int*)((char*)&e+4)
+    std::cout << "reading y like there's no tomorrow " << y << std::endl;
+    return 0;
 }
 ```
 this struct is basically just a byte in the memory.
-### 10.8. nothrow
+### 10.5. nothrow
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
-if (ptr==nullptr) std::cout << "producing null pointer instead of runtime exception";
-```
-
-### 10.9. typename keyword
-`typename` is also used in contexts where the template resolution might confuse the compiler. For example if we want to create a pointer or use the value type of a templated type, it might be misconstrued as a multiplication wtih a member variable or a member variable on its own. Here we need the `typename` keyword to indicate that the identifier that follows is a type.
-
-```cpp
-template <typename T>
-class Test {
-    T::subtype *ptr; // Error: multiplying T::subtype member variable with something called ptr?
-    typename T::subtype *ptr; // Ok
-    
-    T::subtype pop(); // Error: is the member variable T::subtype a return type?
-    typename T::subtype pop(); // Ok
-};
+if (ptr == nullptr) std::cout << "producing null pointer instead of runtime exception";
 ```

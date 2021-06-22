@@ -1,10 +1,7 @@
-# Modern C++ Reference ([Basic C++](https://github.com/hos-b/cpp-ref))
+# C++ Reference ([Part 1](https://github.com/hos-b/cpp-ref))
 
 1. [Types and Stuff](#1-types-and-stuff)<br>
-  1.1. [arrays](#11-arrays)<br>
-  1.2. [vectors](#12-vectors)
 2. [Flow Control](#2-flow-control)<br>
-  2.1. [range for loop](#21-range-for-loop)
 3. [Unit Tests](#3-unit-tests)<br>
   3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
   3.2. [writing tests](#32-writing-tests)<br>
@@ -23,7 +20,8 @@
 6. [Move Semantics](#6-move-semantics)<br>
   6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)<br>
   6.2. [example](#62-example)<br>
-  6.3. [move constructor and assignment](#63-move-constructor-and-assignment)
+  6.3. [move constructor and assignment](#63-move-constructor-and-assignment)<br>
+  6.4. [but wait there's more](#64-but-wait-theres-more)
 7. [Smart Pointers](#7-smart-pointers)<br>
   7.1. [unique pointers](#71-unique-pointers)<br>
   7.2. [shared pointers](#72-shared-pointers)<br>
@@ -92,25 +90,11 @@
 
 
 ## 1. Types and Stuff
-### 1.1. arrays
-`#include<array>`, use `std::array<type, size>`, has constant size
-### 1.2. vectors
-`#include<array>`, use `std::vector<type>`, unkown amount of items. use `vec.emplace_back()` instead of `vec.push_back()` for efficiency. use `vec.reserve()` for large pushes to avoid consecutive table updates. other useful functions in `#include <algorithm>`:
-```cpp
-std::sort(vec.begin(), vec.end());    //ascending sort
-float sum = std::accumulate (vec.begin(), vec.end(), 0.0f);
-float product = std::accumulate (vec.begin(), vec.end(), 1.0f, std::multiplies<float>());
-```
+TODO: replace
+
 ## 2. Flow Control
-### 2.1 range for loop
-iterates over standard containers like `array` or `vector`.
-```cpp
-for (const auto& value : container){
-  //executed for each value in the container
-}
-```
-naturally `const` and `&` are optional.
-if container is `std::string` we go over the characters. for two containers, we have to write a normal for loop.
+TODO: replace
+
 ## 3. Unit Tests
 install `libgtest-dev`, make a test subdirectory, edit top CMakeLists.txt: 
 ```cmake
@@ -150,8 +134,8 @@ cmake ..
 make
 ctest -VV     # very verbose 
 ```
-## 4. Compilation
 
+## 4. Compilation
 ### 4.1. flags
 | flag           | role                   |
 |----------------|------------------------|
@@ -163,14 +147,16 @@ ctest -VV     # very verbose
 | -Werror        | treat them as errors   |
 | -O0            | no optimization        |
 | -O3 or -Ofast  | full optimization      |
-
 ### 4.2. gdb
-build using `-g` flag, `gdb a.out`. use `help`. some commands :
-
+some commands :
+`bt`
+`info threads`
+`frame #`
 `break main`
 `run` or `r`
 `print <variable>`
 `step` or `s`
+`next` or `n`
 #### gdbgui
 pip3 install gdbgui; gdbgui a.out
 ### 4.3. libraries
@@ -189,6 +175,7 @@ link libraries<br>
 run
 #### or cmake
 defines build receipt
+
 ## 5. cmake
 ```cmake
 projec(name)
@@ -218,7 +205,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ```
 by default, `CMAKE_BUILD_TYPE` is not set.
-
 ### 5.3. using precompiled libraries
 ```cmake
 add_library(tools SHARED IMPORTED)
@@ -281,8 +267,8 @@ find_library(PKG_LIBRARIES
              PATHS <folder_to_search>)
 message (STATUS "libraries ${LIBS})
 ```
-## 6. Move Semantics
 
+## 6. Move Semantics
 ### 6.1. lvalue and rvalue
 * an expression is an lvalue when *it can* be written on the left side of the assignment operator `=`.
 * other expressions are rvalues. 
@@ -298,22 +284,29 @@ int &&c = std::move(a);   // c = rvalue
 typically when using rvalues in functions, we want to move ownership, therefor using `const <type>&&` makes no senese.
 ### 6.2. example
 ```cpp
-void Print (const std::string& str){
-  std::cout << "lvalue : " << str;
+void Print(const std::string& str) {
+    std::cout << "lvalue : " << str;
 }
-void Print (std::string&& str){
-  std::cout << "rvalue : " << str;
+void Print(std::string&& str) {
+    std::cout << "rvalue : " << str;
 }
-int main(){
-  string hello = "hi";
-  Print(hello);               // lvalue
-  Print("world");             // rvalue
-  Print(std::move(hello));    // rvalue, should not access hello anymore
-  return 0;
+int main()
+{
+    string hello = "hi";
+    Print(hello);               // lvalue
+    Print("world");             // rvalue
+    Print(std::move(hello));    // rvalue, should not access hello anymore
+    return 0;
 }
 ```
 by c++ standard, after an object has been moved, it should be empty. moving a variable transfers ownership of its resource to another variable. runtime is better than copying, worse than passing by reference.
 ### 6.3. move constructor and assignment
+for copy contstructor,assignment we had to define the following:
+```cpp
+MyClass::MyClass (const MyClass&);    // copy-constructor
+MyClass& operator= (const MyClass&);  // copy-constructor
+```
+*similar to copying*, moving also uses the value of an object to set the value to another object. But, unlike copying, the content is actually transferred from one object (the source) to the other (the destination): the source loses that content, which is taken over by the destination. This moving only happens when the source of the value is an unnamed object.
 ```cpp
 MyClass::MyClass (MyClass&&);   // move-constructor
 MyClass& operator= (MyClass&&); // move-assignment
@@ -325,8 +318,40 @@ MyClass a;
 MyClass b(std::move(a));    // move constructor
 MyClass c = std::move(a);   // move constructor
 b = std::move(c);           // move assignment
+MyClass fn();               // function returning a MyClass object
+MyClass foo;                // default constructor
+MyClass bar = foo;          // copy constructor
+foo = bar;                  // copy assignment
+MyClass baz = fn();         // move constructor
+baz = MyClass();            // move assignment
 ```
-the last syntax explicitly calls the move assignment, however compilers tend to recognize when a copy assignment is needed, specially when a big object returned from a function is being assigned to a variable.
+The 4th syntax explicitly calls the move assignment, however compilers tend to recognize when a copy assignment is needed, specially when a big object returned from a function is being assigned to a variable. Compilers already optimize many cases that formally require a move-construction call in what is known as Return Value Optimization. Most notably, when the value returned by a function is used to initialize an object. In these cases, the move constructor may actually never get called. Note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor. Rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track down. Also look up copy elision.
+### 6.4. but wait, there's more
+| member function     | implicitly defined                                                    | default definition |
+|---------------------|-----------------------------------------------------------------------|--------------------|
+| default constructor | if no other constructors                                              | does nothing       |
+| destructor          | if no destructor                                                      | does nothing       |
+| copy constructor    | if no move constructor and no move assignment                         | copies all members |
+| copy assignment     | if no move constructor and no move assignment                         | copies all members |
+| move constructor    | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
+| move assignment     | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
+
+they're not always defined due to backward compatibility. if we want them to be (or not to be), we have to explicitly ask for an implicit declaration (or removal thereof) :
+```cpp
+function_declaration = default;
+function_declaration = delete;
+```
+for example after this decalaration, the rectangle class can no longer use the copy constructor :
+```cpp
+class Rect{
+    Rect (const Rect& other) = delete;
+    ...
+};
+Rect b;
+Rect a(b);  // error
+```
+in general, and for future compatibility, classes that explicitly define one copy/move constructor or one copy/move assignment but not both, are encouraged to specify either delete or default on the other special member functions they don't explicitly define.
+
 ## 7. Smart Pointers
 they own the object they wrap. `#include <memory>` to use them. they have the same properties as raw pointers :
 
@@ -366,21 +391,23 @@ it's much more efficient to use `std::make_shared` because shared pointers also 
 ### 7.3. weak pointers
 this behaves the same as an extra instance of shared pointer without increasing the reference count. we would use this kind of pointer when we want access to the raw pointer, but don't want to take ownership.
 ```cpp
-class Test{
+class Test
+{
 public:
-  Test() { std::cout << "created\n";}
-  ~Test() { std::cout << "destroyed\n";}
-}
-int main(){
-  {
-    std::weak_pointer weak;
+    Test() { std::cout << "created\n";}
+    ~Test() { std::cout << "destroyed\n";}
+};
+int main()
+{
     {
-      std::shared_pointer<Test> shared = std::make_shared<Test>();
-      weak = shared;
-      std::cout << "original object managed by : "  << weak.use_count() << std::endl;
+        std::weak_pointer weak;
+        {
+            std::shared_pointer<Test> shared = std::make_shared<Test>();
+            weak = shared;
+            std::cout << "original object managed by : "  << weak.use_count() << std::endl;
+        }
+        std::cout << "original object alive : "  << weak.expired() << std::endl;
     }
-    std::cout << "original object alive : "  << weak.expired() << std::endl;
-  }
 }
 ```
 #### changed my mind
@@ -396,38 +423,40 @@ int main(){
 ```
 good use
 ```cpp
-struct Shape{
+struct Shape
+{
   ...
-}
-int main(){
-  std::vecotr<std::unique_tr<Shape>> shapes;
-  shapes.emplace_back(new Shape);
-  shapes.emplace_back(std::make_unique<Shape>());
-  auto lvalue_shape = unique_ptr<Shape>(new Shape);
-  shapes.emplace_back(std::move(lvalue_shape));
+};
+int main()
+{
+    std::vecotr<std::unique_tr<Shape>> shapes;
+    shapes.emplace_back(new Shape);
+    shapes.emplace_back(std::make_unique<Shape>());
+    auto lvalue_shape = unique_ptr<Shape>(new Shape);
+    shapes.emplace_back(std::move(lvalue_shape));
 }
 ```
-## 8. Associative Containers
 
+## 8. Associative Containers
 ### 8.1. map
 stores items under unique keys. usually implemented as red-black tree, i.e. random access in logarithmic time. key can be any type with `operator <` defined. 
 ```cpp
 #include <map>
 ...
-std::map<KeyType, ValueType> m = { {key, value}, {key, value}, {key, value} };
+std::map<KeyType, ValueType> m = {{key, value}, {key, value}, {key, value}};
 m.emplace(key, value);
 // modify or add an item
 m[key] = new_value;
 // get (const) ref to an item
 const auto& = m.at(key);
 // check if key is present 
-m.count(key)>0
+m.count(key) > 0
 // check size
 std::cout << m.size();
 // iteration
 for (const auto& kv : m) {
-  const auto& key = kv.first;
-  const auto& value = kv.second;
+    const auto& key = kv.first;
+    const auto& value = kv.second;
 }
 ```
 one common mistake is using brackets to get const reference to that key. if it's not available, it will be created and initialized based on the default value.
@@ -438,34 +467,33 @@ here we can see what the default hash function does to a string :
 ```cpp
 int main(int argc, char* argv[])
 {
-    cout << std::hash<const char *>()("Mark Nelson") << endl;
+    std::cout << std::hash<const char *>()("Mark Nelson") << std::endl;
     return 0;
 }
 output : 134514544
 ```
 here's an example with custom key and hash fucnction
 ```cpp
-size_t name_hash( const std::pair<string, string> &name)
-{
+size_t name_hash( const std::pair<string, string> &name) {
     return hash<string>()(name.first) ^ hash<string>()(name.second);
 }
-
 int main(int argc, char* argv[])
 {
-	unordered_map<std::pair<string, string>,int ,decltype(&name_hash)> ids(100, name_hash );
+	unordered_map<std::pair<string, string>,int ,decltype(&name_hash)> ids(100, name_hash);
 	ids[std::pair<string, string>("Mark", "Nelson")] = 40561;
 	ids[std::pair<string, string>("Andrew","Binstock")] = 40562;
-	for ( auto ii = ids.begin() ; ii != ids.end() ; ii++ )
-		cout << ii->first.first 
-                     << " "
-                     << ii->first.second 
-                     << " : "
-                     << ii->second
-                     << endl;
+	for (auto ii = ids.begin() ; ii != ids.end() ; ++ii)
+		std::cout << ii->first.first 
+                  << " "
+                  << ii->first.second 
+                  << " : "
+                  << ii->second
+                  << std::endl;
 	return 0;
 }
 ```
 more info [here](https://marknelson.us/posts/2011/09/03/hash-functions-for-c-unordered-containers.html).
+
 ## 9. Iterators
 a type that iterates over a container. it can be regarded as a pointer:
 * access current element through '*iter*
@@ -480,7 +508,7 @@ a type that iterates over a container. it can be regarded as a pointer:
 #### simple iterator loops
 ```cpp
 std::vector<double> x = {{1,2,3}};
-for (auto it = x.begin(), it != x.end(); ++it){
+for (auto it = x.begin(), it != x.end(); ++it) {
     std::cout << *it << std::endl;
 }
 ```
@@ -489,27 +517,28 @@ for (auto it = x.begin(), it != x.end(); ++it){
 std::map<int, std::string> m = {{1, "hello"}, {2, "world"}};
 std::map<int, std::string>::iterator m_iter = m.find(1);
 std::cout << m_iter->first << ":" << m_iter.second << endl;
-if (m.find(3) == m.end())
-  std::cout<< "key 3 not found\n" ;
+if (m.find(3) == m.end()) {
+    std::cout<< "key 3 not found\n" ;
+}
 ```
 in the case of `std::map` it's much more readable to write `if(m.count(3))` instead.
-## 10. CPP lambdas
 
+## 10. CPP lambdas
 a simple example using `std::foreach` :
 ```cpp
-vector<int> v;
+std::vector<int> v;
 v.push_back(...);
 ...
-int evenCount=0;
+int evenCount = 0;
 for_each(v.begin(), v.end(), [&evenCount] (int n) {
-      cout << n;
-      if (n % 2 == 0) {
-         cout << " is even " << endl;
-         ++evenCount;
-      } else {
-         cout << " is odd " << endl;
-      }
-   });
+    std::cout << n;
+    if (n % 2 == 0) {
+        std::cout << " is even " << endl;
+        ++evenCount;
+    } else {
+        std::cout << " is odd " << endl;
+    }
+});
 ```
 ### 10.1. definition
 lambdas are made of 6 parts : 
@@ -541,8 +570,7 @@ in C++14, you can introduce and initialize new variables in the capture clause, 
 #### parameter list
 in addition to capturing variables, a lambda can accept input parameters. A parameter list is optional and in most aspects resembles the parameter list for a function. in C++ 14, if the parameter type is generic, you can use the auto keyword as the type specifier.
 ```cpp
-auto y = [] (int first, int second)
-{
+auto y = [](int first, int second) {
     return first + second;
 };
 ```
@@ -555,9 +583,9 @@ the return type of a lambda expression is automatically deduced. You don't have 
 
 You can omit the return-type part of a lambda expression if the lambda body contains just one return statement or the expression does not return a value. If the lambda body contains one return statement, the compiler deduces the return type from the type of the return expression. Otherwise, the compiler deduces the return type to be void.
 ```cpp
-auto x1 = [](int i){ return i; }; // OK: return type is int
-auto x2 = []{ return{ 1, 2 }; };  // ERROR: return type is void, deducing
-                                  // return type from braced-init-list is not valid
+auto x1 = [](int i){return i;}; // OK: return type is int
+auto x2 = []{return{1, 2};};    // ERROR: return type is void, deducing
+                                // return type from braced-init-list is not valid
 ```
 #### body
 The lambda body (compound-statement in the Standard syntax) of a lambda expression can contain anything that the body of an ordinary method or function can contain. The body of both an ordinary function and a lambda expression can access these kinds of variables:
@@ -571,7 +599,7 @@ int main()
 {
    int m = 0;
    int n = 0;
-   [&, n] (int a) mutable { m = ++n + a; }(4); //m=5, n=0
+   [&, n] (int a) mutable { m = ++n + a; }(4); // m = 5, n = 0
 }
 ```
 The `mutable` specification allows n to be modified within the lambda.
@@ -582,20 +610,22 @@ we can use lambdas wherever a function pointer is needed. e.g. here ForEach func
 #include <iostream>
 #include <vector>
 
-void ForEach(const std::vector<int>& values, void (*func)(int))
-{
-  for (int value : values)
-    func(value);
+void ForEach(const std::vector<int>& values, void (*func)(int)) {
+    for (int value : values) {
+        func(value);
+    }
 }
 int main()
 {
-  std::vector<int> values = {1,5,4,3,2};
-  ForEach(values, [](int value) { std::cout << "Value : " << value << std::endl;});
+    std::vector<int> values = {1, 5, 4, 3, 2};
+    ForEach(values, [](int value) { std::cout << "Value : " << value << std::endl;});
 }
 ```
 we can also use `auto` to make pasing lambdas cleaner:
 ```cpp
-auto lambda = [](int value) { std::cout << "Value : " << value << std::endl;};
+auto lambda = [](int value) {
+    std::cout << "Value : " << value << std::endl;
+};
 ForEach(values, lambda);
 ```
 this is only doable when we don't want to pass any of the local variables to the lambda. if we do, then we can no longer use a traditional function pointer. instead we use `std::function<return_type(param types)& func`
@@ -604,15 +634,17 @@ this is only doable when we don't want to pass any of the local variables to the
 #include <iostream>
 #include <vector>
 #include <functional>
-void ForEach(const std::vector<int>& values, const std::function<void(int)>& func)
-{
-  for (int value : values)
-    func(value);
+void ForEach(const std::vector<int>& values, const std::function<void(int)>& func) {
+    for (int value : values) {
+        func(value);
+    }
 }
 int main()
 {
-  std::vector<int> values = {1,5,4,3,2};
-  ForEach(values, [=](int value) { std::cout << "Value : " << value << std::endl;});
+    std::vector<int> values = {1, 5, 4, 3, 2};
+    ForEach(values, [=](int value) {
+        std::cout << "Value : " << value << std::endl;}
+    );
 }
 ```
 ### 10.3. std examples
@@ -649,13 +681,14 @@ std::vector<int> vec1 = {10, 21, 3, 19, 32};
 std::vector<int> vec2 = {10, 21, 3, 19, 32};
 std::vector<int> vec3;
 std::transform(vec1.begin(), vec1.end(), vec2.begin(), vec3.begin(),
-              [](int x,int y){return x+y;} );
+              [](int x,int y){return x + y;} );
 ```
 ### 10.4. recursive lambdas
 by passing the reference of the `std::function` back to its lambda
 ```cpp
-std::function<int(int)> Fib = [&Fib](int n) 
-                      { return n < 2 ? n : Fib(n - 1) + Fib(n - 2);};
+std::function<int(int)> Fib = [&Fib](int n)  {
+    return n < 2 ? n : Fib(n - 1) + Fib(n - 2);
+};
 std::cout << "Fib(4) :" << Fib(4);
 ```
 ### 10.5. stateful lambdas
@@ -663,36 +696,37 @@ when values are captured by copy, they are not mutable unless the lambda is defi
 ```cpp
 int main()
 {
-  int i = 1;
-  auto lambd = [i]() mutable {return ++i;};
-  lambd();
-  return lambd(); // returns 3
+    int i = 1;
+    auto lambd = [i]() mutable {return ++i;};
+    lambd();
+    return lambd(); // returns 3
 }
 ```
 we can also skip the variable definition and directly put it in the capture clause:
 ```cpp
 int main()
 {
-  auto lambd = [i = 1, ptr = std::unique_ptr<int>(3)]() mutable {return ++i;};
-  lambd();
-  auto lamb2 = lambd;   // not allowed, unique_ptrs cannot be copied
-  return lambd();       // returns 3
+    auto lambd = [i = 1, ptr = std::unique_ptr<int>(3)]() mutable {return ++i;};
+    lambd();
+    auto lamb2 = lambd;   // not allowed, unique_ptrs cannot be copied
+    return lambd();       // returns 3
 }
 ```
+
 ## 11. Multi-Threading
 simple example
 ```cpp
 #include <iostream>
 #include <thread>
 
-void thread_func(){
-  std::cout << "thread output" << std::endl;
+void thread_func() {
+    std::cout << "thread output" << std::endl;
 }
-int main(){
-  std::thread t1(thread_func);  // create and start thread
-  std::cout << "thread id : " << t1.get_id() << std::endl;
-  t1.join(); // wait for thread to finish
-  return 0;
+int main() {
+    std::thread t1(thread_func);  // create and start thread
+    std::cout << "thread id : " << t1.get_id() << std::endl;
+    t1.join(); // wait for thread to finish
+    return 0;
 }
 ```
 #### note
@@ -708,32 +742,33 @@ int main(){
 ```
 a detatched thread is also referred to as a _daemon process_. they may run until system restart. <br>
 after a process has been detatched, it cannot be joined again. to check if it's possible to join a thread, we can use `thread.joinable()`
-
 ### 11.2. passing parameters
 ```cpp
 #include <iostream>
 #include <thread>
 
-class Functr{
-  void operator()(string &msg){
-    std::cout << "functor arg : " << msg << std::endl;
-    msg = "printer by functor";
-  }
+class Functr
+{
+    void operator()(string &msg) {
+        std::cout << "functor arg : " << msg << std::endl;
+        msg = "printer by functor";
+    }
 };
 
-void thread_func(string &msg){
-  std::cout << "function arg" << std::endl;
-  msg = "printed by function";
+void thread_func(string &msg) {
+    std::cout << "function arg" << std::endl;
+    msg = "printed by function";
 }
-int main(){
-  string msg = "hello";
-  std::thread t1(thread_func, msg);
-  t1.join();
-  std::cout << msg << std::endl;
-  std::thread t2((Functr()), std::ref(msg));
-  t2.join();
-  std::cout << msg << std::endl;
-  return 0;
+int main()
+{
+    string msg = "hello";
+    std::thread t1(thread_func, msg);
+    t1.join();
+    std::cout << msg << std::endl;
+    std::thread t2((Functr()), std::ref(msg));
+    t2.join();
+    std::cout << msg << std::endl;
+    return 0;
 }
 ```
 normally all function parameters are passed by value, even if explicitly defined as reference. to pass the arguement as reference, additionally we have to use `std::ref(arg)`. <br>
@@ -752,33 +787,33 @@ to control access to shared resources between threads, we need a control mechani
 
 std::mutex mtx;
 
-void shared_print(string origin, int value){
-  mtx.lock();
-  std::cout << origin << value << std:: endl;
-  mtx.unlock();
+void shared_print(string origin, int value) {
+    mtx.lock();
+    std::cout << origin << value << std:: endl;
+    mtx.unlock();
 }
 
-void thr_func(){
-  for (int i=0; i<100 ; i++){
-    shared_print("t1 ", i);
-  }
+void thr_func() {
+    for (int i = 0; i < 100 ; ++i){
+        shared_print("t1 ", i);
+    }
 }
-int main(){
-  std::thread t1(thr_func);
-  for(int i=0; i<100; i++){
-    shared_print("main ", i);
-  }
-  t1.join();
-  return 0;
+int main()
+{
+    std::thread t1(thr_func);
+    for(int i = 0; i < 100; ++i) {
+        shared_print("main ", i);
+    }
+    t1.join();
+    return 0;
 }
 ```
 this code is not _thread-safe_. if the resource access line produces an exception, we will have a locked out mutex. the standard library offers some alternatives.
-
 ### 12.1. lock_guard
 ```cpp
-void shared_print(string origin, int value){
-  std::lock_guard<std::mutex> guard(mtx);
-  std::cout << origin << value << std:: endl;
+void shared_print(string origin, int value) {
+    std::lock_guard<std::mutex> guard(mtx);
+    std::cout << origin << value << std:: endl;
 }
 ```
 as soon as the guard is defined, the mutex will be locked. it's unlocked when the guard goes out of scope. this declaration however does not prevent other threads from using `stdout`. <br>
@@ -790,15 +825,15 @@ typically thread-safe resource management is done with a class where the resourc
 ### 12.2. multiple mutexes
 assuming we have multiple resources and use multiple mutexes to control access, it's very possible to reach a deadlock
 ```cpp
-void shared_access_1(string origin, int value){
-  std::lock_guard<std::mutex> guard(mtx_1);
-  std::lock_guard<std::mutex> guard(mtx_2);
-  // access resources
+void shared_access_1(string origin, int value) {
+    std::lock_guard<std::mutex> guard(mtx_1);
+    std::lock_guard<std::mutex> guard(mtx_2);
+    // access resources
 }
-void shared_access_2(string origin, int value){
-  std::lock_guard<std::mutex> guard(mtx_2);
-  std::lock_guard<std::mutex> guard(mtx_1);
-  // access resources
+void shared_access_2(string origin, int value) {
+    std::lock_guard<std::mutex> guard(mtx_2);
+    std::lock_guard<std::mutex> guard(mtx_1);
+    // access resources
 }
 ```
 #### solution 1
@@ -806,87 +841,88 @@ always lock the mutexes in the same order
 #### solution 2
 we can simultaneously lock multiple mutexes using `std::lock`
 ```cpp
-void shared_access(string origin, int value){
-  std::lock(mtx_1, mtx_2);
-  std::lock_guard<std::mutex> guard(mtx_1, std::adopt_lock);
-  std::lock_guard<std::mutex> guard(mtx_2, std::adopt_lock);
-  // access resources
+void shared_access(string origin, int value) {
+    std::lock(mtx_1, mtx_2);
+    std::lock_guard<std::mutex> guard(mtx_1, std::adopt_lock);
+    std::lock_guard<std::mutex> guard(mtx_2, std::adopt_lock);
+    // access resources
 }
 ```
 `std::adopt_lock` tells the guards that the mutex is already locked, but it should be unlocked when the guard goes out of scope.
 #### solution 3
 we can control the guards using arbitrary scopes
 ```cpp
-void shared_access(string origin, int value){
-  {
-    std::lock_guard<std::mutex> guard(mtx_1, std::adopt_lock);
-    // access resource 1
-  }
-  {
-    std::lock_guard<std::mutex> guard(mtx_2, std::adopt_lock);
-    // access resources
-  }
+void shared_access(string origin, int value) {
+    {
+        std::lock_guard<std::mutex> guard(mtx_1, std::adopt_lock);
+        // access resource 1
+    }
+    {
+        std::lock_guard<std::mutex> guard(mtx_2, std::adopt_lock);
+        // access resources
+    }
 }
 ```
 ### 12.3. unique lock
 `unique_lock` provides more flexibility w.r.t `lock_guard` however it's at the cost of performance.
 ```cpp
-void shared_access(string origin, int value){
-  std::unique_lock<std::mutex> u_lock(mtx);
-  // access resources
-  ulock.unlock();
-  // do something else
+void shared_access(string origin, int value) {
+    std::unique_lock<std::mutex> u_lock(mtx);
+    // access resources
+    ulock.unlock();
+    // do something else
 }
 ```
 it's possible to unlock `unique_lock` before it goes out of scope. we can also defer the lock
 ```cpp
-void shared_access(string origin, int value){
-  std::unique_lock<std::mutex> u_lock(mtx, std::defer_lock);
-  // do something else
-  ulock.lock()
-  // access resources
-  ulock.unlock();
-  // do something else
-  ulock.lock()
-  // access resources
-  ulock.unlock();
+void shared_access(string origin, int value) {
+    std::unique_lock<std::mutex> u_lock(mtx, std::defer_lock);
+    // do something else
+    ulock.lock()
+    // access resources
+    ulock.unlock();
+    // do something else
+    ulock.lock()
+    // access resources
+    ulock.unlock();
 }
 ```
 we can also transfer ownership of `unique_lock`s using `std::move` as opposed to `lock_guard`s.
 #### dealing with lazy initialization
 when we initialize a resource for the first time when we want to access it, we have lazy initialization. in this case we'd need two mutexes, one for initialization and one for access.
 ```cpp
-class FileAccess{
-  std::mutex file_access_;
-  std::mutex file_open_;
-  
-  void shared_write(string msg){
-    std::unique_lock<mutex> ulock_open(file_open_);
-    if(!file_.open()){
-      file_.open("log.txt");
+class FileAccess
+{
+    std::mutex file_access_;
+    std::mutex file_open_;
+    
+    void shared_write(string msg) {
+        std::unique_lock<mutex> ulock_open(file_open_);
+        if(!file_.open()) {
+            file_.open("log.txt");
+        }
+        std::unique_lock<mutex> ulock_access(file_access_);
+        file_.write(...);
+        ulock_access.unlock();
     }
-    std::unique_lock<mutex> ulock_access(file_access_);
-    file_.write(...);
-    ulock_access.unlock();
-  }
 };
 ```
 this program is now thread-safe but a lot of cpu cycles are wasted by waiting for the mutex just to check whether the already opened file is open. the standard library has a solution for this situation
 ```cpp
-class FileAccess{
-  std::mutex file_access_;
-  std::once_flag open_flag_;
-  
-  void shared_write(string msg){
-    std::call_once(open_flag_, [&](){ file_.open("log.txt"); });
-    std::unique_lock<mutex> ulock_access(file_access_);
-    file_.write(...);
-    ulock_access.unlock(); // arbitrary
-  }
+class FileAccess
+{
+    std::mutex file_access_;
+    std::once_flag open_flag_;
+    
+    void shared_write(string msg) {
+        std::call_once(open_flag_, [&](){file_.open("log.txt");});
+        std::unique_lock<mutex> ulock_access(file_access_);
+        file_.write(...);
+        ulock_access.unlock(); // arbitrary
+    }
 };
 ```
 `call_once` will execute the function (or callable object) passed to it only once across several threads.
-
 ### 12.4. sleeping and condition variable
 ```cpp
 #include <deque>
@@ -895,51 +931,50 @@ class FileAccess{
 std::deque<int> queue;
 std::mutex mtx;
 
-void function_1(){
-  int count = 0;
-  while (count<10){
-    std::unique_lock<std::mutex> ulock(mtx);
-    queue.push_front(count);
-    ulock.unlock();
-    std::this_thread::sleep_for(chrono::seconds(1));
-    count++;
-  }
+void function_1() {
+    int count = 0;
+    while (count<10) {
+        std::unique_lock<std::mutex> ulock(mtx);
+        queue.push_front(count);
+        ulock.unlock();
+        std::this_thread::sleep_for(chrono::seconds(1));
+        count++;
+    }
 }
-void function_2(){
-  int data=0;
-  while (data!=9){
-    std::unique_lock<std::mutex> ulock(mtx);
-    if(!queue.empty()){
-      data = queue.back();
-      queue.pop_back();
-      ulock.unlock();
-      std::cout << "got " << data << " from first thread" << std::endl;
+void function_2() {
+    int data = 0;
+    while (data != 9) {
+        std::unique_lock<std::mutex> ulock(mtx);
+        if(!queue.empty()) {
+            data = queue.back();
+            queue.pop_back();
+            ulock.unlock();
+            std::cout << "got " << data << " from first thread" << std::endl;
+        } else {
+            ulock.unlock();
+            std::this_thread::sleep_for(chrono::milliseconds(10));
+        }
     }
-    else{
-      ulock.unlock();
-      std::this_thread::sleep_for(chrono::milliseconds(10));
-    }
-  }
 }
 ```
 the first thread is creating data and the second thread is using it. if the second thread sleeps two shortly, it will use too many cpu cycles. if it sleeps for too long, we waste time. a solution to this problem is provided by the standard library. we declare a new global variable
 ```cpp
 std::condition_variable cond;
-void function_1(){
-  ...
-  ulock.unlock();
-  cond.notify_one();
+void function_1() {
+    ...
+    ulock.unlock();
+    cond.notify_one();
 }
 ```
 this will notify one (if any) thread that's waiting on this condition variable.
 ```cpp
-void function_2(){
-  while (data!=9){
-    std::unique_lock<std::mutex> ulock(mtx);
-    cond.wait(ulock);
-    // access
-    ulock.unlock();
-  }
+void function_2() {
+    while (data!=9) {
+        std::unique_lock<std::mutex> ulock(mtx);
+        cond.wait(ulock);
+        // access
+        ulock.unlock();
+    }
 }
 ```
 the wait function also takes the lock as a parameter to unlock the mutex while it's sleeping. when it wakes up, it will lock the mutex again.<br>
@@ -950,22 +985,22 @@ this setup would be fine if thread #2  would only wake up by the notification fr
 cond.wait(ulock, [](){ return !queue.empty(); });
 ```
 if we want every thread waiting on the condition variable to wake up, we can use `cond.notify_all()`.
-
 ### 12.5. future
 if we want to get the results back from a child thread, we can share a variable between the child and the parent. however since both might access it, we also need a `mutex`. the parent should access the variable after the child, so we also need a `condtion_variable`. <br>
 even for a simple task, we'd need to have 2 global variables and take care of locking and unlocking the mutex and the condition variable. standard library provides an interface for such cases
 ```cpp
 #include <future>
 
-int funct(int param){
-   // do processing
-  return some_int;
+int funct(int param) {
+    // do processing
+    return some_int;
 }
-int main(){
-  int x;
-  std::future<int> cmp = std::async(funct, 4);
-  x = cmp.get();
-  return 0;
+int main()
+{
+    int x;
+    std::future<int> cmp = std::async(funct, 4);
+    x = cmp.get();
+    return 0;
 }
 ```
 the get function waits until the child thread is done. calling this function twice will cause a crash.
@@ -985,22 +1020,23 @@ we used future to send a variable from the child thread to the parent. we can do
 ```cpp
 #include <future>
 
-int funct(std::future<int> &ftr){
-  ...
-  int param = ftr.get();
-  // do processing
-  return some_int;
+int funct(std::future<int> &ftr) {
+    ...
+    int param = ftr.get();
+    // do processing
+    return some_int;
 }
-int main(){
-  int x;
-  std::promise<int> prm;
-  std::future<int> ftr = p.get_future();
-  std::future<int> cmp = std::async(std::launch::async, funct, std::ref(ftr));
-  std::this_thread::sleep_for(chrono::milliseconds(20));
-  // keeping the promise
-  prm.set_value(4);
-  x = cmp.get();
-  return 0;
+int main()
+{
+    int x;
+    std::promise<int> prm;
+    std::future<int> ftr = p.get_future();
+    std::future<int> cmp = std::async(std::launch::async, funct, std::ref(ftr));
+    std::this_thread::sleep_for(chrono::milliseconds(20));
+    // keeping the promise
+    prm.set_value(4);
+    x = cmp.get();
+    return 0;
 }
 ```
 if we do not keep our promise (and also don't wait for the return variable), we'll get an exception of type `std::future_error::broken_promise`. if something is preventing us from keeping the promise, we can set and exception instead
@@ -1011,20 +1047,21 @@ futures and promises cannot be copied, they can only be moved.
 #### many promises
 if our function has to be executed e.g. 10 times, we cannot pass the same `std::future` & `std::promise` to them. one way is to create 10 of each. standard library also provides shared future
 ```cpp
-int funct(std::shared_future<int> sftr){
+int funct(std::shared_future<int> sftr) {
   ...
 }
-int main(){
-  int x;
-  std::promise<int> prm;
-  std::future<int> ftr = p.get_future();
-  std::shared_future sftr = ftr.share();
-  std::future<int> cmp = std::async(std::launch::async, funct, sftr);
-  std::future<int> cmp = std::async(std::launch::async, funct, sftr);
-  std::future<int> cmp = std::async(std::launch::async, funct, sftr);  
-  ...
-  prm.set_value(4);
-  ...
+int main()
+{
+    int x;
+    std::promise<int> prm;
+    std::future<int> ftr = p.get_future();
+    std::shared_future sftr = ftr.share();
+    std::future<int> cmp = std::async(std::launch::async, funct, sftr);
+    std::future<int> cmp = std::async(std::launch::async, funct, sftr);
+    std::future<int> cmp = std::async(std::launch::async, funct, sftr);  
+    ...
+    prm.set_value(4);
+    ...
 }
 ```
 a `shared_future` can be copied which means we can also send it to the threads by value.
@@ -1036,42 +1073,45 @@ class A {
   int operator()(int N){ return 0; }
 };
 void foo(int x) {}
-int main(){
-  A a;
-  std::thread t1(a, 6);
-  std::async(std::launch::async, a, 6);
-  std::bind(a, 6);
-  std::call_once(once_flag, a, 6);
-  return 0;
+int main()
+{
+    A a;
+    std::thread t1(a, 6);
+    std::async(std::launch::async, a, 6);
+    std::bind(a, 6);
+    std::call_once(once_flag, a, 6);
+    return 0;
 }
 ```
 #### ways to call them
 ```cpp 
-int main(){
-  A a;
-  std::thread t1(a, 6);  		// copy of a() as functor in a different thread
-  std::thread t2(std::ref(a), 6);	// a() as functor in a different thread
-  std::thread t2(std::move(a), 6);	// a() as functor moved to a different thread
-  std::thread t4(A(), 6);		// temporary A moved to a different thread
-  std::thread t5([](int x){ return x*x;}, 6);
-  std::thread t6(foo, 7);
-  std::thread t7(&A::f, a, 8, 'w');	// copy of a.func(8, 'w') in a different thread
-  std::thread t8(&A::f, &a, 8, 'w');	// a.f(8, 'w') in a different thread
+int main()
+{
+    A a;
+    std::thread t1(a, 6);  		// copy of a() as functor in a different thread
+    std::thread t2(std::ref(a), 6);	// a() as functor in a different thread
+    std::thread t2(std::move(a), 6);	// a() as functor moved to a different thread
+    std::thread t4(A(), 6);		// temporary A moved to a different thread
+    std::thread t5([](int x){ return x*x;}, 6);
+    std::thread t6(foo, 7);
+    std::thread t7(&A::f, a, 8, 'w');	// copy of a.func(8, 'w') in a different thread
+    std::thread t8(&A::f, &a, 8, 'w');	// a.f(8, 'w') in a different thread
 }
 ```
 ### 12.8. packaged tasks
 tasks that can be package and sent to different functions, objects or threads. tasks can be executed in different contexts from where they were created.
 ```cpp
-int funct(int N){
+int funct(int N) {
   // do processing
   return some_int;
 }
-int main(){
-  std::packaged_task<int(int)> task(funct);
-  // some stuff
-  task(4);
-  int ret_value = task.get_future().get();
-  return 0;
+int main()
+{
+    std::packaged_task<int(int)> task(funct);
+    // some stuff
+    task(4);
+    int ret_value = task.get_future().get();
+    return 0;
 }
 ```
 we cannot create tasks with parameters as we would do with threads. to do this we have to use `std::bind` to bind our function with the parameters that we want, returning a function object. 
@@ -1091,30 +1131,29 @@ a `packaged_task` can link a callable object to a `future` which is very useful 
 ```cpp
 std::deque<std::packaged_task<int()>> task_queue;
 std::mutex mtx;
-
-void thread_func(){
-  std::packaged_task<int()> task;
-  {
-    std::unique_lock<std::mutex> ulock(mtx);
-    cond.wait(ulock, []() { return !task_queue.empty(); });
-    task = std::move(task_queue.front());
-    task_queue.pop_front();
-  }
-  task();
+void thread_func() {
+    std::packaged_task<int()> task;
+    {
+        std::unique_lock<std::mutex> ulock(mtx);
+        cond.wait(ulock, []() { return !task_queue.empty(); });
+        task = std::move(task_queue.front());
+        task_queue.pop_front();
+    }
+    task();
 }
-
-int main(){
-  std::thread thread(thread_func);
-  std::packaged_task<int()> task(std::bind(funct, 10));
-  std::future<int> ftr = task.get_future();
-  {
-    std::lock_guard<std::mutex> lock(mtx);
-    task_queue.push_back(std::move(task));
-  }
-  cond.notify_one();
-  std::cout << "output of a task, created in main, executed in another thread, received in main "<< ftr.get();
-  thr.join();
-  return 0;
+int main()
+{
+    std::thread thread(thread_func);
+    std::packaged_task<int()> task(std::bind(funct, 10));
+    std::future<int> ftr = task.get_future();
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        task_queue.push_back(std::move(task));
+    }
+    cond.notify_one();
+    std::cout << "output of a task, created in main, executed in another thread, received in main "<< ftr.get();
+    thr.join();
+    return 0;
 }
 ```
 thread-safe and useless.
@@ -1147,11 +1186,11 @@ ftr.wait_for(chorno::seconds(10));
 ftr.wait_until(tp);
 ```
 the wait function waits until the output of future is read.`ftr.get()` internally calls the wait function.
+
 ## 13. OpenCV
 uses own types
 #### naming convention
 types follow the patern `CV_<bit_count><identifier><num_of_channels>` e.g. `CV_8UC3` is 8-bit unsigned char with 3 channels for RGB. `CV_8UC1` is 9-bit unsigned char grayscale. 
-
 it's better to use `DataType`. e.g. `DataType<uint>::type == CV_8UC1`
 ### 13.1. basic matrix type
 #### constructors
@@ -1168,7 +1207,6 @@ Matf image = Matf::zeros(10, 10);
 #### properties
 get type using `image.type()`<br>
 get size with `image.rows`, `image.cols`
-
 ### 13.2. memory management
 `cv::Mat` is a shared pointer, although not a `std::shared_ptr`. cloning can be done :
 ```cpp
@@ -1180,9 +1218,8 @@ cv::Mat copy = image.clone();
 ```bash
 c++ -std=c++11 -o main main.cpp `pkg-config --libs --cflags opencv`
 ```
-
 ### 13.3. IO
-#### reading
+#### reading images from file
 ```cpp
 Mat imread(const string& file, int mode=1)
 ```
@@ -1196,7 +1233,7 @@ Mat_<unit8_t> i2 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
 std::out << (i1.type == i2.type) << std::endl;
 ```
 it's recommended to use typed matrices. This will help when we're assinging values to individual pixels.
-#### writing
+#### writing images to file
 ```cpp
 bool imwrite(const string& file, const Mat& img)
 ```
@@ -1212,8 +1249,7 @@ int main(){
 ```
 #### exr files
 when stroing floating point images, OpenCV expects the values to be in 0-1 range. when storing arbitrary values, there might be cutoffs. to avoid this, we can save to `.exr` files. they will store and read the values as is without losing precision.
-
-#### showing
+#### showing images
 ```cpp
 void imshow(const string& window_name, const Mat& mat);
 ```
@@ -1241,7 +1277,6 @@ std::cout << matf.at<Vec3f>(1, 5);
 ```
 #### using wrong types
 will not produce bugs, but it will generate unwanted behavior. 
-
 ### 13.5. SIFT descriptors
 we have `SiftFeatureDetector` to detect the keypoints and `SiftDescriptorExtractor` to compute the descriptors.
 ```cpp
@@ -1360,6 +1395,7 @@ int main()
 	f("hello", i, 5, 2, 1.2f);
 }
 ```
+
 ## 15. CPP14
 ### 15.1. exchange
 uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
@@ -1379,6 +1415,7 @@ int main()
 	}
 }
 ```
+
 ## 16. CPP17
 ### 16.1. structured bindings
 when dealing with multiple return types we had several options
@@ -1406,14 +1443,12 @@ std::tie(name, age) = CreatePerson();
 ```cpp
 auto[name, age] = CreatePerson();
 ```
-
 ### 16.2. any
 an experimental feature of C++17, it's a type-safe container that can contain any single object:
 ```cpp
 #include <experimental/any>
 #include <vector>
 #include <string>
-
 int main()
 {
 	std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"));
@@ -1428,7 +1463,8 @@ the type might require demangling as explained in the `typeid` section. for on-t
 #### copy-constructible
 all objects pushed into std::any must be copy constructible. e.g. this wouldn't compile:
 ```cpp
-struct S {
+struct S
+{
 	S(const S &s) = delete; // explicitly deleting copy constructor (implicitely deletes default constructors)
 	S() = default;          // explicitly redefining default constructor
 };
@@ -1495,21 +1531,22 @@ this macro gives us the ability to check the availability of header files
 ### 16.6. aggregate initialization
 C++11 allowed uniform intializations even in the absence of a constructor using `{}`. this however runs into problems if the object we're initializing is from a child class.
 ```cpp
-struct Base {
-  double d;
+struct Base
+{
+    double d;
 };
-struct Child : Base {
-  int i;
-  float f;
+struct Child : Base
+{
+    int i;
+    float f;
 };
 int main()
 {
-  Child ch_1{1, 2.4f};      // error: implicit copy constructor requires 1 argument
-                            //        implicit move constructor requires 1 argument
-                            //        implicit default constructor requires 0 arguments
-  Child ch_2{{}, 1, 2.4f};  // using default intialization for q from base class
-  Child ch_3{{15.1}, 1, 2.4f};
-
+    Child ch_1{1, 2.4f};      // error: implicit copy constructor requires 1 argument
+                                //        implicit move constructor requires 1 argument
+                                //        implicit default constructor requires 0 arguments
+    Child ch_2{{}, 1, 2.4f};  // using default intialization for q from base class
+    Child ch_3{{15.1}, 1, 2.4f};
 }
 ```
 ### 16.7. deduction guides
@@ -1519,31 +1556,30 @@ we can help the compiler deduce types where it's confused. it has to be in the s
 
 namespace std // same namespace has std::function
 {
-  // deduce an std::function from a standalone function pointer
-  template<typename ReturnType, typename ...Args> function(Ret (*)Args...) -> function<ReturnType(Args..)>;
-  // deduce an std::function standalone from a member function pointer
-  template<typename ReturnType, typename Class, typename ...Args> function(ReturnType(Class::*)(Args...)) 
-    -> function<ReturnType(Class&, Args..)>;
-  // deduce an std::function standalone from a const member function pointer
-  template<typename ReturnType, typename Class, typename ...Args> function(ReturnType(Class::*)(Args...) const) 
-    -> function<ReturnType(const Class&, Args..)>;
+    // deduce an std::function from a standalone function pointer
+    template<typename ReturnType, typename ...Args> function(Ret (*)Args...) -> function<ReturnType(Args..)>;
+    // deduce an std::function standalone from a member function pointer
+    template<typename ReturnType, typename Class, typename ...Args> function(ReturnType(Class::*)(Args...)) 
+        -> function<ReturnType(Class&, Args..)>;
+    // deduce an std::function standalone from a const member function pointer
+    template<typename ReturnType, typename Class, typename ...Args> function(ReturnType(Class::*)(Args...) const) 
+        -> function<ReturnType(const Class&, Args..)>;
 }
 struct MyClass {
-  void member_function();
-  void const_member_function() const;
+    void member_function();
+    void const_member_function() const;
 }
 void standalone_function(int, char) {
 
 };
 int main()
 {
-  std::function sa_f(&standalone_function);
-  sa_f(1, 'c');
-  std::function m_f(&MyClass::member_function);
-  std::function cm_f(&MyClass::const_member_function);
+    std::function sa_f(&standalone_function);
+    sa_f(1, 'c');
+    std::function m_f(&MyClass::member_function);
+    std::function cm_f(&MyClass::const_member_function);
 }
 ```
-
 ### 16.8. enable_if
 can be used to specialize the underlying structure by deducing the template type in conjunction with SFINAE.
 ```cpp
@@ -1594,8 +1630,7 @@ int main() {
 ```
 
 ## 17. CPP20
-nothing yet. TODO: add all the stuff about concepts & generators, constexpr new and delete.
-
+TODO: add all the stuff about concepts & generators, constexpr new and delete.
 ### 17.1. constexpr vector and string
 since Visual Studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
 this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
@@ -1628,10 +1663,10 @@ any code that contains attributes is automatically c++98 incompatible but who ca
 `[[C++17]]` in switch statements we might need to only slightly differentiate between two cases, i.e. do a bunch of stuff for case A and proceed with what we would've done for case B. if they're identical, we won't have any problems but otherwise the compiler issues a fallthrough warning.
 ```cpp
 switch(expression) {
-  case 1:
+case 1:
     do_some_stuff();
     [[fallthrough]];
-  case 2:
+case 2:
     do_other_stuff;
     break;
 }
@@ -1641,8 +1676,8 @@ switch(expression) {
 ```cpp
 int main()
 {
-  [[unused]] int i = 6;
-  assert(i == 6);
+    [[unused]] int i = 6;
+    assert(i == 6);
 }
 ```
 ### 18.3. maybe_unused
@@ -1653,13 +1688,11 @@ int main()
 ```cpp
 int main(int /*argc*/, [[maybe_unused]] const char** argv)
 {
-
 }
 ```
 functions can also be `[[maybe_unused]]`:
 ```cpp
 [[maybe_unused]] void do_nothing() {
-
 }
 ```
 ### 18.4. nodiscard
@@ -1670,11 +1703,12 @@ functions can also be `[[maybe_unused]]`:
 }
 int main()
 {
-  char *buff[200];
-  [[maybe_unused]] int ret = read_file("text.txt", buff, 200);
+    char *buff[200];
+    [[maybe_unused]] int ret = read_file("text.txt", buff, 200);
 }
 ```
 it can also be applied to structs, classes, enums, unions, etc. 
+
 ## 99. Misc.
 ### 99.1. timing
 `chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
@@ -1684,41 +1718,42 @@ the following code measures duration in seconds
 #include <iostream>
 #include <thread>
 
-int main() {
-  using namespace std::literals::chrono_literals;
-  auto start = std::chrono::high_resolution_clock::now();
-  std::this_thread:sleep(1s);
-  auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<float>  duration = end - start;
-  std::cout << duration.count() << "s" << std::endl;
-  return 0;
+int main()
+{
+    using namespace std::literals::chrono_literals;
+    auto start = std::chrono::high_resolution_clock::now();
+    std::this_thread:sleep(1s);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float>  duration = end - start;
+    std::cout << duration.count() << "s" << std::endl;
+    return 0;
 }
 ```
 for easier use of sleep functions we can use `chrono_literals`.
 #### structured timing
 ```cpp
-struct Timer {
-  std::chrono::time_point<std::chrono::steady_clock> start, end;
-  std::chrono::duration<float>  duration;
-  Timer(){
-    start = std::chrono::high_resolution_clock::now();
-  }
-  ~Timer(){
-    end = std::chrono::high_resolution_clock::now();
-    duration = end-start;
-    float ms = duration.count()*1000.0f;
-    std::cout << "chrono timer " << ms << "ms" << std::endl;
-  }
-}
+struct Timer
+{
+    std::chrono::time_point<std::chrono::steady_clock> start, end;
+    std::chrono::duration<float>  duration;
+    Timer() {
+        start = std::chrono::high_resolution_clock::now();
+    }
+    ~Timer() {
+        end = std::chrono::high_resolution_clock::now();
+        duration = end-start;
+        float ms = duration.count()*1000.0f;
+        std::cout << "chrono timer " << ms << "ms" << std::endl;
+    }
+};
 void Function() {
-  Timer timer;
-  for(int i=0; i<100; ++i){
-    std::cout << "hello" << std::endl;
-  }
+    Timer timer;
+    for(int i=0; i<100; ++i){
+        std::cout << "hello" << std::endl;
+    }
 }
 ```
 now any function that declares a `Timer` object will be timed.
-
 ### 99.2. variadic templates
 In C++11 there are two new options, as the Variadic functions reference page in the Alternatives section states:
 * Variadic templates can also be used to create functions that take variable number of arguments. They are often the better choice because they do not impose restrictions on the types of the arguments, do not perform integral and floating-point promotions, and are type safe. (since C++11)
@@ -1729,23 +1764,19 @@ In C++11 there are two new options, as the Variadic functions reference page in 
 #include <initializer_list>
 
 template <typename T>
-void func(T t) 
-{
+void func(T t)  {
     std::cout << t << std::endl ;
 }
 
 template<typename T, typename... Args>
-void func(T t, Args... args) // recursive variadic function
-{
+void func(T t, Args... args) { // recursive variadic function
     std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
     func(args...) ;
 }
 
 template <class T>
-void func2(std::initializer_list<T> list )
-{
-    for( auto elem : list )
-    {
+void func2(std::initializer_list<T> list) {
+    for (auto elem : list) {
         std::cout << __PRETTY_FUNCTION__ << ": " << t <<std::endl ;
     }
 }
@@ -1753,13 +1784,13 @@ void func2(std::initializer_list<T> list )
 int main()
 {
     std::string
-    str1( "Hello" ),
-    str2( "world" );
+    str1("Hello"),
+    str2("world");
 
     func(1,2.5,'a',str1);
 
-    func2( {10, 20, 30, 40 }) ;
-    func2( {str1, str2 } ) ;
+    func2({10, 20, 30, 40});
+    func2({str1, str2});
 }
 ```
 the `__PRETTY_FUNCTION__` directive only works with gcc and clang. the output would be 
@@ -1778,9 +1809,9 @@ gets the next iterator. for vector, we can directly increment the iterator becau
 #include <iostream>
 int main() 
 {
-	std::list<int> lst(10, 1, 2, 3, 4, 5);
-	std::cout << std::is_sorted(std::begin(lst), std::end(lst)) << '\n';        // false
-	std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
+    std::list<int> lst(10, 1, 2, 3, 4, 5);
+    std::cout << std::is_sorted(std::begin(lst), std::end(lst)) << '\n';        // false
+    std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
 }
 ```
 ### 99.4. type traits
@@ -1793,11 +1824,13 @@ namespace algo
     // ...
 }
 template <class T>
-struct uses_A {
+struct uses_A
+{
     static const bool value = false;
 };
 template <>
-struct uses_A<algo::A> {
+struct uses_A<algo::A>
+{
     static const bool value = true;
 };
 ```
