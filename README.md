@@ -1124,14 +1124,15 @@ int main() {
 this also writes to memory that's not ours and will probably crash.
 #### useful stuff
 ```cpp
-struct Entity{
+#include <iostream>
+struct Entity {
     int x,y;
-}
+};
 int main() {
     Entity entity = {5, 8};
-    int *position = (int*)&e;
+    int *position = (int*)&entity;
     std::cout << position[0] << " " << position[1] << std::endl;
-    int y = *(int*)((char*)&e+4)
+    int y = *(int*)((char*)&entity + 4)
     std::cout << "reading y like there's no tomorrow " << y << std::endl;
     return 0;
 }
