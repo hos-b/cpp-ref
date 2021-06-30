@@ -411,11 +411,11 @@ class B
 };
 ```
 ### 4.2. access specifiers
-| access                    | public | private | protected |
-|---------------------------|--------|---------|-----------|
-| members of the same class | y      | y       | y         |
-| members of derived class  | y      | y       | n         |
-| not members               | y      | n       | n         |
+| access                    | public | protected | private |
+|:-------------------------:|:------:|:---------:|:-------:|
+| members of the same class | y      | y         | y       |
+| members of derived class  | y      | y         | n       |
+| not members               | y      | n         | n       |
 
 public inheritance: all inherited members will keep their access specifiers in derived class
 protected inheritance : all inherited members will at most be proteted
