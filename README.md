@@ -9,7 +9,8 @@
   1.7. [mutable keyword](#17-mutable-keyword)<br>
   1.8. [extern keyword](#18-extern-keyword)<br>
   1.9. [typename keyword](#19-typename-keyword)<br>
-  1.10. [type deduction with declval](#110-type-deduction-with-declval)
+  1.10. [type deduction with declval](#110-type-deduction-with-declval)<br>
+  1.11. [storage classes](#111-storage-classes)<br>
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)<br>
@@ -215,6 +216,15 @@ class Test {
 ```cpp
 #define mul_decltype(U, V) decltype(std::declval<U&>() * std::declval<V&>())
 ```
+### 1.11. storage classes
+the storage class specifiers are a part of the decl-specifier-seq of a name's declaration syntax. together with the scope of the name, they control two independent properties of the name: its storage duration and its linkage. 
+
+* auto: automatic storage duration
+* register: automatic storage duration. also hints to the compiler to place the object in the processor's register. removed in C++17
+* static: static or thread storage duration and internal linkage
+* extern: static or thread storage duration and external linkage
+* thread_local: thread storage duration
+* mutable - does not affect storage duration or linkage
 
 ## 2. Pointers
 ### 2.1. const keyword
