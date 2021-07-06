@@ -28,7 +28,8 @@
   4.4. [base constructor](#44-base-constructor)<br>
   4.5. [virtual functions](#45-virtual-functions)<br>
   4.6. [pure virtual and abstract classes](#46-pure-virtual-and-abstract-classes)<br>
-  4.7. [virtual destructors](#47-virtual-destructors)
+  4.7. [virtual destructors](#47-virtual-destructors)<br>
+  4.8. [virtual inheritance](#48-virtual-inheritance)
 5. [Type Conversion](#5-type-conversion)<br>
   5.1. [through classes](#51-through-classes)<br>
   5.2. [explicit keyword](#52-explicit-keyword)<br>
@@ -60,6 +61,7 @@
   10.3. [string streams](#103-string-streams)<br>
   10.4. [type punning](#104-type-punning)<br>
   10.5. [nothrow](#105-nothrow)<br>
+  10.6. [weird array indexing](#106-weird-array-indexing)
 
 ## 1. Types and Stuff
 ### 1.1. decltype, auto
@@ -495,6 +497,41 @@ Derived Constructor
 Base Destructor
 ```
 when calling the destructor for `poly`, we don't know that the object might have another destructor, since it's cast to `Base` pointer. to overcome this issue we have to declare the Base destructor as `virtual`. this does not override the base destructor. it just lets C++ know that there might be another destructor further down in the hierrachy.
+### 4.8. virtual inheritance
+if there is a diamond structure in the class hierarchy, the bottom class (`A`), gets two copies of `D`. one through `B` and another one through `C`.
+```cpp
+#include <iostream>
+
+class D {
+public:
+    void foo() {
+        std::cout << "foo" << std::endl;
+    }
+};
+
+class C:  public D {
+};
+
+class B:  public D {
+};
+
+class A: public B, public C {
+};
+
+int main(int argc, const char * argv[]) {
+    A a;
+    a.foo();
+}
+
+```
+to avoid this, B and C should use virtual inheritance.
+```cpp
+class C:  virtual public D {
+};
+
+class B:  virtual public D {
+};
+```
 
 ## 5. Type Conversion
 - If a negative integer value is converted to an unsigned type, the resulting value corresponds to its 2's complement bitwise representation (i.e., -1 becomes the largest value representable by the type, -2 the second largest, ...).
@@ -1142,4 +1179,15 @@ this struct is basically just a byte in the memory.
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
 if (ptr == nullptr) std::cout << "producing null pointer instead of runtime exception";
+```
+### 10.6. weird array indexing
+i don't know why.
+```cpp
+int main()
+{
+    int a[2] = {1, 2};
+    (0)[a] = 5;
+    cout << (0)[a] << " " << (1)[a] << endl; // prints 5, 2
+    return 0;
+}
 ```
