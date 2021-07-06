@@ -30,7 +30,8 @@
   4.5. [virtual functions](#45-virtual-functions)<br>
   4.6. [pure virtual and abstract classes](#46-pure-virtual-and-abstract-classes)<br>
   4.7. [virtual destructors](#47-virtual-destructors)<br>
-  4.8. [virtual inheritance](#48-virtual-inheritance)
+  4.8. [virtual inheritance](#48-virtual-inheritance)<br>
+  4.9. [virtual tables and dynamic dispatch](#49-virtual-tables-and-dynamic-dispatch)
 5. [Type Conversion](#5-type-conversion)<br>
   5.1. [through classes](#51-through-classes)<br>
   5.2. [explicit keyword](#52-explicit-keyword)<br>
@@ -542,6 +543,14 @@ class C:  virtual public D {
 class B:  virtual public D {
 };
 ```
+### 4.9. virtual tables and dynamic dispatch
+a routine is created for each normal class method. the compiler remembers its address and dispatches it for all calls to this method. this is known as static dispatch or early binding since the correct address is known at compile time. this obviously fails with polymorphism.
+
+for every class that contains or inherits virtual functions, the compiler constructs a virtual table. the vtable contains an entry for each virtual function accessible by the class and stores a pointer to its definition. entries in the vtable can point to either functions declared in the class itself (overridden), or virtual functions inherited from a base class.
+
+vtables exist at the class level, meaning there exists a single vtable per class, and is shared by all instances. each class instance however has this vpointer added to its beginning. the pointer is 4 bytes or 8 bytes long depending on the cpu architecture.
+
+virtual destrcutors become a clear necessity, since otherwise polymorphic objects would dispatch the base destructor statically.
 
 ## 5. Type Conversion
 - If a negative integer value is converted to an unsigned type, the resulting value corresponds to its 2's complement bitwise representation (i.e., -1 becomes the largest value representable by the type, -2 the second largest, ...).
