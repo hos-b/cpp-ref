@@ -112,6 +112,11 @@ std::sort(std::execution::par, doubles.begin(), doubles.end());
 ### 1.1. more on par_unseq
 in addition to the requirements exposed by the parallel policy, the parallel unsequenced policy requires that the element access functions tolerate weaker than concurrent forward progress guarantees. that means that they don’t take locks or otherwise perform operations that require threads to concurrently execute to make progress. for example, if a parallel algorithm runs on a GPU and tries to take a spinlock, the thread spinning on the spinlock may prevent other threads on the GPU from ever executing, meaning the spinlock may never be unlocked by the thread holding it, deadlocking the program.
 
+an algorithm invoked with the parallel unsequenced policy may perform the algorithm steps on unspecified threads of execution, unordered and unsequenced with respect to one another. this means that operations may now be interleaved with each other on a single thread, such that a second operation is started on the same thread before the first has finished, and may be migrated between threads, so a given operation may start on one thread, run further on a second thread, and complete on a third.
+
+if you use the parallel unsequenced policy, then the operations invoked on the iterators, values, and callable objects supplied to the algorithm must not use any form of synchronization or call any function that synchronizes with another, or any function such that some other code synchronizes with it. this means that the operations must only operate on the relevant element, or any data that can be accessed based on that element, and must not modify any state shared between threads, or between elements.
+
+
 ## 2. Flow Control
 TODO: replace
 
