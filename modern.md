@@ -1,48 +1,49 @@
 # C++ Reference ([Part 1](https://github.com/hos-b/cpp-ref))
 
-1. [Types and Stuff](#1-types-and-stuff)<br>
-2. [Flow Control](#2-flow-control)<br>
-3. [Unit Tests](#3-unit-tests)<br>
+1. [Parallel Algorithms](#1-parallel-algorithms)<br>
+  1.1. [more on par_unseq](#11-more-on-par_unseq)
+3. [Flow Control](#2-flow-control)<br>
+4. [Unit Tests](#3-unit-tests)<br>
   3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
   3.2. [writing tests](#32-writing-tests)<br>
   3.3. [running tests](#33-running-tests)
-4. [Compilation](#4-compilation)<br>
+5. [Compilation](#4-compilation)<br>
   4.1. [flags](#41-flags)<br>
   4.2. [gdb](#42-gdb)<br>
   4.3. [libraries](#43-libraries)<br>
   4.4. [compilation chain](#44-compilation-chain)
-5. [cmake](#5-cmake)<br>
+6. [cmake](#5-cmake)<br>
   5.1. [messages, warnings, errors](#51-messages-warnings-errors)<br>
   5.2. [compiler flags](#52-compiler-flags)<br>
   5.3. [using precompiled libraries](#53-using-precompiled-libraries)<br>
   5.4. [building](#54-building)<br>
   5.5. [functions](#55-functions)
-6. [Move Semantics](#6-move-semantics)<br>
+7. [Move Semantics](#6-move-semantics)<br>
   6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)<br>
   6.2. [example](#62-example)<br>
   6.3. [move constructor and assignment](#63-move-constructor-and-assignment)<br>
   6.4. [but wait there's more](#64-but-wait-theres-more)
-7. [Smart Pointers](#7-smart-pointers)<br>
+8. [Smart Pointers](#7-smart-pointers)<br>
   7.1. [unique pointers](#71-unique-pointers)<br>
   7.2. [shared pointers](#72-shared-pointers)<br>
   7.3. [weak pointers](#73-weak-pointers)<br>
   7.4. [examples](#74-examples)
-8. [Associative Containers](#8-associative-containers)<br>
+9. [Associative Containers](#8-associative-containers)<br>
   8.1. [map](#81-map)<br>
   8.2. [unordered map](#82-unordered-map)
-9. [Iterators](#9-iterators)<br>
+10. [Iterators](#9-iterators)<br>
   9.1. [properties](#91-properties)<br>
   9.2. [examples](#92-examples)
-10. [CPP Lambdas](#10-cpp-lambdas)<br>
+11. [CPP Lambdas](#10-cpp-lambdas)<br>
   10.1. [definition](#101-definition)<br>
   10.2. [function pointers](#102-function-pointers)<br>
   10.3. [std examples](#103-std-examples)<br>
   10.4. [recursive lambdas](#104-recursive-lambdas)<br>
   10.5. [stateful lambdas](#105-stateful-lambdas)
-11. [Multi-Threading](#11-multi-threading)<br>
+12. [Multi-Threading](#11-multi-threading)<br>
   11.1. [daemon processes](#111-daemon-processes)<br>
   11.2. [passing parameters](#112-passing-parameters)
-12. [Mutex](#12-mutex)<br>
+13. [Mutex](#12-mutex)<br>
   12.1. [lock_guard](#121-lock_guard)<br>
   12.2. [multiple mutexes](#122-multiple-mutexes)<br>
   12.3. [unique lock](#123-unique-lock)<br>
@@ -52,21 +53,21 @@
   12.7. [callable objects](#127-callable-objects)<br>
   12.8. [packaged tasks](#128-packaged-tasks)<br>
   12.9. [time constraints](#129-time-constraints)
-13. [OpenCV](#13-opencv)<br>
+14. [OpenCV](#13-opencv)<br>
   13.1. [basic matrix type](#131-basic-matrix-type)<br>
   13.2. [memory management](#132-memory-management)<br>
   13.3. [IO](#133-io)<br>
   13.4. [vector type](#134-vector-type)<br>
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
-14. [bind](#14-bind)<br>
+15. [bind](#14-bind)<br>
   14.1. [binding with reference](#141-binding-with-reference)<br>
   14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
-15. [C++14](#15-cpp14)<br>
+16. [C++14](#15-cpp14)<br>
   15.1. [exchange](#151-exchange)
-16. [C++17](#16-cpp17)<br>
+17. [C++17](#16-cpp17)<br>
   16.1. [structured bindings](#161-structured-bindings)<br>
   16.2. [any](#162-any)<br>
   16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
@@ -75,7 +76,7 @@
   16.6. [aggregate initialization](#166-aggregate-initialization)<br>
   16.7. [deduction guides](#167-deduction-guides)<br>
   16.8. [enable_if](#168-enable_if)
-17. [C++20](#17-cpp20)<br>
+18. [C++20](#17-cpp20)<br>
   17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
 19. [Attributes](#18-attributes)<br>
   18.1. [fallthrough](#181-fallthrough)<br>
@@ -89,8 +90,27 @@
   99.4. [type traits](#994-type-traits)<br>
 
 
-## 1. Types and Stuff
-TODO: replace
+## 1. Parallel Algorithms
+all standard library algorithms that can be parallelized are available as parallel algorithms, albeit only on GCC and MSVC compilers. the best candidates are the ones that have more than O(n) complexity like sort. the `<execution>` header needs to be included as well to make the execution policies available :
+* `std::execution::seq`: sequential policy (default)
+* `std::execution::par`: parallel execution policy: must be multi-threading safe
+* `std::execution::par_unseq`: parallel unsequenced policy: must also allow interleaving of concurrent iterations (may use SIMD)
+
+the execution policy may be set for these algorithms by passing it as the first argument.
+```cpp
+std::random_device rd;
+std::vector<double> doubles(10000);
+for (auto& d : doubles) {
+    d = static_cast<double>(rd());
+}
+// normal sort
+std::sort(doubles.begin(), doubles.end());
+// parallel sort
+std::sort(std::execution::par, doubles.begin(), doubles.end());
+```
+
+### 1.1. more on par_unseq
+in addition to the requirements exposed by the parallel policy, the parallel unsequenced policy requires that the element access functions tolerate weaker than concurrent forward progress guarantees. that means that they don’t take locks or otherwise perform operations that require threads to concurrently execute to make progress. for example, if a parallel algorithm runs on a GPU and tries to take a spinlock, the thread spinning on the spinlock may prevent other threads on the GPU from ever executing, meaning the spinlock may never be unlocked by the thread holding it, deadlocking the program.
 
 ## 2. Flow Control
 TODO: replace
