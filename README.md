@@ -66,12 +66,29 @@
   10.6. [weird array indexing](#106-weird-array-indexing)
 
 ## 1. Types and Stuff
-### 1.1. decltype, auto
+### 1.1. decltype and auto
+`auto` deduces the type (obviously) at compile time.
 ```cpp
 int a = 5;
 decltype(a) b;  // type of a without initialization
 auto c = a;     // type of a with initialization
 ```
+`auto` has the same rules for `const`-ness, references and pointers as templates:
+* `auto` will never deduce a reference
+* `const`-ness will only be deduced for references and pointers
+* value types are always copies (special case for `decltype`)
+```c++
+const int *p = nullptr;
+const int i = 0;
+
+auto a1 = p;           // const int*
+auto *a2 = p;          // const int*
+auto a3 = *p;          // int
+auto &a5 = *p;         // const int&
+auto a5 = i;           // int
+decltype(auto) a6 = i; // const int
+```
+
 ### 1.2. typedef and using
 declaring new types :
 ```cpp
