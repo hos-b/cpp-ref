@@ -76,7 +76,8 @@ auto c = a;     // type of a with initialization
 `auto` has the same rules for `const`-ness, references and pointers as templates:
 * `auto` will never deduce a reference
 * `const`-ness will only be deduced for references and pointers
-* value types are always copies (special case for `decltype`)
+* value types are always copied (special case for `decltype`)
+
 ```c++
 const int *p = nullptr;
 const int i = 0;
@@ -88,6 +89,7 @@ auto &a5 = *p;         // const int&
 auto a5 = i;           // int
 decltype(auto) a6 = i; // const int
 ```
+auto also _never_ performs a conversion, making it sometimes better than 
 
 ### 1.2. typedef and using
 declaring new types :
