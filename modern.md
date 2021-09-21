@@ -66,7 +66,8 @@
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
 15. [C++14](#15-cpp14)<br>
-  15.1. [exchange](#151-exchange)
+  15.1. [exchange](#151-exchange)<br>
+  15.2. [digit separators](#152-digit-separators)
 16. [C++17](#16-cpp17)<br>
   16.1. [structured bindings](#161-structured-bindings)<br>
   16.2. [any](#162-any)<br>
@@ -1441,6 +1442,14 @@ int main()
 	}
 }
 ```
+## 15.2. digit separators
+to make numbers more readable, we can use the single quote character:
+```cpp
+auto binary_var = 0b0001'1010'0010'1100;
+auto octal_var = 0`123`456;
+auto int_var  = 1`000`000`000;
+```
+the digit separator is not sepcific to 
 
 ## 16. CPP17
 ### 16.1. structured bindings
