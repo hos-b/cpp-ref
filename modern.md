@@ -1446,8 +1446,9 @@ int main()
 to make numbers more readable, we can use the single quote character:
 ```cpp
 auto binary_var = 0b0001'1010'0010'1100;
-auto octal_var = 0`123`456;
-auto int_var  = 1`000`000`000;
+auto hex_var = 0xFF'AA;
+auto octal_var = 0'123'456;
+auto int_var  = 1'000'000'000;
 ```
 the digit separator is not sepcific to 
 
