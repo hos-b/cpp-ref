@@ -2,7 +2,7 @@
 
 1. [Parallel Algorithms](#1-parallel-algorithms)<br>
   1.1. [more on par_unseq](#11-more-on-par_unseq)
-2. [Flow Control](#2-flow-control)<br>
+2. [Advanced Memory Management](#2-advanced-memory-management)<br>
 3. [Unit Tests](#3-unit-tests)<br>
   3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
   3.2. [writing tests](#32-writing-tests)<br>
@@ -119,8 +119,19 @@ an algorithm invoked with the parallel unsequenced policy may perform the algori
 if you use the parallel unsequenced policy, then the operations invoked on the iterators, values, and callable objects supplied to the algorithm must not use any form of synchronization or call any function that synchronizes with another, or any function such that some other code synchronizes with it. this means that the operations must only operate on the relevant element, or any data that can be accessed based on that element, and must not modify any state shared between threads, or between elements.
 
 
-## 2. Flow Control
-TODO: replace
+## 2. Advanced Memory Management
+### 2.1. in-place construction
+using the placement new operator, we can specify the memory location for an object to be constructed. this is used in the implementation of `std::vector.emplace_back()`.
+```cpp
+template <typename ...Args>
+void emplace_back(Args&&... args) {
+	if (need_to_resize) {
+		...
+	}
+	new(&allocated_mem[size_]) T(std::forward<Args>(args)...);
+    ++size;
+}
+```
 
 ## 3. Unit Tests
 install `libgtest-dev`, make a test subdirectory, edit top CMakeLists.txt: 
