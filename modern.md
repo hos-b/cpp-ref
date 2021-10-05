@@ -132,6 +132,17 @@ void emplace_back(Args&&... args) {
     ++size;
 }
 ```
+naturally, the object must be destructed manually as with the normal `new` call.
+### 2.2. memory allocation without construction
+this is basically the C++ version of `malloc`:
+```cpp
+Entity* memory_block = (Entity*)::operator new(count * sizeof(Entity));
+```
+### 2.3. memory deallocation without destruction
+or the C++ version of free():
+```cpp
+::operator delete(memory_block, count * sizeof(Entity));
+```
 
 ## 3. Unit Tests
 install `libgtest-dev`, make a test subdirectory, edit top CMakeLists.txt: 
