@@ -93,7 +93,12 @@
   99.2. [variadic templates](#992-variadic-templates)<br>
   99.3. [next](#993-next)<br>
   99.4. [type traits](#994-type-traits)<br>
-
+  99.5. [preprocessor-directives](#995-preprocessor-directives)<br>
+  99.6. [hidden namespaces](#996-hidden-namespaces)<br>
+  99.7. [string streams](#997-string-streams)<br>
+  99.8. [type punning](#998-type-punning)<br>
+  99.9. [nothrow](#999-nothrow)<br>
+  99.10. [weird array indexing](#9910-weird-array-indexing)
 
 ## 1. Parallel Algorithms
 all standard library algorithms that can be parallelized are available as parallel algorithms, albeit only on GCC and MSVC compilers. the best candidates are the ones that have more than O(n) complexity like sort. the `<execution>` header needs to be included as well to make the execution policies available :
@@ -1906,4 +1911,149 @@ struct uses_A<algo::A>
 {
     static const bool value = true;
 };
+```
+### 99.5. preprocessor directives
+#### predefined
+```cpp
+int main()
+{
+  cout << "This is the line number " << __LINE__;
+  cout << " of file " << __FILE__ << ".\n";
+  cout << "Its compilation began " << __DATE__;
+  cout << " at " << __TIME__ << ".\n";
+  cout << "The compiler gives a __cplusplus value of " << __cplusplus;
+  return 0;
+}
+```
+#### line control
+```cpp
+#line 20 "assigning variable"
+int a?;
+```
+this code will generate an error that will be shown as error in file "assigning variable", line 20.
+#### error directives
+```cpp
+#ifndef __cplusplus
+#error A C++ compiler is required!
+#endif
+```
+#### macros
+```cpp
+#define WAIT std::cin.get();
+#ifdef DEBUG
+#define LOG(x) std::cout << x << std::endl
+#else
+#define LOG(x)
+#endif
+int main(){
+    WAIT;
+    LOG("hello");
+}
+```
+### 99.6. hidden namespaces
+```cpp
+namespace multiply
+{
+    namespace // anonymous namespace
+    {
+        int first = 4;
+        int second = 5;
+
+        int calc(int a, int b) {
+            return a * b;
+        }
+    }
+    int getFirst() {
+        return first;
+    }
+    int getSecond() {
+        return second;
+    }
+    int getProduct() {
+        return calc(first, second);
+    }
+}
+```
+calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
+### 99.7. string streams
+c++ equivalent of sprintf. also good for reverse sprintf.
+#### writing
+```cpp
+#include <sstream>
+stringstream sstr;
+int i = 50;
+double d = 2;
+std::string str = "hi";
+sstr << i << str << d;
+std::cout << sstr.str();
+```
+#### clearing
+```cpp
+sstr.str("")
+```
+#### reading
+```cpp
+int i;
+double d;
+std::string str;
+stringstream sstr("23times5.4");
+sstr>> i >> str >> d;
+```
+### 99.8. type punning
+low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
+```cpp
+int main() {
+    int a = 50;
+    double value = a;
+    std::cout << value << std::endl;
+}
+```
+this will implicitly convert our int into a double but the variables are not gonna have the same bytes in the memory.
+```cpp
+int main() {
+    int a = 50;
+    double value = *(double*)&a;
+    std::cout << value << std::endl;
+}
+```
+dereferenced int pointer cast to double pointer. we own every byte of `value` and writing to it is safe, however when we cast `int*` to `double*`, instead of reading 4 bytes, we read 8, 4 of which is not ours. we could even do worse
+```cpp
+int main() {
+    int a = 50;
+    double& value = *(double*)&a;
+    value = 0.0;
+}
+```
+this also writes to memory that's not ours and will probably crash.
+#### useful stuff
+```cpp
+#include <iostream>
+struct Entity {
+    int x,y;
+};
+int main() {
+    Entity entity = {5, 8};
+    int *position = (int*)&entity;
+    std::cout << position[0] << " " << position[1] << std::endl;
+    int y = *(int*)((char*)&entity + 4)
+    std::cout << "reading y like there's no tomorrow " << y << std::endl;
+    return 0;
+}
+```
+this struct is basically just a byte in the memory.
+### 99.9. nothrow
+```cpp
+int *ptr = new (nothrow) int[1000000000];
+if (ptr == nullptr) std::cout << "producing null pointer instead of runtime exception";
+```
+### 99.10. weird array indexing
+i don't know why.
+```cpp
+int main()
+{
+    int a[2] = {1, 2};
+    (0)[a] = 5;
+    cout << (0)[a] << " " << (1)[a] << endl; // prints 5, 2
+    return 0;
+}
 ```
