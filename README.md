@@ -56,14 +56,14 @@
   8.7. [functors and sorting](#87-functors-and-sorting)<br>
   8.8. [predicates](#88-predicates)<br>
   8.9. [template functors](#89-template-functors)
-9. [Precompiled Headers](#9-precompiled-headers)<br>
-10. [Misc.](#10-misc)<br>
-  10.1. [preprocessor-directives](#101-preprocessor-directives)<br>
-  10.2. [hidden namespaces](#102-hidden-namespaces)<br>
-  10.3. [string streams](#103-string-streams)<br>
-  10.4. [type punning](#104-type-punning)<br>
-  10.5. [nothrow](#105-nothrow)<br>
-  10.6. [weird array indexing](#106-weird-array-indexing)
+9. [Iterators](#9-iterators)<br>
+  9.1. [begin and end](#91-begin-and-end)<br>
+  9.2. [increment and decrement operators](#92-increment-and-decrement-operators)<br>
+  9.3. [index operator](#93-index-operator)<br>
+  9.4. [arrow operator](#94-arrow-operator)<br>
+  9.5. [dereference operator](#95-dereference-operator)<br>
+  9.6. [comparison operators](#96-comparison-operators)<br>
+11. [Precompiled Headers](#10-precompiled-headers)<br>
 
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
@@ -1052,12 +1052,95 @@ int main() {
     return 0;
 }
 ```
+## 9. Iterators.
+used to access the elements of collections. could be indexing a contiguous array or iterating a graph. types that have iteratos can be used in range-based for loops. Gemeral structure is as follows:
+```cpp
+template <typename Col>
+class CollectionIterator {
+public:
+    using value_type = typename Col::value_type;
+    using pointer_type = value_type*;
+    using reference_type = value_type&;
+    CollectionIterator(pointer_type ptr) : ptr_(ptr) {}
+private:
+    pointer_type ptr_;
+};
 
-## 9. Precompiled Headers
+template <typename T>
+class Collection {
+    using value_type = T;
+    using iterator_type = CollectionIterator<Collection<T>>;
+    ...
+};
+```
+## 9.1. begin and end
+the Collection class itself must implement the `begin()` and `end()` functions.
+```cpp
+iterator_type begin() {
+    return iterator_type(data_);
+}
+iterator_type end() {
+    return iterator_type(data_ + size_);
+}
+```
+## 9.2. increment and decrement operators
+for stepping over elements, the post/pre increment/decrement operators should be overloaded in the iterator class.
+```cpp
+CollectionIterator& operator++() {
+    ptr_ += 1;
+    return *this;
+}
+CollectionIterator operator++(int) {
+    auto it = *this;
+    ptr_ += 1;
+    return it;
+}
+CollectionIterator& operator--() {
+    ptr_ -= 1;
+    return *this;
+}
+CollectionIterator operator--(int) {
+    auto it = *this;
+    ptr_ -= 1;
+    return it;
+}
+```
+## 9.3. index operator
+the iterator class should also implement the index operator for random access:
+```cpp
+referemce_type operator[](size_t index) {
+    return *(ptr_ + index);
+}
+```
+## 9.4. arrow operator
+the arrow operator should be overloaded in the iterator class to allow for member access. this operator has no inputs. it can techinically return anything, but should return something that either is a pointer or can become a pointer through chained `->` operators.  the `->` operator automatically dereferences its return value before calling its argument using the built-in pointer dereference, not `operator*`.
+```cpp
+pointer_type operator->() {
+    return ptr_;
+}
+```
+## 9.5. dereference operator
+also should be overloaded by the iterator class:
+```cpp
+reference_type operator*() {
+    return *ptr_;
+}
+```
+## 9.6. comparison operators
+required in the iterator class to terminate iteration.
+```cpp
+bool operator==(const CollectionIterator& other) const {
+    return ptr_ == other.ptr_;
+}
+bool operator!=(const CollectionIterator& other) const {
+    return ptr_ != other.ptr_;
+}
+```
+## 10. Precompiled Headers
 when we include a header file e.g. `vector`, we're potentially adding thousands of lines to be compiled each time we change anything in the project. this significantly increases compilation time. a precompiled header is already turned into a binary format that can easily be integrated into the chain.
 ### good practice
 precompiled headers are mostly used for external code. for example we won't ever change STL headers or `windows.h`
-### bad practice.
+### bad practice
 a bad practice is to add all the dependencies to a PCH. this hides what is being used in each cpp file.<br>
 putting frequently changing headers into a PCH will only increase compile time.
 ```c pp
@@ -1082,150 +1165,3 @@ g++ -std=c++11 pch.h
 g++ -std=c++11 main.cpp
 ```
 not supported by gcc. workarounds are bad.
-
-## 10. Misc.
-### 10.1. preprocessor directives
-#### predefined
-```cpp
-int main()
-{
-  cout << "This is the line number " << __LINE__;
-  cout << " of file " << __FILE__ << ".\n";
-  cout << "Its compilation began " << __DATE__;
-  cout << " at " << __TIME__ << ".\n";
-  cout << "The compiler gives a __cplusplus value of " << __cplusplus;
-  return 0;
-}
-```
-#### line control
-```cpp
-#line 20 "assigning variable"
-int a?;
-```
-this code will generate an error that will be shown as error in file "assigning variable", line 20.
-#### error directives
-```cpp
-#ifndef __cplusplus
-#error A C++ compiler is required!
-#endif
-```
-#### macros
-```cpp
-#define WAIT std::cin.get();
-#ifdef DEBUG
-#define LOG(x) std::cout << x << std::endl
-#else
-#define LOG(x)
-#endif
-int main(){
-    WAIT;
-    LOG("hello");
-}
-```
-### 10.2. hidden namespaces
-```cpp
-namespace multiply
-{
-    namespace // anonymous namespace
-    {
-        int first = 4;
-        int second = 5;
-
-        int calc(int a, int b) {
-            return a * b;
-        }
-    }
-    int getFirst() {
-        return first;
-    }
-    int getSecond() {
-        return second;
-    }
-    int getProduct() {
-        return calc(first, second);
-    }
-}
-```
-calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
-### 10.3. string streams
-c++ equivalent of sprintf. also good for reverse sprintf.
-#### writing
-```cpp
-#include <sstream>
-stringstream sstr;
-int i = 50;
-double d = 2;
-std::string str = "hi";
-sstr << i << str << d;
-std::cout << sstr.str();
-```
-#### clearing
-```cpp
-sstr.str("")
-```
-#### reading
-```cpp
-int i;
-double d;
-std::string str;
-stringstream sstr("23times5.4");
-sstr>> i >> str >> d;
-```
-### 10.4. type punning
-low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
-```cpp
-int main() {
-    int a = 50;
-    double value = a;
-    std::cout << value << std::endl;
-}
-```
-this will implicitly convert our int into a double but the variables are not gonna have the same bytes in the memory.
-```cpp
-int main() {
-    int a = 50;
-    double value = *(double*)&a;
-    std::cout << value << std::endl;
-}
-```
-dereferenced int pointer cast to double pointer. we own every byte of `value` and writing to it is safe, however when we cast `int*` to `double*`, instead of reading 4 bytes, we read 8, 4 of which is not ours. we could even do worse
-```cpp
-int main() {
-    int a = 50;
-    double& value = *(double*)&a;
-    value = 0.0;
-}
-```
-this also writes to memory that's not ours and will probably crash.
-#### useful stuff
-```cpp
-#include <iostream>
-struct Entity {
-    int x,y;
-};
-int main() {
-    Entity entity = {5, 8};
-    int *position = (int*)&entity;
-    std::cout << position[0] << " " << position[1] << std::endl;
-    int y = *(int*)((char*)&entity + 4)
-    std::cout << "reading y like there's no tomorrow " << y << std::endl;
-    return 0;
-}
-```
-this struct is basically just a byte in the memory.
-### 10.5. nothrow
-```cpp
-int *ptr = new (nothrow) int[1000000000];
-if (ptr == nullptr) std::cout << "producing null pointer instead of runtime exception";
-```
-### 10.6. weird array indexing
-i don't know why.
-```cpp
-int main()
-{
-    int a[2] = {1, 2};
-    (0)[a] = 5;
-    cout << (0)[a] << " " << (1)[a] << endl; // prints 5, 2
-    return 0;
-}
-```
