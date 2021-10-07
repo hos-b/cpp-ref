@@ -89,7 +89,7 @@ auto &a5 = *p;         // const int&
 auto a5 = i;           // int
 decltype(auto) a6 = i; // const int
 ```
-auto also _never_ performs a conversion, making it sometimes better than 
+auto also _never_ performs a conversion, making it sometimes better than writing down the type explicitly.
 
 ### 1.2. typedef and using
 declaring new types :
