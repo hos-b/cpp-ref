@@ -6,47 +6,45 @@
   2.1. [in-place construction](#21-in-place-construction)<br>
   2.2. [allocation without construction](#22-allocation-without-construction)<br>
   2.3. [deallocation without destruction](#23-deallocation-without-destruction)<br>
-4. [Unit Tests](#3-unit-tests)<br>
+3. [Unit Tests](#3-unit-tests)<br>
   3.1. [CMakeLists.txt](#31-cmakelists.txt)<br>
   3.2. [writing tests](#32-writing-tests)<br>
   3.3. [running tests](#33-running-tests)
-5. [Compilation](#4-compilation)<br>
+4. [Compilation](#4-compilation)<br>
   4.1. [flags](#41-flags)<br>
   4.2. [gdb](#42-gdb)<br>
   4.3. [libraries](#43-libraries)<br>
   4.4. [compilation chain](#44-compilation-chain)
-6. [cmake](#5-cmake)<br>
+5. [cmake](#5-cmake)<br>
   5.1. [messages, warnings, errors](#51-messages-warnings-errors)<br>
   5.2. [compiler flags](#52-compiler-flags)<br>
   5.3. [using precompiled libraries](#53-using-precompiled-libraries)<br>
   5.4. [building](#54-building)<br>
   5.5. [functions](#55-functions)
-7. [Move Semantics](#6-move-semantics)<br>
+6. [Move Semantics](#6-move-semantics)<br>
   6.1. [lvalue and rvalue](#61-lvalue-and-rvalue)<br>
   6.2. [example](#62-example)<br>
   6.3. [move constructor and assignment](#63-move-constructor-and-assignment)<br>
   6.4. [but wait there's more](#64-but-wait-theres-more)
-8. [Smart Pointers](#7-smart-pointers)<br>
+7. [Smart Pointers](#7-smart-pointers)<br>
   7.1. [unique pointers](#71-unique-pointers)<br>
   7.2. [shared pointers](#72-shared-pointers)<br>
   7.3. [weak pointers](#73-weak-pointers)<br>
   7.4. [examples](#74-examples)
-9. [Associative Containers](#8-associative-containers)<br>
+8. [Associative Containers](#8-associative-containers)<br>
   8.1. [map](#81-map)<br>
   8.2. [unordered map](#82-unordered-map)
-10. [Iterators](#9-iterators)<br>
-  9.1. [properties](#91-properties)<br>
-  9.2. [examples](#92-examples)
-11. [CPP Lambdas](#10-cpp-lambdas)<br>
+9. [TODO](#9-todo)<br>
+10. [CPP Lambdas](#10-cpp-lambdas)<br>
   10.1. [definition](#101-definition)<br>
   10.2. [function pointers](#102-function-pointers)<br>
   10.3. [std examples](#103-std-examples)<br>
   10.4. [recursive lambdas](#104-recursive-lambdas)<br>
   10.5. [stateful lambdas](#105-stateful-lambdas)
-12. [Multi-Threading](#11-multi-threading)<br>
+11. [Multi-Threading](#11-multi-threading)<br>
   11.1. [daemon processes](#111-daemon-processes)<br>
   11.2. [passing parameters](#112-passing-parameters)
-13. [Mutex](#12-mutex)<br>
+12. [Mutex](#12-mutex)<br>
   12.1. [lock_guard](#121-lock_guard)<br>
   12.2. [multiple mutexes](#122-multiple-mutexes)<br>
   12.3. [unique lock](#123-unique-lock)<br>
@@ -56,22 +54,22 @@
   12.7. [callable objects](#127-callable-objects)<br>
   12.8. [packaged tasks](#128-packaged-tasks)<br>
   12.9. [time constraints](#129-time-constraints)
-14. [OpenCV](#13-opencv)<br>
+13. [OpenCV](#13-opencv)<br>
   13.1. [basic matrix type](#131-basic-matrix-type)<br>
   13.2. [memory management](#132-memory-management)<br>
   13.3. [IO](#133-io)<br>
   13.4. [vector type](#134-vector-type)<br>
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
-15. [bind](#14-bind)<br>
+14. [bind](#14-bind)<br>
   14.1. [binding with reference](#141-binding-with-reference)<br>
   14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
-16. [C++14](#15-cpp14)<br>
+15. [C++14](#15-cpp14)<br>
   15.1. [exchange](#151-exchange)<br>
   15.2. [digit separators](#152-digit-separators)
-17. [C++17](#16-cpp17)<br>
+16. [C++17](#16-cpp17)<br>
   16.1. [structured bindings](#161-structured-bindings)<br>
   16.2. [any](#162-any)<br>
   16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
@@ -80,10 +78,10 @@
   16.6. [aggregate initialization](#166-aggregate-initialization)<br>
   16.7. [deduction guides](#167-deduction-guides)<br>
   16.8. [enable_if](#168-enable_if)
-18. [C++20](#17-cpp20)<br>
+17. [C++20](#17-cpp20)<br>
   17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
   17.2. [safe integer comparison](#172-safe-integer-comparison)<br>
-19. [Attributes](#18-attributes)<br>
+18. [Attributes](#18-attributes)<br>
   18.1. [fallthrough](#181-fallthrough)<br>
   18.2. [unused](#182-unused)<br>
   18.3. [maybe_unused](#183-maybe_unused)<br>
@@ -551,34 +549,7 @@ int main(int argc, char* argv[])
 ```
 more info [here](https://marknelson.us/posts/2011/09/03/hash-functions-for-c-unordered-containers.html).
 
-## 9. Iterators
-a type that iterates over a container. it can be regarded as a pointer:
-* access current element through '*iter*
-* accepts `->` operatpr
-* moves to the next element using `iter++`
-### 9.1 properties 
-* comparable with ==, !=, <
-* predefined iterators in STL : obj.begin(), obj.end()
-* range-based for loops preferred
-`begin()` points to the start of the container. `end()` points to one element after the last element, i.e. nothing
-### 9.2 examples
-#### simple iterator loops
-```cpp
-std::vector<double> x = {{1,2,3}};
-for (auto it = x.begin(), it != x.end(); ++it) {
-    std::cout << *it << std::endl;
-}
-```
-#### map iterator
-```cpp
-std::map<int, std::string> m = {{1, "hello"}, {2, "world"}};
-std::map<int, std::string>::iterator m_iter = m.find(1);
-std::cout << m_iter->first << ":" << m_iter.second << endl;
-if (m.find(3) == m.end()) {
-    std::cout<< "key 3 not found\n" ;
-}
-```
-in the case of `std::map` it's much more readable to write `if(m.count(3))` instead.
+## 9. TODO
 
 ## 10. CPP lambdas
 a simple example using `std::foreach` :
