@@ -434,7 +434,7 @@ the copy constructor is explicitly deleted for the unique pointer, however it ca
 it gurarantees that memory is always owned by a single unique pointer. to point to a new object use `ptr.reset(<new pointer>)`, most likely with `std::move` to take ownership. <br>
 the `std::make_unique` constructor is preferred for exception safety.
 ### 7.2. shared pointers
-just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. It can be initialized from a `unique_pointer`.
+just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. it can be initialized from a `unique_pointer`.
 ```cpp
 #include <memory>
 // both work since C++11
@@ -444,7 +444,7 @@ auto p = std::make_shared<Type>(<params>);
 ...
 std::cout << "use count : " << ptr.use_count();
 ```
-it's much more efficient to use `std::make_shared` because shared pointers also have a control block that keeps track of the reference count. if the `new` keyword is used, the control block and they type will be created seperately, but with `std::make_shared` they're created together.
+it's much more efficient to use `std::make_shared` because shared pointers also have a control block that keeps track of the reference count. if the `new` keyword is used, the control block and the type will be created seperately, but with `std::make_shared` they're created together.
 ### 7.3. weak pointers
 this behaves the same as an extra instance of shared pointer without increasing the reference count. we would use this kind of pointer when we want access to the raw pointer, but don't want to take ownership.
 ```cpp
