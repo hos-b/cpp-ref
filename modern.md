@@ -358,10 +358,10 @@ int main()
 ```
 by c++ standard, after an object has been moved, it should be empty. moving a variable transfers ownership of its resource to another variable. runtime is better than copying, worse than passing by reference.
 ### 6.3. move constructor and assignment
-for copy contstructor,assignment we had to define the following:
+for copy contstructor/assignment we had to define the following:
 ```cpp
 MyClass::MyClass (const MyClass&);    // copy-constructor
-MyClass& operator= (const MyClass&);  // copy-constructor
+MyClass& operator= (const MyClass&);  // copy-assignment
 ```
 *similar to copying*, moving also uses the value of an object to set the value to another object. But, unlike copying, the content is actually transferred from one object (the source) to the other (the destination): the source loses that content, which is taken over by the destination. This moving only happens when the source of the value is an unnamed object.
 ```cpp
