@@ -230,9 +230,24 @@ class Test {
 };
 ```
 ### 1.10. type deduction with declval
-`std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors. E.g. if we want to get the type of the result of multiplciation for two types:
+`std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
 ```cpp
-#define mul_decltype(U, V) decltype(std::declval<U&>() * std::declval<V&>())
+struct Default { int foo() const { return 1; } };
+ 
+struct NonDefault
+{
+    NonDefault() = delete;
+    int foo() const { return 1; }
+};
+ 
+int main()
+{
+    decltype(Default().foo()) n1 = 1;                   // type of n1 is int
+//  decltype(NonDefault().foo()) n2 = n1;               // error: no default constructor
+    decltype(std::declval<NonDefault>().foo()) n2 = n1; // type of n2 is int
+    std::cout << "n1 = " << n1 << '\n'
+              << "n2 = " << n2 << '\n';
+}
 ```
 ### 1.11. storage classes
 the storage class specifiers are a part of the decl-specifier-seq of a name's declaration syntax. together with the scope of the name, they control two independent properties of the name: its storage duration and its linkage. 
