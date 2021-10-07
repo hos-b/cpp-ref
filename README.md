@@ -627,7 +627,7 @@ there are two main syntaxes for generic type casting:
 
 unrestricted explicit type-casting allows to convert any pointer into any other pointer type, independently of the types they point to. The subsequent call to member result will produce either a run-time error or some other unexpected results.
 #### dynamic_cast
-dynamic_cast can only be used with pointers and references to classes (or with void*). Its purpose is to ensure that the result of the type conversion points to a valid complete object of the destination pointer type. This naturally includes pointer upcast (converting from pointer-to-derived to pointer-to-base), in the same way as allowed as an implicit conversion. But dynamic_cast can also downcast (convert from pointer-to-base to pointer-to-derived) polymorphic classes (those with virtual members) if -and only if- the pointed object is a valid complete object of the target type.
+`dynamic_cast` can only be used with pointers and references to classes (or with void*). its purpose is to ensure that the result of the type conversion points to a valid complete object of the destination pointer type. this naturally includes pointer upcast (converting from pointer-to-derived to pointer-to-base), in the same way as allowed as an implicit conversion. but `dynamic_cast` can also downcast (convert from pointer-to-base to pointer-to-derived) polymorphic classes (those with virtual members) if -and only if- the pointed object is a valid complete object of the target type.
 ```cpp
 class Base { virtual void dummy() {} };
 class Derived: public Base { int a; };
@@ -641,13 +641,13 @@ int main ()
     pd = dynamic_cast<Derived*>(pbb); // produces nullptr
 }
 ```
-even though both are pointers of type Base*, pba actually points to an object of type Derived, while pbb points to an object of type Base. Therefore, when their respective type-casts are performed using dynamic_cast, pba is pointing to a full object of class Derived, whereas pbb is pointing to an object of class Base, which is an incomplete object of class Derived.
+even though both are pointers of type Base*, pba actually points to an object of type Derived, while pbb points to an object of type Base. therefore, when their respective type-casts are performed using `dynamic_cast`, pba is pointing to a full object of class Derived, whereas pbb is pointing to an object of class Base, which is an incomplete object of class Derived.
 
-If dynamic_cast is used to convert to a reference type and the conversion is not possible, an exception of type bad_cast is thrown instead. dynamic_cast can also perform the other implicit casts allowed on pointers: casting null pointers between pointers types (even between unrelated classes), and casting any pointer of any type to a void* pointer.
+if `dynamic_cast` is used to convert to a reference type and the conversion is not possible, an exception of type bad_cast is thrown instead. `dynamic_cast` can also perform the other implicit casts allowed on pointers: casting null pointers between pointers types (even between unrelated classes), and casting any pointer of any type to a `void*`.
 
 Google style suggests avoiding dynamic casts.
 #### static_cast
-static_cast can perform conversions between pointers to related classes, not only upcasts (from pointer-to-derived to pointer-to-base), but also downcasts (from pointer-to-base to pointer-to-derived). No checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. Therefore, it is up to the programmer to ensure that the conversion is safe. On the other side, it does not incur the overhead of the type-safety checks of dynamic_cast.
+`static_cast` can perform conversions between pointers to related classes, not only upcasts (from pointer-to-derived to pointer-to-base), but also downcasts (from pointer-to-base to pointer-to-derived). no checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. Therefore, it is up to the programmer to ensure that the conversion is safe. On the other side, it does not incur the overhead of the type-safety checks of `dynamic_cast`.
 ```cpp
 class Base {};
 class Derived: public Base {};
@@ -658,16 +658,16 @@ is a valid code but could lead to runtime errors if dereferenced.
 #### reinterpret_cast
 reinterpret_cast converts any pointer type to any other pointer type, even of unrelated classes. The operation result is a simple binary copy of the value from one pointer to the other. All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
 
-It can also cast pointers to or from integer types. The format in which this integer value represents a pointer is platform-specific. The only guarantee is that a pointer cast to an integer type large enough to fully contain it (such as intptr_t), is guaranteed to be able to be cast back to a valid pointer.
+it can also cast pointers to or from integer types. the format in which this integer value represents a pointer is platform-specific. the only guarantee is that a pointer cast to an integer type large enough to fully contain it (such as intptr_t), is guaranteed to be able to be cast back to a valid pointer.
 ```cpp
 class A { /* ... */ };
 class B { /* ... */ };
 A * a = new A;
 B * b = reinterpret_cast<B*>(a);
 ```
-This code compiles, although it does not make much sense, since now b points to an object of a totally unrelated and likely incompatible class. Dereferencing b is unsafe.
+this code compiles, although it does not make much sense, since now `b` points to an object of a totally unrelated and likely incompatible class. dereferencing `b` is unsafe.
 #### const_cast
-This type of casting manipulates the constness of the object pointed by a pointer, either to be set or to be removed. For example, in order to pass a const pointer to a function that expects a non-const argument.
+this type of casting manipulates the constness of the object pointed by a pointer, either to be set or to be removed. for example, in order to pass a const pointer to a function that expects a non-const argument.
 ```cpp
 void print (char * str) {
     std::cout << str << '\n';
@@ -679,11 +679,11 @@ int main ()
     return 0;
 }
 ```
-The example above is guaranteed to work because function print does not write to the pointed object. Note though, that removing the constness of a pointed object to actually write to it causes undefined behavior
+the example above is guaranteed to work because function `print` does not write to the pointed object. note though, that removing the constness of a pointed object to actually write to it causes undefined behavior.
 ### 5.4. typeid
 typeid allows to check the type of an expression: `typeid (expression)`
 
-This operator returns a reference to a constant object of type type_info that is defined in the standard header `<typeinfo>`. A value returned by typeid can be compared with another value returned by typeid using operators == and != or can serve to obtain a null-terminated character sequence representing the data type or class name by using its name() member.
+this operator returns a reference to a constant object of type type_info that is defined in the standard header `<typeinfo>`. a value returned by typeid can be compared with another value returned by typeid using operators == and != or can serve to obtain a null-terminated character sequence representing the data type or class name by using its name() member.
 ```cpp
 #include <typeinfo>
 int main () {
@@ -697,7 +697,7 @@ int main () {
     return 0;
 }
 ```
-when typeid is applied to classes, typeid uses the RTTI to keep track of the type of dynamic objects. When typeid is applied to an expression whose type is a polymorphic class, the result is the type of the most derived complete object.
+when typeid is applied to classes, typeid uses the RTTI to keep track of the type of dynamic objects. when typeid is applied to an expression whose type is a polymorphic class, the result is the type of the most derived complete object.
 ```cpp
 class Base { virtual void f(){} };
 class Derived : public Base {};
@@ -712,9 +712,9 @@ int main () {
     cout << "*b is: " << typeid(*b).name() << '\n';             // Derived
 }
 ```
-Note: The string returned by member name of type_info depends on the specific implementation of your compiler and library. It is not necessarily a simple string with its typical type name, like in the compiler used to produce this output. If the type typeid evaluates is a pointer preceded by the dereference operator (*), and this pointer has a null value, typeid throws a bad_typeid exception.
+the string returned by member name of `type_info` depends on the specific implementation of your compiler and library. it is not necessarily a simple string with its typical type name, like in the compiler used to produce this output. if the type `typeid` evaluates is a pointer preceded by the dereference operator (`*`), and this pointer has a null value, typeid throws a bad_typeid exception.
 #### mangled names
-Depending on the object, typeid might return mangled names. GCC offers a demangle functionality. It can received a buffer but it can resize it so there's basically no point.
+Depending on the object, typeid might return mangled names. GCC offers a demangle functionality. It can receive and populate a buffer but it can't resize it so there's basically no point.
 ```cpp
 #include <cxxabi.h>
 char* abi::__cxa_demangle(const char* mangled_name, char* output_buffer, size_t* length, int* status);
@@ -732,6 +732,7 @@ struct ExStruct {
 int main () {
     int status;
     cout << "Base is: " << abi::__cxa_demangle(typeid(&ExStruct::data).name(), nullptr, 0, &status) << '\n';
+    return 0;
 }
 ```
 
@@ -750,13 +751,13 @@ int main ()
 ```
 if an ellipsis `(...)` is used as the parameter of catch, that handler will catch any exception no matter what the type of the exception thrown.
 ### 6.1. specification
-older code may contain dynamic exception specifications. They are now deprecated in C++, but still supported. A dynamic exception specification follows the declaration of a function, appending a throw specifier to it. For example:
+older code may contain dynamic exception specifications. they are now deprecated in C++, but still supported. a dynamic exception specification follows the declaration of a function, appending a throw specifier to it. for example:
 ```cpp
 double myfunction (char param) throw (int);
 ```
-this declares a function called myfunction, which takes one argument of type char and returns a value of type double. If this function throws an exception of some type other than int, the function calls ```std::unexpected``` instead of looking for a handler or calling ```std::terminate```. if this throw specifier is left empty with no type, this means that ```std::unexpected``` is called for any exception. Functions with no throw specifier (regular functions) never call ```std::unexpected```, but follow the normal path of looking for their exception handler.
+this declares a function called myfunction, which takes one argument of type char and returns a value of type double. if this function throws an exception of some type other than int, the function calls ```std::unexpected``` instead of looking for a handler or calling ```std::terminate```. if this throw specifier is left empty with no type, this means that ```std::unexpected``` is called for any exception. functions with no throw specifier (regular functions) never call ```std::unexpected```, but follow the normal path of looking for their exception handler.
 ### 6.2. standard exceptions
-the C++ Standard library provides a base class specifically designed to declare objects to be thrown as exceptions. It is called `std::exception` and is defined in the `<exception>` header. This class has a virtual member function called what that returns a null-terminated character sequence (of type char *) and that can be overridden in derived classes to contain some sort of description of the exception.
+the C++ Standard library provides a base class specifically designed to declare objects to be thrown as exceptions. it is called `std::exception` and is defined in the `<exception>` header. this class has a virtual member function called what that returns a null-terminated character sequence (of type `char*`) and that can be overridden in derived classes to contain some sort of description of the exception.
 ```cpp
 #include <exception>
 #include <iostream>
@@ -790,12 +791,7 @@ standard exceptions are as follows :
 | logic_error       | error related to the internal logic of the program     |
 | runtime_error     | error detected during runtime                          |
 
-Also deriving from exception, header `<exception>` defines two generic exception types that can be inherited by custom exceptions to report errors:
-
-| exception         | description                                            |
-|-------------------|--------------------------------------------------------|
-| logic_error       | error related to the internal logic of the program     |
-| runtime_error     | error detected during runtime                          |
+`logic_error` and `runtime_error` are generic exceptions that can be inherited by custom exceptions to report errors.
 
 *Google Style : don't use exceptions*
 
