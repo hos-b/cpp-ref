@@ -387,7 +387,7 @@ the 4th syntax explicitly calls the move assignment, however compilers tend to r
 | member function     | implicitly defined                                                    | default definition |
 |---------------------|-----------------------------------------------------------------------|--------------------|
 | default constructor | if no other constructors                                              | does nothing       |
-| destructor          | if no destructor                                                      | does nothing       |
+| default destructor  | if no destructor                                                      | does nothing       |
 | copy constructor    | if no move constructor and no move assignment                         | copies all members |
 | copy assignment     | if no move constructor and no move assignment                         | copies all members |
 | move constructor    | if no destructor, no copy constructor and no copy nor move assignment | moves all members  |
