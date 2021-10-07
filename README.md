@@ -136,8 +136,6 @@ enum colors_t {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE};
 //numbered startin from 1
 enum months_t { JANUARY=1, FEBRUARY, MARCH, ...};
 ```
-real enum types that are neither implicitly convertible to int and that neither have enumerator values of type int, but of the enum type itself.
-
 #### enum class, enum struct
 enum class or enum struct helps avoid dumb misakes by preventing unwanted int casts.
 ```cpp
