@@ -468,7 +468,7 @@ int main()
 }
 ```
 #### changed my mind
-we can use `weak_ptr.lock()` which returns a shared_ptr which shares ownership of the owned object if std::weak_ptr::expired returns false. Else returns default-constructed shared_ptr of type T. 
+we can use `weak_ptr.lock()` which returns a shared_ptr which shares ownership of the owned object if `std::weak_ptr::expired` returns false. otherwise it returns default-constructed shared_ptr of type T. 
 ### 7.4. examples
 beginner error : both stack and the smart pointer own the object -> it gets deleted twice and produces errors.
 ```cpp
@@ -486,7 +486,7 @@ struct Shape
 };
 int main()
 {
-    std::vecotr<std::unique_tr<Shape>> shapes;
+    std::vecotr<std::unique_ptr<Shape>> shapes;
     shapes.emplace_back(new Shape);
     shapes.emplace_back(std::make_unique<Shape>());
     auto lvalue_shape = unique_ptr<Shape>(new Shape);
