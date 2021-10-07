@@ -466,10 +466,10 @@ public inheritance: all inherited members will keep their access specifiers in d
 protected inheritance : all inherited members will at most be proteted
 private inheritance : all inherited members will be private
 ### 4.3. what's inherited
-base' constructors and its destructor
-base' assignment operator members (operator=)
-base' friends
-base' private members
+* base' constructors and its destructor
+* base' assignment operator members (operator=)
+* base' friends
+* base' private members
 ### 4.4. base constructor
 base' default constructor is called with every child class object instantiation. a specific base constructor can also be called after colon when declaring child constructors.
 ```cpp
