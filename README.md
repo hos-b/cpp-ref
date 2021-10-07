@@ -14,8 +14,6 @@
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)<br>
-  2.3. [reference variables](#23-reference-variables)<br>
-  2.4. [function pointers](#24-function-pointers)<br>
 3. [Class Basics](#3-class-basics)<br>
   3.1. [other ways of instantiating](#31-other-ways-of-instantiating)<br>
   3.2. [member initialization](#32-member-initialization)<br>
@@ -316,12 +314,6 @@ int main()
     std::cout << std::invoke(&Num::add, num_obj, 13) << std::endl;
 }
 ```
-### 2.3. reference variables
-```cpp
-int a = 5;
-int& ref = a;
-a = 10; // ref is now also 10
-```
 
 ## 3. Class Basics
 ### 3.1. other ways of instantiating
@@ -337,12 +329,20 @@ Circle bar = 20.0;   // assignment init.
 Circle baz {30.0};   // uniform init.
 Circle qux = {40.0}; // POD-like
 ```
-which also means
+and also
 ```cpp
 Rectangle rectb;   // default constructor called
 Rectangle rectc(); // function declaration (default constructor NOT called)
 Rectangle rectd{}; // default constructor called
 ```
+in general, list initialization is preferred due to it's reluctance for narrowing. official reference:
+
+list initialization does not allow narrowing (§iso.8.5.4). That is:
+
+ * An integer cannot be converted to another integer that cannot hold its value. For example, char to int is allowed, but not int to char.
+ * A floating-point value cannot be converted to another floating-point type that cannot hold its value. For example, float to double is allowed, but not double to float.
+ * A floating-point value cannot be converted to an integer type.
+ * An integer value cannot be converted to a floating-point type
 ### 3.2. member initialization
 For members of fundamental types, it makes no difference how the constructor is defined, because they are not initialized by default, but for member objects (those whose type is a class), if they are not initialized using member initializer list, they are default-constructed:
 ```cpp
