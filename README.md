@@ -204,8 +204,8 @@ extern int gloabl_x;
 void print_gloabl_x();
 ---source1.cpp---
 #include "header.h"
-int gloabl_X;
-void main()
+int gloabl_x;
+int main()
 {
     gloabl_x = 5;
     print_global_x();
