@@ -34,7 +34,7 @@
 8. [Associative Containers](#8-associative-containers)<br>
   8.1. [map](#81-map)<br>
   8.2. [unordered map](#82-unordered-map)
-9. [TODO](#9-todo)<br>
+9. [Padding and Packing](#9-padding-and-packing)<br>
 10. [CPP Lambdas](#10-cpp-lambdas)<br>
   10.1. [definition](#101-definition)<br>
   10.2. [function pointers](#102-function-pointers)<br>
@@ -549,8 +549,97 @@ int main(int argc, char* argv[])
 ```
 more info [here](https://marknelson.us/posts/2011/09/03/hash-functions-for-c-unordered-containers.html).
 
-## 9. TODO
+## 9. Padding and Packing
+in order to align structs in memory and ease memory access, C and C++ sometimes add padding to struct members.
+### 9.1. alignof
+every object type has the property called alignment requirement, which is an integer value (of type std::size_t, always a power of 2) representing the number of bytes between successive addresses at which objects of this type can be allocated. `alignof` returns this alignment, in bytes, required for any instance of the indicated type, which is either a complete object type, an array type whose element type is complete, or a reference type to one of those types. the alignment of a struct is always the maximum alignment of its members. the alignment for basic types are as follows:
 
+|   type        | alignment |
+|:-------------:|:---------:|
+| struct{}      |     1     |
+|  bool         |     1     |
+|  char         |     1     |
+|  char&        |     1     |
+|  char*        |     8     |
+|  short        |     2     |
+|  short&       |     2     |
+|  short*       |     8     |
+|  int          |     4     |
+|  size_t       |     8     |
+|  float        |     4     |
+|  double       |     8     |
+|  long double  |     16    |
+
+### 9.2. calculating padding
+the first member of the struct is always at offset zero. the next element is placed according to its alignment:
+```
+new offset = (offset + size) of last element + padding s.t. the offset of new element is divisble by its alignment
+```
+for example:
+```cpp
+stuct Test {
+	uint8_t a;
+	uint32_t b;
+	double c;
+	
+};
+```
+| element | size | alignment | (offset + size) of last element | required padding | offset |
+|:-------:|:----:|:---------:|:-------------------------------:|:----------------:|:------:|
+|    a    |   1  |     1     |                0                |         0        |    0   |
+|    b    |   4  |     4     |                1                |         3        |    4   |
+|    c    |   8  |     8     |                8                |         0        |    8   |	
+
+### 9.3. inter-alignment of objects
+in addition to the mentioned rule, the compiler may also add extra padding to the end of the struct s.t. the final size of the struct is divisible by its alignment. this is done so that the CPU fetches the correct chunk of memory when handling objects of this type. for example:
+```cpp
+stuct Test {
+	uint8_t a;
+	uint32_t b;
+	double c;
+	bool d;
+};
+```
+| element | size | alignment | (offset + size) of last element | required padding | offset |
+|:-------:|:----:|:---------:|:-------------------------------:|:----------------:|:------:|
+|    a    |   1  |     1     |                0                |         0        |   0    |
+|    b    |   4  |     4     |                1                |         3        |   4    |
+|    c    |   8  |     8     |                8                |         0        |   8    |
+|    d    |   1  |     1     |                16               |         0        |   16   |
+|  extra  |   -  | = max = 8 |                17               |         7        |   17   |
+
+size of `Test` = 24
+
+### 9.4. alignas
+`alignas` changes the alignment of a struct, if it is a valid alignment (non zero and a power of 2) and is not weaker than the original alignment.
+```cpp
+struct alignas(alignof(double)) st_1 {}; // alignof(st_1) = 8
+struct alignas(double) st_2 {};			 // alignof(st_2) = 8
+struct alignas(4) st_3 {				 // alignof(st_3) = 8, alignas ineffective
+	st_2 obj;
+};
+struct alignas(0) st_4 {				 // alignof(st_3) = 8, alignas ineffective
+	st_2 obj;
+};
+struct alignas(7) st_4 {				 // error, invalid alignment
+	st_2 obj;
+};
+```
+### 9.5. struct packing
+packing is the ordering of the struct members, such that minimal padding is done. struct packing can also be enforced (compiler dependent) using attributes:
+```cpp
+struct __attribute__((__packed__)) mystruct_A {
+    char a;
+    int b;
+    char c;
+};
+struct mystruct_B {
+    char a;
+    int b;
+    char c;
+};
+```
+the first struct will be only 6 bytes long while the second one takes 12. unaligned memory access is slower on architectures that allow it (like x86 and amd64), and is explicitly prohibited on strict alignment architectures like SPARC. 
 ## 10. CPP lambdas
 a simple example using `std::foreach` :
 ```cpp
