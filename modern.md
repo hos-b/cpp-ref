@@ -577,16 +577,15 @@ every object type has the property called alignment requirement, which is an int
 
 ### 9.2. calculating padding
 the first member of the struct is always at offset zero. the next element is placed according to its alignment:
-```
-new offset = (offset + size) of last element + padding s.t. the offset of new element is divisble by its alignment
-```
+
+__new offset__ = (offset + size) of last element + padding s.t. the offset of new element is divisble by its alignment
+
 for example:
 ```cpp
 stuct Test {
 	uint8_t a;
 	uint32_t b;
 	double c;
-	
 };
 ```
 | element | size | alignment | (offset + size) of last element | required padding | offset |
