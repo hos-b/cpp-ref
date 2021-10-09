@@ -1,7 +1,7 @@
 # C++ Reference ([Part 2](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [decltype and auto](#11-decltype-and-auto)<br>
-  1.2. [declval](#12-type-deduction-with-declval)<br>
+  1.2. [declval](#12-declval)<br>
   1.3. [typedef and using](#13-typedef-and-using)<br>
   1.4. [unions](#14-unions)<br>
   1.5. [enums](#15-enums)<br>
