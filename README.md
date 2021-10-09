@@ -34,7 +34,10 @@
   5.1. [through classes](#51-through-classes)<br>
   5.2. [explicit keyword](#52-explicit-keyword)<br>
   5.3. [type casting](#53-type-casting)<br>
-  5.4. [typeid](#54-typeid)
+  5.4. [typeid](#54-typeid)<br>
+  5.5. [boolean conversions](#55-boolean-conversion)<br>
+  5.5. [integer conversions](#56-integer-conversion)<br>
+  5.7. [implicit arithmetic conversions](#57-implicit-arithmetic-conversions)<br>
 6. [Exception](#6-exception)<br>
   6.1.[specifcation](#61-specification)<br>
   6.2.[standard exceptions](#62-standard-exceptions)
@@ -735,6 +738,75 @@ int main () {
     return 0;
 }
 ```
+### 5.5. boolean conversions
+a value of any scalar type can be implicitly converted to `bool`. The values that compare equal to zero are converted to `0`, all other values are converted to `1`.
+```cpp
+bool b1 = 0.5;              // b1 == 1 (0.5 converted to int would be zero)
+bool b2 = 2.0*_Imaginary_I; // b2 == 1 (but converted to int would be zero)
+bool b3 = 0.0 + 3.0*I;      // b3 == 1 (but converted to int would be zero)
+bool b4 = 0.0/0.0;          // b4 == 1 (NaN does not compare equal to zero)
+```
+### 5.6. integer conversions
+a value of any integer type can be implicitly converted to any other integer type. except where covered by promotions and boolean conversions above, the rules are
+* if the target type can represent the value, the value is unchanged
+* otherwise, if the target type is unsigned, the value `2^b`, where b is the number of bits in the target type, is repeatedly subtracted or added to the source value until the result fits in the target type. in other words, unsigned integers implement modulo arithmetic.
+    * otherwise, if the target type is signed, the behavior is implementation-defined (which may include raising a signal) 
+```cpp
+char x = 'a'; // int -> char, result unchanged
+unsigned char n = -123456; // target is unsigned, result is 192 (that is, -123456+483*256)
+signed char m = 123456;    // target is signed, result is implementation-defined
+assert(sizeof(int) > -1);  // assert fails:
+                           // operator > requests conversion of -1 to size_t,
+                           // target is unsigned, result is SIZE_MAX
+```
+### 5.7. implicit arithmetic conversions
+the arguments of the following arithmetic operators undergo implicit conversions for the purpose of obtaining the common real type, which is the type in which the calculation is performed:
+
+* binary arithmetic `*`, `/`, `%`, `+`, `-`
+* relational operators `<`, `>`, `<=`, `>=`, `==`, `!=`
+* binary bitwise arithmetic `&`, `^`, `|`
+* the conditional operator `?:`
+#### floating point conversions
+if one of the operands has the base type long double, double or float, the other operand is also converted to this base type. e.g. `int > float` -> `float > float` and `complex > double` -> `double complex > double`.
+#### intergral conversions
+integral types are never **implicitly** converted to lower integral types in a narrowing conversion. they may however be _promoted_ to to a common type.
+```
+if the types are the same:
+    that type is the common type.
+else:
+    if the types have the same signedness (both signed or both unsigned):
+        the operand whose type has the lesser conversion rank is implicitly converted to the other type.
+    else:
+        if the unsigned type has conversion rank greater than or equal to the rank of the signed type:
+            the operand with the signed type is implicitly converted to the unsigned type.
+        else:
+            // the unsigned type has conversion rank less than the signed type
+            if the signed type can represent all values of the unsigned type:
+                the operand with the unsigned type is implicitly converted to the signed type.
+            else:
+                both operands undergo implicit conversion to the unsigned type counterpart of the signed operand's type.
+```
+#### integer promotion rules
+integer promotion is the implicit conversion of a value of any integer type with rank less or equal to rank of `int` or of a bit field of type `bool`, `int`, `signed int`, `unsigned int`, to the value of type `int` or `unsigned int`.
+
+if `int` can represent the entire range of values of the original type (or the range of values of the original bit field), the value is converted to type `int`. otherwise the value is converted to `unsigned int`.
+
+rank is a property of every integer type and is defined as follows:
+1) the ranks of all signed integer types are different and increase with their precision: rank of `signed char` < rank of `short` < rank of `int` < rank of `long int` < rank of `long long int`
+2) the ranks of all signed integer types equal the ranks of the corresponding unsigned integer types
+3) the rank of any standard integer type is greater than the rank of any extended integer type of the same size (that is, rank of `__int64` < rank of `long long int`, but rank of `long long` < rank of `__int128` due to the rule (1))
+4) rank of `char` equals rank of `signed char` and rank of `unsigned char`
+5) the rank of `bool` is less than the rank of any other standard integer type
+6) the rank of any enumerated type equals the rank of its compatible integer type
+7) ranking is transitive: if rank of T1 < rank of T2 and rank of T2 < rank of T3 then rank of T1 < rank of T3
+8) any aspects of relative ranking of extended integer types not covered above are implementation defined
+
+Note: integer promotions are applied only
+* as part of usual arithmetic conversions (see above)
+* as part of default argument promotions
+* to the operand of the unary arithmetic operators + and -
+* to the operand of the unary bitwise operator ~
+* to both operands of the shift operators << and >> 
 
 ## 6. Exception
 thrown using `throw` keyword :
