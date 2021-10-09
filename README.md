@@ -1,15 +1,15 @@
 # C++ Reference ([Part 2](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [decltype and auto](#11-decltype-and-auto)<br>
-  1.2. [typedef and using](#12-typedef-and-using)<br>
-  1.3. [unions](#13-unions)<br>
-  1.4. [enums](#14-enums)<br>
-  1.5. [volatile keyword](#15-volatile-keyword)<br>
-  1.6. [static keyword](#16-static-keyword)<br>
-  1.7. [mutable keyword](#17-mutable-keyword)<br>
-  1.8. [extern keyword](#18-extern-keyword)<br>
-  1.9. [typename keyword](#19-typename-keyword)<br>
-  1.10. [type deduction with declval](#110-type-deduction-with-declval)<br>
+  1.2. [declval](#12-type-deduction-with-declval)<br>
+  1.3. [typedef and using](#13-typedef-and-using)<br>
+  1.4. [unions](#14-unions)<br>
+  1.5. [enums](#15-enums)<br>
+  1.6. [volatile keyword](#16-volatile-keyword)<br>
+  1.7. [static keyword](#17-static-keyword)<br>
+  1.8. [mutable keyword](#18-mutable-keyword)<br>
+  1.9. [extern keyword](#19-extern-keyword)<br>
+  1.10. [typename keyword](#110-typename-keyword)<br>
   1.11. [storage classes](#111-storage-classes)<br>
 2. [Pointers](#2-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
@@ -91,8 +91,27 @@ auto a5 = i;           // int
 decltype(auto) a6 = i; // const int
 ```
 auto also _never_ performs a conversion, making it sometimes better than writing down the type explicitly.
-
-### 1.2. typedef and using
+### 1.2. declval
+`std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
+```cpp
+struct Default { int foo() const { return 1; } };
+ 
+struct NonDefault
+{
+    NonDefault() = delete;
+    int foo() const { return 1; }
+};
+ 
+int main()
+{
+    decltype(Default().foo()) n1 = 1;                   // type of n1 is int
+//  decltype(NonDefault().foo()) n2 = n1;               // error: no default constructor
+    decltype(std::declval<NonDefault>().foo()) n2 = n1; // type of n2 is int
+    std::cout << "n1 = " << n1 << '\n'
+              << "n2 = " << n2 << '\n';
+}
+```
+### 1.3. typedef and using
 declaring new types :
 ```cpp
 typdef char C;
@@ -118,7 +137,7 @@ int main()
     auto image_ptr = Image3f::Ptr(new Image3f);
 }
 ```
-### 1.3. unions
+### 1.4. unions
 ```cpp
 union mix_t
 {
@@ -130,7 +149,7 @@ union mix_t
     char c[4];
 }mix;
 ```
-### 1.4. enums
+### 1.5. enums
 ```cpp
 //numbered starting from 0
 enum colors_t {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE};
@@ -159,9 +178,9 @@ enum class EnumType {
   ...
 }
 ```
-### 1.5. volatile keyword
+### 1.6. volatile keyword
 volatile is a hint to the implementation to avoid aggressive optimization involving the object because the value of the object might be changed by means undetectable by an implementation. the compiler might sometimes optimize objects that affect program flow e.g. a loop. from the compiler's perspective the object could be changed by a static value but that might not be the case. to avoid such faults, the volatile keyword should be used.
-### 1.6. static keyword
+### 1.7. static keyword
 ```cpp
 int f(void) {
     static int x = 0;
@@ -180,7 +199,7 @@ int main(void)
 returns 0 1 2 3 4<br>
 static member functions of a class can be accessed without an object using the scope operator `::`. they can only access static members of the class and don't have access to `this` pointer. <br>
 static functions outside classes are only declared in the scope of their respective files. they cannot be used outside that file, even when explicitly mentioned in a header file as a prototype.
-### 1.7. mutable keyword
+### 1.8. mutable keyword
 The mutable storage class specifier is used only on a class data member to make it modifiable even though the member is part of an object declared as const. You cannot use the mutable specifier with names declared as static or const, or reference members.
 ```cpp
 class A
@@ -197,7 +216,7 @@ int main()
     var2.y = 2345; // not allowed
 }
 ```
-### 1.8. extern keyword
+### 1.9. extern keyword
 used to specify the type and the existance of an object. once all of the source files have been compiled, the linker will resolve all of the references to the one definition that it finds in one of the compiled source files. the definition of the object needs to have “external linkage”, which means that it needs to be declared outside of a function and without the static keyword.
 ```cpp
 ---header.h---
@@ -217,7 +236,7 @@ void print_gloabl_x() {
     std::cout << global_x;
 }
 ```
-### 1.9. typename keyword
+### 1.10. typename keyword
 `typename` is also used in contexts where the template resolution might confuse the compiler. For example if we want to create a pointer or use the value type of a templated type, it might be misconstrued as a multiplication wtih a member variable or a member variable on its own. Here we need the `typename` keyword to indicate that the identifier that follows is a type.
 
 ```cpp
@@ -229,26 +248,6 @@ class Test {
     T::subtype pop(); // Error: is the member variable T::subtype a return type?
     typename T::subtype pop(); // Ok
 };
-```
-### 1.10. type deduction with declval
-`std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
-```cpp
-struct Default { int foo() const { return 1; } };
- 
-struct NonDefault
-{
-    NonDefault() = delete;
-    int foo() const { return 1; }
-};
- 
-int main()
-{
-    decltype(Default().foo()) n1 = 1;                   // type of n1 is int
-//  decltype(NonDefault().foo()) n2 = n1;               // error: no default constructor
-    decltype(std::declval<NonDefault>().foo()) n2 = n1; // type of n2 is int
-    std::cout << "n1 = " << n1 << '\n'
-              << "n2 = " << n2 << '\n';
-}
 ```
 ### 1.11. storage classes
 the storage class specifiers are a part of the decl-specifier-seq of a name's declaration syntax. together with the scope of the name, they control two independent properties of the name: its storage duration and its linkage. 
