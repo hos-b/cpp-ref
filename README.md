@@ -11,7 +11,7 @@
   1.9. [extern keyword](#19-extern-keyword)<br>
   1.10. [typename keyword](#110-typename-keyword)<br>
   1.11. [storage classes](#111-storage-classes)<br>
-2. [Pointers](#2-pointers)<br>
+2. [Raw Pointers](#2-raw-pointers)<br>
   2.1. [const keyword](#21-const-keyword)<br>
   2.2. [function pointers](#22-function-pointers)<br>
 3. [Class Basics](#3-class-basics)<br>
@@ -35,8 +35,8 @@
   5.2. [explicit keyword](#52-explicit-keyword)<br>
   5.3. [type casting](#53-type-casting)<br>
   5.4. [typeid](#54-typeid)<br>
-  5.5. [boolean conversions](#55-boolean-conversion)<br>
-  5.5. [integer conversions](#56-integer-conversion)<br>
+  5.5. [boolean conversions](#55-boolean-conversions)<br>
+  5.5. [integer conversions](#56-integer-conversions)<br>
   5.7. [implicit arithmetic conversions](#57-implicit-arithmetic-conversions)<br>
 6. [Exception](#6-exception)<br>
   6.1.[specifcation](#61-specification)<br>
@@ -65,6 +65,17 @@
   9.5. [dereference operator](#95-dereference-operator)<br>
   9.6. [comparison operators](#96-comparison-operators)<br>
 11. [Precompiled Headers](#10-precompiled-headers)<br>
+12. [IEEE 754 and caveats](#12-ieee-754-and-caveats)<br>
+  12.1. [special floats](#121-special-floats)<br>
+  12.2. [exponent encoding](#122-exponent-encoding)<br>
+  12.3. [epsilon](#123-epsilon)<br>
+  12.4. [significant digits](#124-signficant-digits)<br>
+  12.5. [denormalized numbers](#125-denormalized-numbers)<br>
+  12.6. [precision](#126-precision)<br>
+  12.7. [units in last place](#127-units-in-last-place)<br>
+  12.8. [relative error](#127-relative-error)<br>
+  12.9. [rounding error](#128-rounding-error)<br>
+  12.10. [extra bits](#128-extra-bits)<br>
 
 ## 1. Types and Stuff
 ### 1.1. decltype and auto
@@ -259,7 +270,7 @@ the storage class specifiers are a part of the decl-specifier-seq of a name's de
 * thread_local: thread storage duration
 * mutable - does not affect storage duration or linkage
 
-## 2. Pointers
+## 2. Raw Pointers
 ### 2.1. const keyword
 ```cpp
 int x;
@@ -1246,3 +1257,134 @@ g++ -std=c++11 pch.h
 g++ -std=c++11 main.cpp
 ```
 not supported by gcc. workarounds are bad.
+
+## 11. IEEE 754 and caveats
+a fixed-point binary format has a static position for the decimal point. the bits to its left represent the whole part while the right bits represent the fraction. fixed-point representation can vastly simplify the computation of opeartions but also limits range and precision.
+
+a floating-point uses the scientific notation. they are represented by the IEEE 754 binary format on almost all modern architectures.
+![image](https://user-images.githubusercontent.com/49957586/136662629-8d2330c1-58a5-4e16-9fe0-4f1c080eb220.png)
+
+x = `-1^(sign bit) x 2^(exponent - 127) x 1.mantissa`
+* **32-bit**: 1 sign bit + 8 exponent bits + 23 mantissa bits
+* **64-bit**: 1 sign bit + 12 exponent bits + 52 mantissa bits
+
+### 12.1. special floats
+* divide by zero: `1 / 0`
+* not a number (NaN): `0 / 0`, `0 x ∞`
+* signed infinity: for overflow protection
+* signed zero: underflow protection for very small numbers. preserves sign. `+0 == -0`
+
+#### basic example
+```cpp
+auto zeroPointOne = 0.1f;
+auto zeroPointTwo = 0.2f;
+auto zeroPointThree = 0.3f;
+auto sum = zeroPointOne + zeroPointTwo;
+std::cout << zeroPointOne << "\n";    // 0.100000000149...
+std::cout << zeroPointTwo << "\n";    // 0.200000000298...
+std::cout << zeroPointThree << "\n";  // 0.300000001192...
+std::cout << sum << "\n";             // 0.300000001192...
+```
+how about using double instead?
+```cpp
+std::cout << zeroPointOne << "\n";    // 0.100000000000000005551115123126
+std::cout << zeroPointTwo << "\n";    // 0.200000000000000011102230246252
+std::cout << zeroPointThree << "\n";  // 0.299999999999999988897769753748
+std::cout << sum << "\n";             // 0.300000000000000044408920985006
+```
+### 12.2. exponent encoding
+1.0 = -1^0 x 2^(0) x 1.0
+the exponent itself is an 8-bit unsigned integer. `2^(exponent - 127)` can therefor be between `2^-126` to `2^+127`. here `exponent - 127` must be zero, therefor the floating point representation will be: `[0][01111111][00000000000000000000000]`
+
+### 12.3. epsilon
+epsilon is the difference between `1.0` and smallest number that is larger than `1.0`. using the last example, it is `[0][01111111][00000000000000000000001] = 1.0000001192092896`. it is accessible using `std::numeric_limits<T>::epsilon` for floating-point type `T`.
+
+### 12.4. significant digits
+they measure precision. in order to compare two floating-point numbers solely based on the mantissa, they would have to have the same exponent. otherwise, the number of signficant digits changes based on the exponent. even though we will have a lot of decimal places, there is a measure of their accuracy and the rest is noise.
+
+|          size          | sign | exponent | mantissa | total | exponent bias | bits precision | significant digits |
+|:----------------------:|:----:|:--------:|:--------:|:-----:|:-------------:|:--------------:|:------------------:|
+|          half          |   1  |     5    |    10    |   16  |       15      |       11       |         3-4        |
+|         single         |   1  |     8    |    23    |   32  |      127      |       24       |         6-9        |
+|         double         |   1  |    11    |    52    |   64  |      1023     |       53       |        15-17       |
+| x86 extended precision |   1  |    15    |    64    |   80  |     16383     |       64       |        18-21       |
+|          Quad          |   1  |    15    |    112   |  128  |     16383     |       113      |        33-36       |
+
+### 12.5. denormalized numbers
+for 32-bit floats, the minimum base 10 exponent is -36. how an we represent smaller numbers? 
+since the exponent field is 127 left shift-encoded, we get the smallest value by setting all of its bits to zero (`2^(0 - 127) = 2^-127`). 
+
+we can represent 1e-37 using _denormalized numbers_, i.e. numbers where the exponent bits are zero. this helps prevent underflow. example:
+`[0][00000000][11011001110001111101110] = 0.09999999e-37`
+
+### 12.6. precision
+![image](https://user-images.githubusercontent.com/49957586/136664112-39a9b29b-2a67-40cb-829a-c6d6ea63374b.png)
+as a result of their implementation, the representation is not uniform between numbers. we have the most precision between `0.0` and `0.1` (applies to negative values too). after this, the precision starts to diminish. `std::nextafter` allows us to get the very next possible number after the given one.
+
+for 32-bit floats, the representable number distribution is as follows:
+| from |  to | individual numbers |
+|:----:|:---:|:------------------:|
+|  0.0 | 0.1 |    1'036'831949    |
+|  0.1 | 0.2 |      8'388'608     |
+|  0.2 | 0.4 |      8'388'608     |
+|  0.4 | 0.8 |      8'388'608     |
+|  0.8 | 1.6 |      8'388'608     |
+|  1.6 | 3.2 |      8'388'608     |
+### 12.7. units in last place
+pi represented as a floating point number has some errors:
+```
+pi  = 3.141589265
+pif = 3.141589274
+d   = 0.000000009
+```
+ulps is defined as the gap between two floating-point numbers nearest to x, even if x is one of them. for pi, we get a ulps of 9. IEEE 754 requires that elementary arithmetic operations are correctly rounded to within 0.5 ulps. transcendal functions are generally rounded to 0.5-1.0 ulps.
+### 12.8. relative error
+the difference between the real number and the approximated representation, devided by the real number.
+
+`relative error = (pi - pif) / pi = 2.864789e-8`
+### 12.9. rounding error
+induced by approximating an infinite range of numbers into a finite number of bits. math is done exactly, then rounded:
+* towards the nearest representable number
+* towards zero
+* towards positive infinity (round up)
+* towards negative infinity (round down)
+
+if there is a tie between rounding up & down, the number is rouneded to the one with the even mantissa. this avoids the bias of always rounding up or down.
+### 12.10. extra bits
+during calculations, 3 extra bits are considered per floating point number, although they are not saved in the float itself:
+* gaurd bit
+* rounding bit
+* sticky bit
+
+gaurd bit and rounding bit are extra precision. the sticky bit is an OR of anything that passes through it.
+| [G][R][S] |             action            |
+|:---------:|:-----------------------------:|
+| [0][-][-] |    round down (do nothing)    |
+| [1][0][0] | round up if mantissa lsb is 1 |
+| [1][0][1] |            round up           |
+| [1][1][0] |            round up           |
+| [1][1][1] |            round up           |
+### 12.11. algebraic assumption error
+mathematical identites (associative, commutative, distributive) do not hold for floating point numbers.
+* distributive: `x * y - x * z != x * (y - z)`
+* associative: `x + (y + z) != (x + y) + z`
+* cannot interchange division and multiplication: `x / 10.0 != x * 0.1`
+### 12.12. floating point exceptions
+| IEEE exception | result when traps disabled | argument to trap handler |
+|:--------------:|:--------------------------:|:------------------------:|
+|    overflow    |     +/- ∞ or +/- xmax      |     round(x2^-alpha)     |
+|    underflow   | 0, 2^e_min or denormalized |      round(x2^alpha)     |
+| divide by zero |           +/- ∞            |     invalid operation    |
+|     invalid    |             NaN            |     invalid operation    |
+|     inexact    |          round(x)          |         round(x)         |
+
+where alpha is 192 for single precision, 1536 for double.
+### 12.13. float tricks
+there are some tricks for the IEEE specification. a famous one being quake's fast reciprocal square root approximation of numbers larger than 0.25:
+```cpp
+inline float fast_inv_sqrt(float x) {
+  int tmp = ((0x3f800000 << 1) + 0x3f800000 - *(long*)&x) >> 1;
+  auto y = *(float*)&tmp;
+  return y * (1.47f - 0.47f * x * y * y);
+}
+```
