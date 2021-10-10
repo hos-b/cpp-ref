@@ -1265,6 +1265,7 @@ not supported by gcc. workarounds are bad.
 a fixed-point binary format has a static position for the decimal point. the bits to its left represent the whole part while the right bits represent the fraction. fixed-point representation can vastly simplify the computation of opeartions but also limits range and precision.
 
 a floating-point uses the scientific notation. they are represented by the IEEE 754 binary format on almost all modern architectures.
+
 ![image](https://user-images.githubusercontent.com/49957586/136662629-8d2330c1-58a5-4e16-9fe0-4f1c080eb220.png)
 
 x = `-1^(sign bit) x 2^(exponent - 127) x 1.mantissa`
@@ -1322,6 +1323,7 @@ we can represent 1e-37 using _denormalized numbers_, i.e. numbers where the expo
 
 ### 11.6. precision
 ![image](https://user-images.githubusercontent.com/49957586/136664112-39a9b29b-2a67-40cb-829a-c6d6ea63374b.png)
+
 as a result of their implementation, the representation is not uniform between numbers. we have the most precision between `0.0` and `0.1` (applies to negative values too). after this, the precision starts to diminish. `std::nextafter` allows us to get the very next possible number after the given one.
 
 for 32-bit floats, the representable number distribution is as follows:
