@@ -82,7 +82,11 @@
   16.5. [has include](#165-has-include)<br>
   16.6. [aggregate initialization](#166-aggregate-initialization)<br>
   16.7. [deduction guides](#167-deduction-guides)<br>
-  16.8. [enable_if](#168-enable_if)
+  16.8. [enable_if](#168-enable_if)<br>
+  16.9. [constexpr lambdas](#169-constexpr-lambdas)<br>
+  16.10. [string_view](#1610-string_view)<br>
+  16.11. [class template argument deduction](#1611-class-template-argument-deduction)<br>
+  16.12. [fold expressions](#1612-fold-expressions)
 18. [C++20](#17-cpp20)<br>
   17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
   17.2. [safe integer comparison](#172-safe-integer-comparison)<br>
@@ -1758,11 +1762,79 @@ int main() {
     return 0;
 }
 ```
+### 16.9. constexpr lambdas
+starting with C++17, lambdas can be defined and used in `constexpr` contexts:
+```cpp
+constexpr auto l = [](){};
+```
+### 16.10. string_view
+`std::string_view` provides a view into another string without making any copies. read-only standard strings are used often in functions. even if the string can be evaluated at compile time, a copy is made to intialize the string. this can be avoided with `std::string_view`. naturally views can also be created and used in `constexpr` contexts.
+```cpp
+std::string str1{"check"}; // "check" is in the compiled binary, but is copied at runtime
+std::string str2{"check"}; // another copy
+std::string str3{"check"}; // yet another copy
 
+std::string_view view1{"mate"}; // "mate" is only in the compiled binary
+std::string_view view2{"mate"}; // no copy is created, points to original string
+std::string_view view3{"mate"}; // no copy is created, points to original string
+```
+`std::string_view` objects can be constructed using an `std::string`, a c-string, `std::string_view` or a string literal. for the first two cases, it is advised not to change the underlying string during the lifetime of the `string_view` to avoid confusions. if the underlying string is destroyed, using the view causes undefined behavior.
+
+#### view window modification
+in addition to useful functions from `std::string`, string views also implement functions for limiting the view window such as `remove_prefix()` and `remove_suffix()`. similar to standard strings, they keep track of their length and **don't use null termination**.  
+
+#### conversions
+views cannot be implicitly converted to strings but we can do it explicitly:
+```cpp
+void print(const std::string& ss) {}
+
+std::string_view view{"hi"};
+print(view); 				// compiler error
+std::string str{view};  	      	// okay
+print(static_cast<std::string>(view)); 	// okay
+```
+views can be converted to a c-string through an intermediate `std::string`. if the underlying string is null terminated **and** the view window has not been modified, `std::string_view::data()` can be used a a c-string without the need for conversion. note that string literals are **always** implicitly null terminated.
+### 16.11. class template argument deduction
+starting with cpp17, the template arguments can be implicitly deduced.
+```cpp
+std::array<int, 5> data{1, 2, 3, 4, 5}; // necessary before C++17
+std::array data{1, 2, 3, 4, 5}; 	// ok as of C++17
+```
+### 16.12. fold expressions
+fold expression allows us to unfold variadic template arguments more easily:
+```cpp
+template<typename ... T>
+auto sum(T ... t) {
+    return (t + ...);
+}
+```
+before C++17, we would've had to do a small hack:
+```cpp
+template<typename ... T>
+auto sum(T ... t) {
+    typename std::common_type<T...>::type result{};
+    (void)std::initializer_list<int>{(result += t, 0)...};
+    return result;
+}
+```
+fold expressions can be unpacked on either side:
+```cpp
+template<typename ... T>
+auto div(T ... t) {
+    return (... / t);
+}
+```
+or used with other parameters:
+```cpp
+template<typename ... T>
+auto avg(T ... t) {
+    return (t + ...) / sizeof...(t);
+}
+```
 ## 17. CPP20
 TODO: add all the stuff about concepts & generators, constexpr new and delete.
 ### 17.1. constexpr vector and string
-since Visual Studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
+since visual studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
 this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
 
 ```cpp
