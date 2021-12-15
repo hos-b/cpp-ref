@@ -40,16 +40,16 @@
   9.3. [interalignment of objects](#93-interalignment-of-objects)<br>
   9.4. [alignas](#94-alignas)<br>
   9.5. [struct packing](#95-struct-packing)<br>
-11. [CPP Lambdas](#10-cpp-lambdas)<br>
+10. [CPP Lambdas](#10-cpp-lambdas)<br>
   10.1. [definition](#101-definition)<br>
   10.2. [function pointers](#102-function-pointers)<br>
   10.3. [std examples](#103-std-examples)<br>
   10.4. [recursive lambdas](#104-recursive-lambdas)<br>
   10.5. [stateful lambdas](#105-stateful-lambdas)
-12. [Multi-Threading](#11-multi-threading)<br>
+11. [Multi-Threading](#11-multi-threading)<br>
   11.1. [daemon processes](#111-daemon-processes)<br>
   11.2. [passing parameters](#112-passing-parameters)
-13. [Mutex](#12-mutex)<br>
+12. [Mutex](#12-mutex)<br>
   12.1. [lock_guard](#121-lock_guard)<br>
   12.2. [multiple mutexes](#122-multiple-mutexes)<br>
   12.3. [unique lock](#123-unique-lock)<br>
@@ -59,22 +59,22 @@
   12.7. [callable objects](#127-callable-objects)<br>
   12.8. [packaged tasks](#128-packaged-tasks)<br>
   12.9. [time constraints](#129-time-constraints)
-14. [OpenCV](#13-opencv)<br>
+13. [OpenCV](#13-opencv)<br>
   13.1. [basic matrix type](#131-basic-matrix-type)<br>
   13.2. [memory management](#132-memory-management)<br>
   13.3. [IO](#133-io)<br>
   13.4. [vector type](#134-vector-type)<br>
   13.5. [SIFT descriptors](#135-sift-descriptors)<br>
   13.6. [FLANN](#136-flann)
-15. [bind](#14-bind)<br>
+14. [bind](#14-bind)<br>
   14.1. [binding with reference](#141-binding-with-reference)<br>
   14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
-16. [C++14](#15-cpp14)<br>
+15. [C++14](#15-cpp14)<br>
   15.1. [exchange](#151-exchange)<br>
   15.2. [digit separators](#152-digit-separators)
-17. [C++17](#16-cpp17)<br>
+16. [C++17](#16-cpp17)<br>
   16.1. [structured bindings](#161-structured-bindings)<br>
   16.2. [any](#162-any)<br>
   16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
@@ -87,10 +87,11 @@
   16.10. [string_view](#1610-string_view)<br>
   16.11. [class template argument deduction](#1611-class-template-argument-deduction)<br>
   16.12. [fold expressions](#1612-fold-expressions)
-18. [C++20](#17-cpp20)<br>
+17. [C++20](#17-cpp20)<br>
   17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
   17.2. [safe integer comparison](#172-safe-integer-comparison)<br>
-19. [Attributes](#18-attributes)<br>
+  17.3. [spaceship operator](#173-spaceship-operator)<br>
+18. [Attributes](#18-attributes)<br>
   18.1. [fallthrough](#181-fallthrough)<br>
   18.2. [unused](#182-unused)<br>
   18.3. [maybe_unused](#183-maybe_unused)<br>
@@ -1870,6 +1871,22 @@ if (a < b) {
 }
 ```
 if `a` is negative, the condition is always false. probably because `a` gets promoted to `unsigned int`, making it a the maximum possible value. on way around this is to demote `b` to `int` using a `static_cast`. the standard library provides a safer way of comparing different types of integers inside the `<utility>` header. the functions are `std::cmp_equal`,  `std::cmp_not_equal`, `std::cmp_less`, `std::cmp_greater`, `std::cmp_less_equal` and `std::cmp_greater_equal`. they are all constexpr capable and templated for rhs and lhs operands.
+### 17.3. spaceship operator
+since c++20, we can ask the compiler to generate all comparison operators for us, given that the struct is basic enough.
+```cpp
+#include <compare>
+struct DoubleInt
+{
+    int i;
+    int j;
+    auto operator<=>(const DoubleInt& rhs) const = default;
+};
+```
+we do not have to do anything else. `constexpr` and `noexcept` will be added if necessary. this feature is available to all structs with any number of base types and base type arrays the compiler knows how to expand members of classes that are arrays by comparing a list of sub-objects recursively.
+
+this is due to a new concept in c++20 referred to as _rewritten expressions_. `<=>` and `==` are the first applications of this concept. _synthesized expression_ is another concept in c++20 which allows us to avoid having to write a number of friend functions for comparison cases where our struct instance is on rhs. the expression is in these cases *rewritten* in reverse order to see if there is a matching overload. for `==` and `!=` we run into an issue because a deep lexicographic comparison of e.g. strings is not efficient. checking the size must be the first step. this case is also considered by the spaceship operator through a slightly altered rewrite rule.
+
+the new operator will not break old code by choosing the synthesized or rewritten operator over an explicit overload. we can therefor have our special cases where the implementation for a single operator is written separately.
 
 ## 18. Attributes
 any code that contains attributes is automatically c++98 incompatible but who cares.
