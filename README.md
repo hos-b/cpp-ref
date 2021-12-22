@@ -629,19 +629,19 @@ int main ()
     return 0;
 }
 ```
-the type-cast operator uses a particular syntax: it uses the operator keyword followed by the destination type and an empty set of parentheses. Notice that the return type is the destination type and thus is not specified before the operator keyword.
+the type-cast operator uses a particular syntax: it uses the operator keyword followed by the destination type and an empty set of parentheses. notice that the return type is the destination type and thus is not specified before the operator keyword.
 ### 5.2. explicit keyword
 if we add the function `void fn (B arg) {}` to the previous example, it can be called with both `foo` and `bar`. to avoid such implicit casting, we should define the constructor as explicit : `explicit B (const A& x) {}`
 
-additionally, constructors marked with explicit cannot be called with the assignment-like syntax; In the above example, bar could not have been constructed with: `B bar = foo`.
+additionally, constructors marked with explicit cannot be called with the assignment-like syntax; in the above example, bar could not have been constructed with: `B bar = foo`.
 
-type-cast member functions (those described in the previous section) can also be specified as explicit. This prevents implicit conversions in the same way as explicit-specified constructors do for the destination type.
+type-cast member functions (those described in the previous section) can also be specified as explicit. this prevents implicit conversions in the same way as explicit-specified constructors do for the destination type.
 ### 5.3. type casting
 there are two main syntaxes for generic type casting:
 - `c like     : int b = (int)a;`
 - `functional : int b = int(a);`
 
-unrestricted explicit type-casting allows to convert any pointer into any other pointer type, independently of the types they point to. The subsequent call to member result will produce either a run-time error or some other unexpected results.
+unrestricted explicit type-casting allows to convert any pointer into any other pointer type, independently of the types they point to. the subsequent call to member result will produce either a run-time error or some other unexpected results.
 #### dynamic_cast
 `dynamic_cast` can only be used with pointers and references to classes (or with void*). its purpose is to ensure that the result of the type conversion points to a valid complete object of the destination pointer type. this naturally includes pointer upcast (converting from pointer-to-derived to pointer-to-base), in the same way as allowed as an implicit conversion. but `dynamic_cast` can also downcast (convert from pointer-to-base to pointer-to-derived) polymorphic classes (those with virtual members) if -and only if- the pointed object is a valid complete object of the target type.
 ```cpp
@@ -663,7 +663,7 @@ if `dynamic_cast` is used to convert to a reference type and the conversion is n
 
 Google style suggests avoiding dynamic casts.
 #### static_cast
-`static_cast` can perform conversions between pointers to related classes, not only upcasts (from pointer-to-derived to pointer-to-base), but also downcasts (from pointer-to-base to pointer-to-derived). no checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. Therefore, it is up to the programmer to ensure that the conversion is safe. On the other side, it does not incur the overhead of the type-safety checks of `dynamic_cast`.
+`static_cast` can perform conversions between pointers to related classes, not only upcasts (from pointer-to-derived to pointer-to-base), but also downcasts (from pointer-to-base to pointer-to-derived). no checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. therefore, it is up to the programmer to ensure that the conversion is safe. on the other side, it does not incur the overhead of the type-safety checks of `dynamic_cast`.
 ```cpp
 class Base {};
 class Derived: public Base {};
@@ -672,7 +672,7 @@ Derived * b = static_cast<Derived*>(a);
 ```
 is a valid code but could lead to runtime errors if dereferenced.
 #### reinterpret_cast
-reinterpret_cast converts any pointer type to any other pointer type, even of unrelated classes. The operation result is a simple binary copy of the value from one pointer to the other. All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
+reinterpret_cast converts any pointer type to any other pointer type, even of unrelated classes. the operation result is a simple binary copy of the value from one pointer to the other. All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
 
 it can also cast pointers to or from integer types. the format in which this integer value represents a pointer is platform-specific. the only guarantee is that a pointer cast to an integer type large enough to fully contain it (such as intptr_t), is guaranteed to be able to be cast back to a valid pointer.
 ```cpp
