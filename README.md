@@ -1115,6 +1115,7 @@ int main() {
 a predicate is a functor that
 * returns a boolean
 * does not modify data
+
 predicates are used for comparisons or condition checks.
 ```cpp
 struct NeedCopy
