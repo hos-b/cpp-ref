@@ -730,7 +730,7 @@ int main () {
 ```
 the string returned by member name of `type_info` depends on the specific implementation of your compiler and library. it is not necessarily a simple string with its typical type name, like in the compiler used to produce this output. if the type `typeid` evaluates is a pointer preceded by the dereference operator (`*`), and this pointer has a null value, typeid throws a bad_typeid exception.
 #### mangled names
-Depending on the object, typeid might return mangled names. GCC offers a demangle functionality. It can receive and populate a buffer but it can't resize it so there's basically no point.
+Depending on the object, typeid might return mangled names. GCC offers a demangle functionality. It can receive and populate a buffer but it can't resize it so there's basically no point to passing a pointer to length.
 ```cpp
 #include <cxxabi.h>
 char* abi::__cxa_demangle(const char* mangled_name, char* output_buffer, size_t* length, int* status);
