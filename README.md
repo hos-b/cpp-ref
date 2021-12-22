@@ -447,12 +447,11 @@ public:
     }
 };
 ```
-notice that we precede the class name with template<> , including an empty parameter list. This is because all types are known and no template arguments are required for this specialization, but still, it is the specialization of a class template, and thus it requires to be noted as such.
-When we declare specializations for a template class, we must also define all its members, even those identical to the generic template class, because there is no "inheritance" of members from the generic template to the specialization.
+notice that we precede the class name with `template<>` with an empty parameter list. this is because all types are known and no template arguments are required for this specialization, but still, it is the specialization of a class template, and thus it requires to be noted as such. when we declare specializations for a template class, we must also define all its members, even those identical to the generic template class, because there is no "inheritance" of members from the generic template to the specialization.
 
 ## 4. Inheritance
 ### 4.1. friend functions and classes
-A non-member function can access the private and protected members of a class if it is declared a friend of that class. That is done by including a declaration of this external function within the class, and preceding it with the keyword friend.
+a non-member function can access the private and protected members of a class if it is declared a friend of that class. that is done by including a declaration of this external function within the class, and preceding it with the keyword friend.
 ```cpp
 class A
 {
@@ -505,6 +504,7 @@ public:
   Derived(int b) : Base(b) {}
 }
 ```
+if the base only has a non-derfault constructor, the child **must** have a constructor that calls the base constructor.
 ### 4.5. virtual functions
 are made in the base class to be overridden in the derived class. they can still be called though. if a function is not defined as virtual and still overridden in the child class, a base class pointer that was initialized with the adress of a child object will always call the function in the base class (power of polymorphism goes to shit).
 
