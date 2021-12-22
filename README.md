@@ -478,9 +478,9 @@ class B
 | members of derived class  | y      | y         | n       |
 | not members               | y      | n         | n       |
 
-public inheritance: all inherited members will keep their access specifiers in derived class
-protected inheritance : all inherited members will at most be proteted
-private inheritance : all inherited members will be private
+- public inheritance: all inherited members will keep their access specifiers in derived class
+- protected inheritance : all inherited members will at most be proteted
+- private inheritance : all inherited members will be private
 ### 4.3. what's inherited
 * base' constructors and its destructor
 * base' assignment operator members (operator=)
