@@ -97,7 +97,7 @@
   18.2. [safe integer comparison](#182-safe-integer-comparison)<br>
   18.3. [spaceship operator](#183-spaceship-operator)<br>
 18. [C++23](#19-cpp23)<br>
-  18.11. [if consteval]<br>
+  18.1. [if consteval](#181-if-consteval)<br>
 99. [Misc.](#99-misc.)<br>
   99.1. [timing](#991-timing)<br>
   99.2. [variadic templates](#992-variadic-templates)<br>
