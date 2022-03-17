@@ -71,31 +71,33 @@
   14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
   14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
   14.4. [binding with template functions](#144-binding-with-template-functions)
-15. [C++14](#15-cpp14)<br>
-  15.1. [exchange](#151-exchange)<br>
-  15.2. [digit separators](#152-digit-separators)
-16. [C++17](#16-cpp17)<br>
-  16.1. [structured bindings](#161-structured-bindings)<br>
-  16.2. [any](#162-any)<br>
-  16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
-  16.4. [nested namespaces](#164-nested-namespaces)<br>
-  16.5. [has include](#165-has-include)<br>
-  16.6. [aggregate initialization](#166-aggregate-initialization)<br>
-  16.7. [deduction guides](#167-deduction-guides)<br>
-  16.8. [enable_if](#168-enable_if)<br>
-  16.9. [constexpr lambdas](#169-constexpr-lambdas)<br>
-  16.10. [string_view](#1610-string_view)<br>
-  16.11. [class template argument deduction](#1611-class-template-argument-deduction)<br>
-  16.12. [fold expressions](#1612-fold-expressions)
-17. [C++20](#17-cpp20)<br>
-  17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
-  17.2. [safe integer comparison](#172-safe-integer-comparison)<br>
-  17.3. [spaceship operator](#173-spaceship-operator)<br>
-18. [Attributes](#18-attributes)<br>
-  18.1. [fallthrough](#181-fallthrough)<br>
-  18.2. [unused](#182-unused)<br>
-  18.3. [maybe_unused](#183-maybe_unused)<br>
-  18.4. [nodiscard](#184-nodiscard)
+15. [Attributes](#15-attributes)<br>
+  15.1. [fallthrough](#151-fallthrough)<br>
+  15.2. [unused](#152-unused)<br>
+  15.3. [maybe_unused](#153-maybe_unused)<br>
+  15.4. [nodiscard](#154-nodiscard)
+16. [C++14](#16-cpp14)<br>
+  16.1. [exchange](#161-exchange)<br>
+  16.2. [digit separators](#162-digit-separators)
+17. [C++17](#17-cpp17)<br>
+  17.1. [structured bindings](#171-structured-bindings)<br>
+  17.2. [any](#172-any)<br>
+  17.3. [if and switch initialization](#173-if-and-switch-initialization)<br>
+  17.4. [nested namespaces](#174-nested-namespaces)<br>
+  17.5. [has include](#175-has-include)<br>
+  17.6. [aggregate initialization](#176-aggregate-initialization)<br>
+  17.7. [deduction guides](#177-deduction-guides)<br>
+  17.8. [enable_if](#178-enable_if)<br>
+  17.9. [constexpr lambdas](#179-constexpr-lambdas)<br>
+  17.10. [string_view](#1710-string_view)<br>
+  17.11. [class template argument deduction](#1711-class-template-argument-deduction)<br>
+  17.12. [fold expressions](#1712-fold-expressions)
+18. [C++20](#18-cpp20)<br>
+  18.1. [constexpr vector and string](#181-constexpr-vector-and-string)<br>
+  18.2. [safe integer comparison](#182-safe-integer-comparison)<br>
+  18.3. [spaceship operator](#183-spaceship-operator)<br>
+18. [C++23](#19-cpp23)<br>
+  18.11. [if consteval]<br>
 99. [Misc.](#99-misc.)<br>
   99.1. [timing](#991-timing)<br>
   99.2. [variadic templates](#992-variadic-templates)<br>
@@ -1522,8 +1524,60 @@ int main()
 }
 ```
 
-## 15. CPP14
-### 15.1. exchange
+## 15. Attributes
+any code that contains attributes is automatically c++98 incompatible but who cares.
+### 15.1. fallthrough
+`[[C++17]]` in switch statements we might need to only slightly differentiate between two cases, i.e. do a bunch of stuff for case A and proceed with what we would've done for case B. if they're identical, we won't have any problems but otherwise the compiler issues a fallthrough warning.
+```cpp
+switch(expression) {
+case 1:
+    do_some_stuff();
+    [[fallthrough]];
+case 2:
+    do_other_stuff;
+    break;
+}
+```
+### 15.2. unused
+`[[C++17]]` there are cases where it's possible to have a local variable that is technically unused but not needed. e.g. :
+```cpp
+int main()
+{
+    [[unused]] int i = 6;
+    assert(i == 6);
+}
+```
+### 15.3. maybe_unused
+`[[C++17]]` there are a couple of ways to deal with unused arguements in a function.
+* don't give it a name
+* comment out the name
+* `[[maybe_unused]]`
+```cpp
+int main(int /*argc*/, [[maybe_unused]] const char** argv)
+{
+}
+```
+functions can also be `[[maybe_unused]]`:
+```cpp
+[[maybe_unused]] void do_nothing() {
+}
+```
+### 15.4. nodiscard
+`[[C++17]]` one difference between returned error codes & exceptions is that error codes can be ignored. it is possible to enforce a check and ignoring it requires a lot more effort.
+```cpp
+[[nodiscard]] int read_file(const char* name, char* buf, int length) {
+
+}
+int main()
+{
+    char *buff[200];
+    [[maybe_unused]] int ret = read_file("text.txt", buff, 200);
+}
+```
+it can also be applied to structs, classes, enums, unions, etc. 
+
+## 16. CPP14
+### 16.1. exchange
 uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
 ```cpp
 #include <list>
@@ -1541,7 +1595,7 @@ int main()
 	}
 }
 ```
-## 15.2. digit separators
+## 16.2. digit separators
 to make numbers more readable, we can use the single quote character:
 ```cpp
 auto binary_var = 0b0001'1010'0010'1100;
@@ -1551,8 +1605,8 @@ auto int_var  = 1'000'000'000;
 ```
 the digit separator is not sepcific to 
 
-## 16. CPP17
-### 16.1. structured bindings
+## 17. CPP17
+### 17.1. structured bindings
 when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
@@ -1578,7 +1632,7 @@ std::tie(name, age) = CreatePerson();
 ```cpp
 auto[name, age] = CreatePerson();
 ```
-### 16.2. any
+### 17.2. any
 an experimental feature of C++17, it's a type-safe container that can contain any single object:
 ```cpp
 #include <experimental/any>
@@ -1621,7 +1675,7 @@ int main()
 	int *i = std::experimental::fundamentals_v1::any_cast<int>(&v[0]);  // works
 }
 ```
-### 16.3. if and switch initialization
+### 17.3. if and switch initialization
 it's possible to initialize the expression that is used in an if or switch statement. it lives on for the entire scope of if/else or switch. it's simillar to having opening/closing braces around the entire scope.
 ```cpp
 #include <vector>
@@ -1637,7 +1691,7 @@ int main()
 	}
 }
 ```
-### 16.4. nested namespaces
+### 17.4. nested namespaces
 to avoid having multiple levels braces for nested namespaces, we can directly use the nested namespace:
 ```cpp
 namespace torch::tensor::float
@@ -1645,7 +1699,7 @@ namespace torch::tensor::float
 
 }
 ```
-### 16.5. has include
+### 17.5. has include
 this macro gives us the ability to check the availability of header files
 ```cpp
 // before C++17
@@ -1663,7 +1717,7 @@ this macro gives us the ability to check the availability of header files
 #include <windows.h>
 #endif
 ```
-### 16.6. aggregate initialization
+### 17.6. aggregate initialization
 C++11 allowed uniform intializations even in the absence of a constructor using `{}`. this however runs into problems if the object we're initializing is from a child class.
 ```cpp
 struct Base
@@ -1684,7 +1738,7 @@ int main()
     Child ch_3{{15.1}, 1, 2.4f};
 }
 ```
-### 16.7. deduction guides
+### 17.7. deduction guides
 we can help the compiler deduce types where it's confused. it has to be in the same namespace:
 ```cpp
 #include <functional>
@@ -1715,7 +1769,7 @@ int main()
     std::function cm_f(&MyClass::const_member_function);
 }
 ```
-### 16.8. enable_if
+### 17.8. enable_if
 can be used to specialize the underlying structure by deducing the template type in conjunction with SFINAE.
 ```cpp
 #include <type_traits>
@@ -1763,12 +1817,12 @@ int main() {
     return 0;
 }
 ```
-### 16.9. constexpr lambdas
+### 17.9. constexpr lambdas
 starting with C++17, lambdas can be defined and used in `constexpr` contexts:
 ```cpp
 constexpr auto l = [](){};
 ```
-### 16.10. string_view
+### 17.10. string_view
 `std::string_view` provides a view into another string without making any copies. read-only standard strings are used often in functions. even if the string can be evaluated at compile time, a copy is made to intialize the string. this can be avoided with `std::string_view`. naturally views can also be created and used in `constexpr` contexts.
 ```cpp
 std::string str1{"check"}; // "check" is in the compiled binary, but is copied at runtime
@@ -1795,13 +1849,13 @@ std::string str{view};  	      	// okay
 print(static_cast<std::string>(view)); 	// okay
 ```
 views can be converted to a c-string through an intermediate `std::string`. if the underlying string is null terminated **and** the view window has not been modified, `std::string_view::data()` can be used a a c-string without the need for conversion. note that string literals are **always** implicitly null terminated.
-### 16.11. class template argument deduction
+### 17.11. class template argument deduction
 starting with cpp17, the template arguments can be implicitly deduced.
 ```cpp
 std::array<int, 5> data{1, 2, 3, 4, 5}; // necessary before C++17
 std::array data{1, 2, 3, 4, 5}; 	// ok as of C++17
 ```
-### 16.12. fold expressions
+### 17.12. fold expressions
 fold expression allows us to unfold variadic template arguments more easily:
 ```cpp
 template<typename ... T>
@@ -1832,9 +1886,9 @@ auto avg(T ... t) {
     return (t + ...) / sizeof...(t);
 }
 ```
-## 17. CPP20
+## 18. CPP20
 TODO: add all the stuff about concepts & generators, constexpr new and delete.
-### 17.1. constexpr vector and string
+### 18.1. constexpr vector and string
 since visual studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
 this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
 
@@ -1860,7 +1914,7 @@ int main()
 ```
 the second expression is not allowed because memory allocated inside a `constexpr` context must be freed before leaving said context. it is however possible to create another constexpr context (e.g. a function) that copies that data into a static storage such as `std::array<>`. this still is happening at compile time but we maintain some of the runtime flexibility.
 
-### 17.2. safe integer comparison
+### 18.2. safe integer comparison
 the following snippet happens too often:
 ```cpp
 ...
@@ -1871,7 +1925,7 @@ if (a < b) {
 }
 ```
 if `a` is negative, the condition is always false. probably because `a` gets promoted to `unsigned int`, making it a the maximum possible value. on way around this is to demote `b` to `int` using a `static_cast`. the standard library provides a safer way of comparing different types of integers inside the `<utility>` header. the functions are `std::cmp_equal`,  `std::cmp_not_equal`, `std::cmp_less`, `std::cmp_greater`, `std::cmp_less_equal` and `std::cmp_greater_equal`. they are all constexpr capable and templated for rhs and lhs operands.
-### 17.3. spaceship operator
+### 18.3. spaceship operator
 since c++20, we can ask the compiler to generate all comparison operators for us, given that the struct is basic enough.
 ```cpp
 #include <compare>
@@ -1887,58 +1941,67 @@ we do not have to do anything else. `constexpr` and `noexcept` will be added if 
 this is due to a new concept in c++20 referred to as _rewritten expressions_. `<=>` and `==` are the first applications of this concept. _synthesized expression_ is another concept in c++20 which allows us to avoid having to write a number of friend functions for comparison cases where our struct instance is on rhs. the expression is in these cases *rewritten* in reverse order to see if there is a matching overload. for `==` and `!=` we run into an issue because a deep lexicographic comparison of e.g. strings is not efficient. checking the size must be the first step. this case is also considered by the spaceship operator through a slightly altered rewrite rule.
 
 the new operator will not break old code by choosing the synthesized or rewritten operator over an explicit overload. we can therefor have our special cases where the implementation for a single operator is written separately.
-
-## 18. Attributes
-any code that contains attributes is automatically c++98 incompatible but who cares.
-### 18.1. fallthrough
-`[[C++17]]` in switch statements we might need to only slightly differentiate between two cases, i.e. do a bunch of stuff for case A and proceed with what we would've done for case B. if they're identical, we won't have any problems but otherwise the compiler issues a fallthrough warning.
+### 18.4. consteval functions
+calls to `consteval` or _immediate_ functions must always be evaluated at compile time, as opposed to `constexpr` functions that _can_ be evaluated at compile time. `consteval` functions can only call other `consteval` functions. similarly, non-`consteval` functions are not allowed to enclose `consteval` functions.
 ```cpp
-switch(expression) {
-case 1:
-    do_some_stuff();
-    [[fallthrough]];
-case 2:
-    do_other_stuff;
-    break;
+consteval int f() { return 42; }
+consteval auto g() { return &f; }
+consteval int h(int (*p)() = g()) { return p(); }
+constexpr int r = h();  // OK
+constexpr auto e = g(); // ill-formed: a pointer to an immediate function is
+                        // not a permitted result of a constant expression
+```
+### 18.5. is_constant_evaluated
+the standard library offers a new type trait **runtime** evaluation functions that determines whether a context has been evaluated at compile-time:
+```cpp
+int y;
+const int a = std::is_constant_evaluated() ? y : 1;
+// Trial constant evaluation fails. The constant evaluation is discarded.
+// Variable a is dynamically initialized with 1
+ 
+const int b = std::is_constant_evaluated() ? 2 : y;
+// Constant evaluation with std::is_constant_evaluation() == true succeeds.
+// Variable b is statically initialized with 2
+```
+this type trait cannot be used in conjunction with `if constexpr`, as it would signify a tautalogy:
+```cpp
+if constexpr (std::is_constant_evaluated()) { // error
+    ...
 }
 ```
-### 18.2. unused
-`[[C++17]]` there are cases where it's possible to have a local variable that is technically unused but not needed. e.g. :
+
+## 19. CPP23
+
+### 19.1. if consteval
+c++20 allowed us to distinguish between the contexts at runtime using `std::is_constant_evaluated()`. this however is a runtime call. that means, we cannot call `consteval` functions within a scope defined by this condition. `if consteval` allows us to check for `consteval` contexts at compile time and therefor enables calling of immediate functions within its local scope:
 ```cpp
+consteval sqr(int s) {
+    return s * s;
+}
+constexpr int func(int f) {
+    if consteval {
+        return sqr(f);
+    } else {
+        return f;
+    }
+}
 int main()
 {
-    [[unused]] int i = 6;
-    assert(i == 6);
-}
-```
-### 18.3. maybe_unused
-`[[C++17]]` there are a couple of ways to deal with unused arguements in a function.
-* don't give it a name
-* comment out the name
-* `[[maybe_unused]]`
-```cpp
-int main(int /*argc*/, [[maybe_unused]] const char** argv)
-{
-}
-```
-functions can also be `[[maybe_unused]]`:
-```cpp
-[[maybe_unused]] void do_nothing() {
-}
-```
-### 18.4. nodiscard
-`[[C++17]]` one difference between returned error codes & exceptions is that error codes can be ignored. it is possible to enforce a check and ignoring it requires a lot more effort.
-```cpp
-[[nodiscard]] int read_file(const char* name, char* buf, int length) {
+    int a = 7;
+    int test0 = func(5); // 5
+    int test1 = func(a); // 7
+    const int test2 = func(a); // 7
+    const int test3 = func(3); // 9, const integral values count as constant expressions
+    constexpr int test4 = func(2); // 4
+    
+    const int b = 11;
+    int test5 = func(b); // 11
+    const int test5 = func(b); // 121
+    constexpr int test5 = func(b); // 121
 
-}
-int main()
-{
-    char *buff[200];
-    [[maybe_unused]] int ret = read_file("text.txt", buff, 200);
+    return 0;
 }
 ```
-it can also be applied to structs, classes, enums, unions, etc. 
 
 ## 99. Misc.
 ### 99.1. timing
