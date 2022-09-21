@@ -91,7 +91,8 @@
   17.9. [constexpr lambdas](#179-constexpr-lambdas)<br>
   17.10. [string_view](#1710-string_view)<br>
   17.11. [class template argument deduction](#1711-class-template-argument-deduction)<br>
-  17.12. [fold expressions](#1712-fold-expressions)
+  17.12. [fold expressions](#1712-fold-expressions)<br>
+  17.13. [concepts](#1713-concepts)<br>
 18. [C++20](#18-cpp20)<br>
   18.1. [constexpr vector and string](#181-constexpr-vector-and-string)<br>
   18.2. [safe integer comparison](#182-safe-integer-comparison)<br>
@@ -1885,6 +1886,26 @@ template<typename ... T>
 auto avg(T ... t) {
     return (t + ...) / sizeof...(t);
 }
+```
+### 17.13. concepts
+for a given template type, a concept defines the syntax requirements for correct compilation and the semantic requirements for correct behavior. before concepts, we would enforce such behavior using SFINAE/type traits, e.g. if we wanted all templated`Body` types to have a `value_type` type alias and a static function called write that takes sepcific arguements:
+```cpp
+// necessary for mapping types to void, availabe since C++17
+template <class...>
+using void_t = void;
+
+// by default, nothing is valid
+template<class B, class = void>
+struct is_valid_body : false_type {};
+
+// catch conditions
+template<class B>
+struct is_valid_body<B, void_t<
+	typename B::value_type,
+	decltype(B::write(declval<std::string>(),
+			  declval<typename B::value_type const&>()),
+	(void)0) // ?, but has to be here
+    >> : true_type {};
 ```
 ## 18. CPP20
 TODO: add all the stuff about concepts & generators, constexpr new and delete.
