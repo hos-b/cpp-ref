@@ -29,7 +29,8 @@
   4.6. [pure virtual and abstract classes](#46-pure-virtual-and-abstract-classes)<br>
   4.7. [virtual destructors](#47-virtual-destructors)<br>
   4.8. [virtual inheritance](#48-virtual-inheritance)<br>
-  4.9. [virtual tables and dynamic dispatch](#49-virtual-tables-and-dynamic-dispatch)
+  4.9. [virtual tables and dynamic dispatch](#49-virtual-tables-and-dynamic-dispatch)<br>
+  4.10. [type erasure](#410-type-erasure)
 5. [Type Conversion](#5-type-conversion)<br>
   5.1. [through classes](#51-through-classes)<br>
   5.2. [explicit keyword](#52-explicit-keyword)<br>
