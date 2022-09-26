@@ -599,7 +599,41 @@ for every class that contains or inherits virtual functions, the compiler constr
 vtables exist at the class level, meaning there exists a single vtable per class, and is shared by all instances. each class instance however has this vpointer added to its beginning. the pointer is 4 bytes or 8 bytes long depending on the cpu architecture.
 
 virtual destrcutors become a clear necessity, since otherwise polymorphic objects would dispatch the base destructor statically.
+### 4.10. type erasure
+type erasure is a way of accomplishing the task usually done by polymorphism by hiding the type at runtime. the basic example of type erasure is `std::function` which can hold any type that is callable with a certain signature, be it a real function, a lambda, or a bound functor (e.g. bound to an pointer with `std::bind_front`. type erasure has the following benefits:<br>
+- simpler and faster to compile interfaces
+- can work with any feature type that adheres to the interface
+- compilation firewall to prevent recompiling the entire library for adding a new type
+Example:
+```cpp
+class animal_view {
+public:
+    template <typename Speakable>
+    explicit animal_view(const Speakable &speakable)
+        : object{&speakable},
+            speak_impl{[](const void* obj) {
+                return static_cast<const Speakable*>(obj)->speak();
+            }} {}
+    void speak() const { speak_impl(object); }
+private:
+    const void* object;
+    void (*speak_impl)(const void*);
+};
 
+void do_animal_things(animal_view animal) { animal.speak() };
+
+int main() {
+    struct Cow {
+        void speak() { std::cout << "moo!\n";
+    };
+    struct Sheep {
+        void speak() { std::cout << "hello!\n";
+    };
+    do_animal_things(animal_view{Cow{}});
+    do_animal_things(animal_view{Sheep{}});
+}
+```
+we did polymorphism without polymorphism or dynamic allocations. we still do a function indriction, similar to dynamic dispatch. that means we gain no performance over virtual functions. all the code does get inlined and the entire call is replaced with a `jmp` to the function pointer. the downside of this approach is the risk of dangling pointers.
 ## 5. Type Conversion
 - If a negative integer value is converted to an unsigned type, the resulting value corresponds to its 2's complement bitwise representation (i.e., -1 becomes the largest value representable by the type, -2 the second largest, ...).
 - The conversions from/to bool consider false equivalent to zero (for numeric types) and to null pointer (for pointer types); true is equivalent to all other values and is converted to the equivalent of 1.
