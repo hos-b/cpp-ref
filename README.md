@@ -105,7 +105,7 @@ auto &a5 = *p;         // const int&
 auto a5 = i;           // int
 decltype(auto) a6 = i; // const int
 ```
-auto also _never_ performs a conversion, making it sometimes better than writing down the type explicitly.
+auto also _never_ performs a conversion, making it sometimes better than writing down the type explicitly, although it might perform an unwanted copy. `decltype(auto)` can be used for variable declaration, function return type and trailing return type with the purpose of removing the inherent limitations of `auto`, namely that it never deduces references and constness (except for explicit const references).
 ### 1.2. declval
 `std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
 ```cpp
