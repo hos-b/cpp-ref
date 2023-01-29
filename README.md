@@ -81,8 +81,8 @@
   11.12. [floating point exceptions](#1112-floating-point-exceptions)<br>
   11.12. [float tricks](#1113-float-tricks)<br>
 
-## 1. Types and Stuff
-### 1.1. decltype and auto
+# 1. Types and Stuff
+## 1.1. decltype and auto
 `auto` deduces the type (obviously) at compile time.
 ```cpp
 int a = 5;
@@ -106,7 +106,7 @@ auto a5 = i;           // int
 decltype(auto) a6 = i; // const int
 ```
 auto also _never_ performs a conversion, making it sometimes better than writing down the type explicitly, although it might perform an unwanted copy. `decltype(auto)` can be used for variable declaration, function return type and trailing return type with the purpose of removing the inherent limitations of `auto`, namely that it never deduces references and constness (except for explicit const references).
-### 1.2. declval
+## 1.2. declval
 `std::declval` converts any type T to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
 ```cpp
 struct Default { int foo() const { return 1; } };
@@ -126,13 +126,13 @@ int main()
               << "n2 = " << n2 << '\n';
 }
 ```
-### 1.3. typedef and using
+## 1.3. typedef and using
 declaring new types :
 ```cpp
 typdef char C;
 using C = char;
 ```
-#### type aliasing
+### type aliasing
 `using` can be used in combination with classes, temlate types and functions.
 ```cpp
 // inside classes
@@ -152,7 +152,7 @@ int main()
     auto image_ptr = Image3f::Ptr(new Image3f);
 }
 ```
-### 1.4. unions
+## 1.4. unions
 ```cpp
 union mix_t
 {
@@ -164,14 +164,14 @@ union mix_t
     char c[4];
 }mix;
 ```
-### 1.5. enums
+## 1.5. enums
 ```cpp
 //numbered starting from 0
 enum colors_t {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE};
 //numbered startin from 1
 enum months_t { JANUARY=1, FEBRUARY, MARCH, ...};
 ```
-#### enum class, enum struct
+### enum class, enum struct
 enum class or enum struct helps avoid dumb misakes by preventing unwanted int casts.
 ```cpp
 enum class Colors {BLACK, BLUE, GREEN, CYAN, RED, PURPLE, YELLOW, WHITE};
@@ -180,11 +180,11 @@ mycolor = Colors::BLUE;
 if (mycolor == Colors::GREEN) mycolor = Colors::RED;
 ```
 
-#### determine type size
+### determine type size
 ```cpp
 enum class EyeColor : char {blue, green, brown};
 ```
-#### explicit values
+### explicit values
 usable for masks
 ```cpp
 enum class EnumType {
@@ -193,9 +193,9 @@ enum class EnumType {
   ...
 }
 ```
-### 1.6. volatile keyword
+## 1.6. volatile keyword
 volatile is a hint to the implementation to avoid aggressive optimization involving the object because the value of the object might be changed by means undetectable by an implementation. the compiler might sometimes optimize objects that affect program flow e.g. a loop. from the compiler's perspective the object could be changed by a static value but that might not be the case. to avoid such faults, the volatile keyword should be used.
-### 1.7. static keyword
+## 1.7. static keyword
 ```cpp
 int f(void) {
     static int x = 0;
@@ -214,7 +214,7 @@ int main(void)
 returns 0 1 2 3 4<br>
 static member functions of a class can be accessed without an object using the scope operator `::`. they can only access static members of the class and don't have access to `this` pointer. <br>
 static functions outside classes are only declared in the scope of their respective files. they cannot be used outside that file, even when explicitly mentioned in a header file as a prototype.
-### 1.8. mutable keyword
+## 1.8. mutable keyword
 The mutable storage class specifier is used only on a class data member to make it modifiable even though the member is part of an object declared as const. You cannot use the mutable specifier with names declared as static or const, or reference members.
 ```cpp
 class A
@@ -231,7 +231,7 @@ int main()
     var2.y = 2345; // not allowed
 }
 ```
-### 1.9. extern keyword
+## 1.9. extern keyword
 used to specify the type and the existance of an object. once all of the source files have been compiled, the linker will resolve all of the references to the one definition that it finds in one of the compiled source files. the definition of the object needs to have “external linkage”, which means that it needs to be declared outside of a function and without the static keyword.
 ```cpp
 ---header.h---
@@ -251,7 +251,7 @@ void print_gloabl_x() {
     std::cout << global_x;
 }
 ```
-### 1.10. typename keyword
+## 1.10. typename keyword
 `typename` is also used in contexts where the template resolution might confuse the compiler. For example if we want to create a pointer or use the value type of a templated type, it might be misconstrued as a multiplication wtih a member variable or a member variable on its own. Here we need the `typename` keyword to indicate that the identifier that follows is a type.
 
 ```cpp
@@ -264,7 +264,7 @@ class Test {
     typename T::subtype pop(); // Ok
 };
 ```
-### 1.11. storage classes
+## 1.11. storage classes
 the storage class specifiers are a part of the decl-specifier-seq of a name's declaration syntax. together with the scope of the name, they control two independent properties of the name: its storage duration and its linkage. 
 
 * auto: automatic storage duration
@@ -274,8 +274,8 @@ the storage class specifiers are a part of the decl-specifier-seq of a name's de
 * thread_local: thread storage duration
 * mutable - does not affect storage duration or linkage
 
-## 2. Raw Pointers
-### 2.1. const keyword
+# 2. Raw Pointers
+## 2.1. const keyword
 ```cpp
 int x;
       int *       p1 = &x;  // non-const pointer to non-const int
@@ -285,10 +285,10 @@ const int * const p4 = &x;  // const pointer to const int
 const int * p2a = &x;  //      non-const pointer to const int
 int const * p2b = &x;  // also non-const pointer to const int
 ```
-#### google style
+### google style
 CamelCase starting with `k`.
-### 2.2. function pointers
-#### standalone functions
+## 2.2. function pointers
+### standalone functions
 ```cpp
 int addition (int a, int b) { return a + b; }
 int subtraction (int a, int b) { return a - b; }
@@ -303,7 +303,7 @@ int main ()
     int n = call(20, m, minus);
 }
 ```
-#### member functions
+### member functions
 ```cpp
 struct Num
 {
@@ -332,8 +332,8 @@ int main()
 }
 ```
 
-## 3. Class Basics
-### 3.1. other ways of instantiating
+# 3. Class Basics
+## 3.1. other ways of instantiating
 ```cpp
 class Circle
 {
@@ -360,7 +360,7 @@ list initialization does not allow narrowing (§iso.8.5.4). That is:
  * A floating-point value cannot be converted to another floating-point type that cannot hold its value. For example, float to double is allowed, but not double to float.
  * A floating-point value cannot be converted to an integer type.
  * An integer value cannot be converted to a floating-point type
-### 3.2. member initialization
+## 3.2. member initialization
 For members of fundamental types, it makes no difference how the constructor is defined, because they are not initialized by default, but for member objects (those whose type is a class), if they are not initialized using member initializer list, they are default-constructed:
 ```cpp
 class A
@@ -377,8 +377,8 @@ public:
 };
 ```
 or just make a pointer to A like a decent person.
-### 3.3. static members
-#### variables
+## 3.3. static members
+### variables
 exist exactly once per type, not per object. the value is equal across all instances.
 ```cpp
 class Dummy
@@ -389,12 +389,12 @@ class Dummy
 Dummy::counter = 0;
 ```
 to avoid them being declared several times, they cannot be initialized directly in the class, but need to be initialized somewhere outside it (always in cpp files, never in headers).
-#### functions
+### functions
 they do not have an object of the class. they can access private members if they are passed to them as parameters. syntax:
 ```cpp
 ClassName::MethodName(<params>)
 ```
-### 3.4. const objects and functions
+## 3.4. const objects and functions
 ```cpp
 const Class object;
 ```
@@ -415,7 +415,7 @@ public:
     }
 };
 ```
-### 3.5. template specialization
+## 3.5. template specialization
 if the class uses templates but for a special data type, it should be declared a bit differently, we declare it twice. once with template classes, and once with an empty template and the specific data type:
 ```cpp
 // class template:
@@ -450,8 +450,8 @@ public:
 ```
 notice that we precede the class name with `template<>` with an empty parameter list. this is because all types are known and no template arguments are required for this specialization, but still, it is the specialization of a class template, and thus it requires to be noted as such. when we declare specializations for a template class, we must also define all its members, even those identical to the generic template class, because there is no "inheritance" of members from the generic template to the specialization.
 
-## 4. Inheritance
-### 4.1. friend functions and classes
+# 4. Inheritance
+## 4.1. friend functions and classes
 a non-member function can access the private and protected members of a class if it is declared a friend of that class. that is done by including a declaration of this external function within the class, and preceding it with the keyword friend.
 ```cpp
 class A
@@ -471,7 +471,7 @@ class B
     }
 };
 ```
-### 4.2. access specifiers
+## 4.2. access specifiers
 | access                    | public | protected | private |
 |:-------------------------:|:------:|:---------:|:-------:|
 | members of the same class | y      | y         | y       |
@@ -481,12 +481,12 @@ class B
 - public inheritance: all inherited members will keep their access specifiers in derived class
 - protected inheritance : all inherited members will at most be proteted
 - private inheritance : all inherited members will be private
-### 4.3. what's inherited
+## 4.3. what's inherited
 * base' constructors and its destructor
 * base' assignment operator members (operator=)
 * base' friends
 * base' private members
-### 4.4. base constructor
+## 4.4. base constructor
 base' default constructor is called with every child class object instantiation. a specific base constructor can also be called after colon when declaring child constructors.
 ```cpp
 class Base
@@ -506,16 +506,16 @@ public:
 }
 ```
 if the base only has a non-derfault constructor, the child **must** have a constructor that calls the base constructor.
-### 4.5. virtual functions
+## 4.5. virtual functions
 are made in the base class to be overridden in the derived class. they can still be called though. if a function is not defined as virtual and still overridden in the child class, a base class pointer that was initialized with the adress of a child object will always call the function in the base class (power of polymorphism goes to shit).
 
 since C++11, it is recommended to add `override` after function declaration in the child class. This keyword helps the compiler detect if a virtual function has been overloaded, instead of overridden. for example if in the derived class, we forget the const keyword.
-### 4.6. pure virtual and abstract classes
+## 4.6. pure virtual and abstract classes
 a pure virtual function is a virtual function whose definition is "=0". classes with at least one pure virtual function are called abstract. we cannot create objects of abstract classes but can create pointers for polymorphism. this also doesn't mean that they can't have useful callable functions.
 ```cpp
 Base *base_ptr = new Child;
 ```
-### 4.7. virtual destructors
+## 4.7. virtual destructors
 ```cpp
 class Base
 {
@@ -557,7 +557,7 @@ Derived Constructor
 Base Destructor
 ```
 when calling the destructor for `poly`, we don't know that the object might have another destructor, since it's cast to `Base` pointer. to overcome this issue we have to declare the Base destructor as `virtual`. this does not override the base destructor. it just lets C++ know that there might be another destructor further down in the hierrachy.
-### 4.8. virtual inheritance
+## 4.8. virtual inheritance
 if there is a diamond structure in the class hierarchy, the bottom class (`A`), gets two copies of `D`. one through `B` and another one through `C`.
 ```cpp
 #include <iostream>
@@ -592,7 +592,7 @@ class C:  virtual public D {
 class B:  virtual public D {
 };
 ```
-### 4.9. virtual tables and dynamic dispatch
+## 4.9. virtual tables and dynamic dispatch
 a routine is created for each normal class method. the compiler remembers its address and dispatches it for all calls to this method. this is known as static dispatch or early binding since the correct address is known at compile time. this obviously fails with polymorphism.
 
 for every class that contains or inherits virtual functions, the compiler constructs a virtual table. the vtable contains an entry for each virtual function accessible by the class and stores a pointer to its definition. entries in the vtable can point to either functions declared in the class itself (overridden), or virtual functions inherited from a base class.
@@ -600,7 +600,7 @@ for every class that contains or inherits virtual functions, the compiler constr
 vtables exist at the class level, meaning there exists a single vtable per class, and is shared by all instances. each class instance however has this vpointer added to its beginning. the pointer is 4 bytes or 8 bytes long depending on the cpu architecture.
 
 virtual destrcutors become a clear necessity, since otherwise polymorphic objects would dispatch the base destructor statically.
-### 4.10. type erasure
+## 4.10. type erasure
 type erasure is a way of accomplishing the task usually done by polymorphism by hiding the type at runtime. the basic example of type erasure is `std::function` which can hold any type that is callable with a certain signature, be it a real function, a lambda, or a bound functor (e.g. bound to an pointer with `std::bind_front`. type erasure has the following benefits:<br>
 - simpler and faster to compile interfaces
 - can work with any feature type that adheres to the interface
@@ -635,12 +635,12 @@ int main() {
 }
 ```
 we did polymorphism without polymorphism or dynamic allocations. we still do a function indriction, similar to dynamic dispatch. that means we gain no performance over virtual functions. all the code does get inlined and the entire call is replaced with a `jmp` to the function pointer. the downside of this approach is the risk of dangling pointers.
-## 5. Type Conversion
+# 5. Type Conversion
 - If a negative integer value is converted to an unsigned type, the resulting value corresponds to its 2's complement bitwise representation (i.e., -1 becomes the largest value representable by the type, -2 the second largest, ...).
 - The conversions from/to bool consider false equivalent to zero (for numeric types) and to null pointer (for pointer types); true is equivalent to all other values and is converted to the equivalent of 1.
 - If the conversion is from a floating-point type to an integer type, the value is truncated (the decimal part is removed). If the result lies outside the range of representable values by the type, the conversion causes undefined behavior.
 - Otherwise, if the conversion is between numeric types of the same kind (integer-to-integer or floating-to-floating), the conversion is valid, but the value is implementation-specific (and may not be portable).
-### 5.1. through classes
+## 5.1. through classes
 coverting A ojects to B and vice versa.
 ```cpp
 class A {};
@@ -665,19 +665,19 @@ int main ()
 }
 ```
 the type-cast operator uses a particular syntax: it uses the operator keyword followed by the destination type and an empty set of parentheses. notice that the return type is the destination type and thus is not specified before the operator keyword.
-### 5.2. explicit keyword
+## 5.2. explicit keyword
 if we add the function `void fn (B arg) {}` to the previous example, it can be called with both `foo` and `bar`. to avoid such implicit casting, we should define the constructor as explicit : `explicit B (const A& x) {}`
 
 additionally, constructors marked with explicit cannot be called with the assignment-like syntax; in the above example, bar could not have been constructed with: `B bar = foo`.
 
 type-cast member functions (those described in the previous section) can also be specified as explicit. this prevents implicit conversions in the same way as explicit-specified constructors do for the destination type.
-### 5.3. type casting
+## 5.3. type casting
 there are two main syntaxes for generic type casting:
 - `c like     : int b = (int)a;`
 - `functional : int b = int(a);`
 
 unrestricted explicit type-casting allows to convert any pointer into any other pointer type, independently of the types they point to. the subsequent call to member result will produce either a run-time error or some other unexpected results.
-#### dynamic_cast
+### dynamic_cast
 `dynamic_cast` can only be used with pointers and references to classes (or with void*). its purpose is to ensure that the result of the type conversion points to a valid complete object of the destination pointer type. this naturally includes pointer upcast (converting from pointer-to-derived to pointer-to-base), in the same way as allowed as an implicit conversion. but `dynamic_cast` can also downcast (convert from pointer-to-base to pointer-to-derived) polymorphic classes (those with virtual members) if -and only if- the pointed object is a valid complete object of the target type.
 ```cpp
 class Base { virtual void dummy() {} };
@@ -697,7 +697,7 @@ even though both are pointers of type Base*, pba actually points to an object of
 if `dynamic_cast` is used to convert to a reference type and the conversion is not possible, an exception of type bad_cast is thrown instead. `dynamic_cast` can also perform the other implicit casts allowed on pointers: casting null pointers between pointers types (even between unrelated classes), and casting any pointer of any type to a `void*`.
 
 Google style suggests avoiding dynamic casts.
-#### static_cast
+### static_cast
 `static_cast` can perform conversions between pointers to related classes, not only upcasts (from pointer-to-derived to pointer-to-base), but also downcasts (from pointer-to-base to pointer-to-derived). no checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. therefore, it is up to the programmer to ensure that the conversion is safe. on the other side, it does not incur the overhead of the type-safety checks of `dynamic_cast`.
 ```cpp
 class Base {};
@@ -706,7 +706,7 @@ Base * a = new Base;
 Derived * b = static_cast<Derived*>(a);
 ```
 is a valid code but could lead to runtime errors if dereferenced.
-#### reinterpret_cast
+### reinterpret_cast
 reinterpret_cast converts any pointer type to any other pointer type, even of unrelated classes. the operation result is a simple binary copy of the value from one pointer to the other. All pointer conversions are allowed: neither the content pointed nor the pointer type itself is checked.
 
 it can also cast pointers to or from integer types. the format in which this integer value represents a pointer is platform-specific. the only guarantee is that a pointer cast to an integer type large enough to fully contain it (such as intptr_t), is guaranteed to be able to be cast back to a valid pointer.
@@ -717,7 +717,7 @@ A * a = new A;
 B * b = reinterpret_cast<B*>(a);
 ```
 this code compiles, although it does not make much sense, since now `b` points to an object of a totally unrelated and likely incompatible class. dereferencing `b` is unsafe.
-#### const_cast
+### const_cast
 this type of casting manipulates the constness of the object pointed by a pointer, either to be set or to be removed. for example, in order to pass a const pointer to a function that expects a non-const argument.
 ```cpp
 void print (char * str) {
@@ -731,7 +731,7 @@ int main ()
 }
 ```
 the example above is guaranteed to work because function `print` does not write to the pointed object. note though, that removing the constness of a pointed object to actually write to it causes undefined behavior.
-### 5.4. typeid
+## 5.4. typeid
 typeid allows to check the type of an expression: `typeid (expression)`
 
 this operator returns a reference to a constant object of type type_info that is defined in the standard header `<typeinfo>`. a value returned by typeid can be compared with another value returned by typeid using operators == and != or can serve to obtain a null-terminated character sequence representing the data type or class name by using its name() member.
@@ -764,7 +764,7 @@ int main () {
 }
 ```
 the string returned by member name of `type_info` depends on the specific implementation of your compiler and library. it is not necessarily a simple string with its typical type name, like in the compiler used to produce this output. if the type `typeid` evaluates is a pointer preceded by the dereference operator (`*`), and this pointer has a null value, typeid throws a bad_typeid exception.
-#### mangled names
+### mangled names
 Depending on the object, typeid might return mangled names. GCC offers a demangle functionality. It can receive and populate a buffer but it can't resize it so there's basically no point to passing a pointer to length.
 ```cpp
 #include <cxxabi.h>
@@ -786,7 +786,7 @@ int main () {
     return 0;
 }
 ```
-### 5.5. boolean conversions
+## 5.5. boolean conversions
 a value of any scalar type can be implicitly converted to `bool`. The values that compare equal to zero are converted to `0`, all other values are converted to `1`.
 ```cpp
 bool b1 = 0.5;              // b1 == 1 (0.5 converted to int would be zero)
@@ -794,7 +794,7 @@ bool b2 = 2.0*_Imaginary_I; // b2 == 1 (but converted to int would be zero)
 bool b3 = 0.0 + 3.0*I;      // b3 == 1 (but converted to int would be zero)
 bool b4 = 0.0/0.0;          // b4 == 1 (NaN does not compare equal to zero)
 ```
-### 5.6. integer conversions
+## 5.6. integer conversions
 a value of any integer type can be implicitly converted to any other integer type. except where covered by promotions and boolean conversions above, the rules are
 * if the target type can represent the value, the value is unchanged
 * otherwise, if the target type is unsigned, the value `2^b`, where b is the number of bits in the target type, is repeatedly subtracted or added to the source value until the result fits in the target type. in other words, unsigned integers implement modulo arithmetic.
@@ -807,16 +807,16 @@ assert(sizeof(int) > -1);  // assert fails:
                            // operator > requests conversion of -1 to size_t,
                            // target is unsigned, result is SIZE_MAX
 ```
-### 5.7. implicit arithmetic conversions
+## 5.7. implicit arithmetic conversions
 the arguments of the following arithmetic operators undergo implicit conversions for the purpose of obtaining the common real type, which is the type in which the calculation is performed:
 
 * binary arithmetic `*`, `/`, `%`, `+`, `-`
 * relational operators `<`, `>`, `<=`, `>=`, `==`, `!=`
 * binary bitwise arithmetic `&`, `^`, `|`
 * the conditional operator `?:`
-#### floating point conversions
+### floating point conversions
 if one of the operands has the base type long double, double or float, the other operand is also converted to this base type. e.g. `int > float` -> `float > float` and `complex > double` -> `double complex > double`.
-#### intergral conversions
+### intergral conversions
 integral types are never **implicitly** converted to lower integral types in a narrowing conversion. they may however be _promoted_ to to a common type.
 ```
 if the types are the same:
@@ -834,7 +834,7 @@ else:
             else:
                 both operands undergo implicit conversion to the unsigned type counterpart of the signed operand's type.
 ```
-#### integer promotion rules
+### integer promotion rules
 integer promotion is the implicit conversion of a value of any integer type with rank less or equal to rank of `int` or of a bit field of type `bool`, `int`, `signed int`, `unsigned int`, to the value of type `int` or `unsigned int`.
 
 if `int` can represent the entire range of values of the original type (or the range of values of the original bit field), the value is converted to type `int`. otherwise the value is converted to `unsigned int`.
@@ -856,7 +856,7 @@ Note: integer promotions are applied only
 * to the operand of the unary bitwise operator ~
 * to both operands of the shift operators << and >> 
 
-## 6. Exception
+# 6. Exception
 thrown using `throw` keyword :
 ```cpp
 int main ()
@@ -870,13 +870,13 @@ int main ()
 }
 ```
 if an ellipsis `(...)` is used as the parameter of catch, that handler will catch any exception no matter what the type of the exception thrown.
-### 6.1. specification
+## 6.1. specification
 older code may contain dynamic exception specifications. they are now deprecated in C++, but still supported. a dynamic exception specification follows the declaration of a function, appending a throw specifier to it. for example:
 ```cpp
 double myfunction (char param) throw (int);
 ```
 this declares a function called myfunction, which takes one argument of type char and returns a value of type double. if this function throws an exception of some type other than int, the function calls ```std::unexpected``` instead of looking for a handler or calling ```std::terminate```. if this throw specifier is left empty with no type, this means that ```std::unexpected``` is called for any exception. functions with no throw specifier (regular functions) never call ```std::unexpected```, but follow the normal path of looking for their exception handler.
-### 6.2. standard exceptions
+## 6.2. standard exceptions
 the C++ Standard library provides a base class specifically designed to declare objects to be thrown as exceptions. it is called `std::exception` and is defined in the `<exception>` header. this class has a virtual member function called what that returns a null-terminated character sequence (of type `char*`) and that can be overridden in derived classes to contain some sort of description of the exception.
 ```cpp
 #include <exception>
@@ -915,7 +915,7 @@ standard exceptions are as follows :
 
 *Google Style : don't use exceptions*
 
-## 7. File IO
+# 7. File IO
 ```cpp
 #include <fstream>
 using Mode = std::ios_base::openmode;
@@ -926,7 +926,7 @@ std::ofstream f_in(std::string& filename, Mode mode);
 // IO stream
 std::fstream f_in(std::string& filename, Mode mode);
 ```
-### 7.1. modes
+## 7.1. modes
 
 | mode                | effect                  |
 |---------------------|-------------------------|
@@ -937,9 +937,9 @@ std::fstream f_in(std::string& filename, Mode mode);
 | `ios_base ::out`    | open for writing        |
 | `ios_base ::trunc`  | overwrite existing file |
 
-### 7.2. ascii reading
+## 7.2. ascii reading
 
-#### using streams
+### using streams
 ```cpp
 ifstream in ("file.txt", ios_base::in);
 int a,b;
@@ -949,7 +949,7 @@ while (in >> a >> str >> b >> d) {
   ...
 }
 ```
-#### getline
+### getline
 ```cpp
 ifstream in ("file.txt", ios_base::in);
 std::string line;
@@ -960,7 +960,7 @@ while (getline(in, line)) {
         value  = line.substr(line.find("=",0) + 1, string::npos);
 }
 ```
-### 7.3. ascii writing
+## 7.3. ascii writing
 ```cpp
 #include <iomanip>
 #include <fstream>
@@ -970,7 +970,7 @@ if(!outfile.isopen())
     return EXIT_FAILURE;
 outfile << "stuff" << std::endl;
 ```
-### 7.4. binary reading
+## 7.4. binary reading
 must know the structure beforehand, syntax :
 ```cpp
 file.read(reinterpret_cast<char*> (&a), sizeof(a));
@@ -989,7 +989,7 @@ std::cout<<"dimensions " << r << "x" << c;
 vector<float> vec(r * c, 0);
 file.read(reinterpret_cast<char*>(&vec.front()), vec.size()*sizeof(vec.front()));
 ```
-### 7.5. binary writing
+## 7.5. binary writing
 writing a sequence of byte, no precision loss for float types, fast. syntax:
 ```cpp
 file.write(reinterpret_cast<char*> (&a), sizeof(a));
@@ -1008,7 +1008,7 @@ file.write(reinterpret_cast<char*>(&c), sizeof(c));
 file.write(reinterpret_cast<char*>(&vec.front()), vec.size()*sizeof(vec.front()));
 ```
 
-## 8. Functors
+# 8. Functors
 function objects
 ```cpp
 struct X
@@ -1033,10 +1033,10 @@ class X
     operator string() const { return "X"; }
 };
 ```
-### 8.1. pros
+## 8.1. pros
 * normal functions are only called with the `()` operator but functors can also remember states.
 * functors can have their own datatypes on top of their function signature
-### 8.2. runtime templates
+## 8.2. runtime templates
 with templates we can customize how certain functions work, however their template has to be intialized at compile time. with functors we can do more
 ```cpp
 struct AddValue
@@ -1055,7 +1055,7 @@ int main()
     std::for_each(vec.begin(), vec.end(), AddValue(x));
 }
 ```
-### 8.3. built-in functors
+## 8.3. built-in functors
 std has implemented some functors:
 ```cpp
 less greater greater_equal less_equal not_equal_to
@@ -1067,7 +1067,7 @@ if (not_equal_to<int>()(x, 10)) {
     std::cout << x << std::endl;
 }
 ```
-### 8.4. parameter binding
+## 8.4. parameter binding
 ```cpp
 std::set<int> myset = {2, 3, 4, 5};
 std::vector<int> vec;
@@ -1087,7 +1087,7 @@ void AddVal(int i, int val){
 }
 std::for_each(vec.begin(), vec.end(), bind(AddVal, std::placeholders::_1, 2);
 ```
-### 8.5. regular function to functor
+## 8.5. regular function to functor
 ```cpp
 double Pow(double x, double y) {
     return pow(x,y);
@@ -1103,7 +1103,7 @@ int main()
     return 0;
 }
 ```
-### 8.6. getting more complex
+## 8.6. getting more complex
 ```cpp
 bool ElgibileForCopy(int x) {
     return (x > 20) || (x < 5);
@@ -1130,7 +1130,7 @@ int main()
 
 }
 ```
-### 8.7. functors and sorting
+## 8.7. functors and sorting
 we can choose how our containers are sorted.
 ```cpp
 std::set<int> myset = {3, 1, 25, 7, 12}; // myset : {1, 3, 7, 12, 25}
@@ -1146,7 +1146,7 @@ int main() {
     std::set<int, Lsb_less> myset = {3, 1, 25, 7, 12}; // myset : {1, 12, 3, 25, 7}
 }
 ```
-### 8.8. predicates
+## 8.8. predicates
 a predicate is a functor that
 * returns a boolean
 * does not modify data
@@ -1161,7 +1161,7 @@ struct NeedCopy
 };
 std::transform(myset.begin(), myset.end(), std::back_inserter(d), NeedCopy());
 ```
-### 8.9. template functors
+## 8.9. template functors
 to reuse defined functors to some extent, we can make use of templates
 ```cpp
 template <typename T>
@@ -1183,7 +1183,7 @@ int main() {
     return 0;
 }
 ```
-## 9. Iterators.
+# 9. Iterators.
 used to access the elements of collections. could be indexing a contiguous array or iterating a graph. types that have iteratos can be used in range-based for loops. Gemeral structure is as follows:
 ```cpp
 template <typename Col>
@@ -1267,11 +1267,11 @@ bool operator!=(const CollectionIterator& other) const {
     return ptr_ != other.ptr_;
 }
 ```
-## 10. Precompiled Headers
+# 10. Precompiled Headers
 when we include a header file e.g. `vector`, we're potentially adding thousands of lines to be compiled each time we change anything in the project. this significantly increases compilation time. a precompiled header is already turned into a binary format that can easily be integrated into the chain.
-### good practice
+## good practice
 precompiled headers are mostly used for external code. for example we won't ever change STL headers or `windows.h`
-### bad practice
+## bad practice
 a bad practice is to add all the dependencies to a PCH. this hides what is being used in each cpp file.<br>
 putting frequently changing headers into a PCH will only increase compile time.
 ```c pp
@@ -1289,7 +1289,7 @@ putting frequently changing headers into a PCH will only increase compile time.
 #include <memory>
 #include <Windows.h>
 ```
-### compile using gcc
+## compile using gcc
 we first compile the header, then the file that's using it.
 ```bash
 g++ -std=c++11 pch.h
@@ -1297,7 +1297,7 @@ g++ -std=c++11 main.cpp
 ```
 not supported by gcc. workarounds are bad.
 
-## 11. IEEE 754 and caveats
+# 11. IEEE 754 and caveats
 a fixed-point binary format has a static position for the decimal point. the bits to its left represent the whole part while the right bits represent the fraction. fixed-point representation can vastly simplify the computation of opeartions but also limits range and precision.
 
 a floating-point uses the scientific notation. they are represented by the IEEE 754 binary format on almost all modern architectures.
@@ -1308,13 +1308,13 @@ x = `-1^(sign bit) x 2^(exponent - 127) x 1.mantissa`
 * **32-bit**: 1 sign bit + 8 exponent bits + 23 mantissa bits
 * **64-bit**: 1 sign bit + 12 exponent bits + 52 mantissa bits
 
-### 11.1. special floats
+## 11.1. special floats
 * divide by zero: `1 / 0`
 * not a number (NaN): `0 / 0`, `0 x ∞`
 * signed infinity: for overflow protection
 * signed zero: underflow protection for very small numbers. preserves sign. `+0 == -0`
 
-#### basic example
+### basic example
 ```cpp
 auto zeroPointOne = 0.1f;
 auto zeroPointTwo = 0.2f;
@@ -1332,14 +1332,14 @@ std::cout << zeroPointTwo << "\n";    // 0.200000000000000011102230246252
 std::cout << zeroPointThree << "\n";  // 0.299999999999999988897769753748
 std::cout << sum << "\n";             // 0.300000000000000044408920985006
 ```
-### 11.2. exponent encoding
+## 11.2. exponent encoding
 1.0 = -1^0 x 2^(0) x 1.0
 the exponent itself is an 8-bit unsigned integer. `2^(exponent - 127)` can therefor be between `2^-126` to `2^+127`. here `exponent - 127` must be zero, therefor the floating point representation will be: `[0][01111111][00000000000000000000000]`
 
-### 11.3. epsilon
+## 11.3. epsilon
 epsilon is the difference between `1.0` and smallest number that is larger than `1.0`. using the last example, it is `[0][01111111][00000000000000000000001] = 1.0000001192092896`. it is accessible using `std::numeric_limits<T>::epsilon` for floating-point type `T`.
 
-### 11.4. significant digits
+## 11.4. significant digits
 they measure precision. in order to compare two floating-point numbers solely based on the mantissa, they would have to have the same exponent. otherwise, the number of signficant digits changes based on the exponent. even though we will have a lot of decimal places, there is a measure of their accuracy and the rest is noise.
 
 |          size          | sign | exponent | mantissa | total | exponent bias | bits precision | significant digits |
@@ -1350,14 +1350,14 @@ they measure precision. in order to compare two floating-point numbers solely ba
 | x86 extended precision |   1  |    15    |    64    |   80  |     16383     |       64       |        18-21       |
 |          Quad          |   1  |    15    |    112   |  128  |     16383     |       113      |        33-36       |
 
-### 11.5. denormalized numbers
+## 11.5. denormalized numbers
 for 32-bit floats, the minimum base 10 exponent is -36. how an we represent smaller numbers? 
 since the exponent field is 127 left shift-encoded, we get the smallest value by setting all of its bits to zero (`2^(0 - 127) = 2^-127`). 
 
 we can represent 1e-37 using _denormalized numbers_, i.e. numbers where the exponent bits are zero. this helps prevent underflow. example:
 `[0][00000000][11011001110001111101110] = 0.09999999e-37`
 
-### 11.6. precision
+## 11.6. precision
 ![image](https://user-images.githubusercontent.com/49957586/136664112-39a9b29b-2a67-40cb-829a-c6d6ea63374b.png)
 
 as a result of their implementation, the representation is not uniform between numbers. we have the most precision between `0.0` and `0.1` (applies to negative values too). after this, the precision starts to diminish. `std::nextafter` allows us to get the very next possible number after the given one.
@@ -1371,7 +1371,7 @@ for 32-bit floats, the representable number distribution is as follows:
 |  0.4 | 0.8 |      8'388'608     |
 |  0.8 | 1.6 |      8'388'608     |
 |  1.6 | 3.2 |      8'388'608     |
-### 11.7. units in last place
+## 11.7. units in last place
 pi represented as a floating point number has some errors:
 ```
 pi  = 3.141589265
@@ -1379,11 +1379,11 @@ pif = 3.141589274
 d   = 0.000000009
 ```
 ulps is defined as the gap between two floating-point numbers nearest to x, even if x is one of them. for pi, we get a ulps of 9. IEEE 754 requires that elementary arithmetic operations are correctly rounded to within 0.5 ulps. transcendal functions are generally rounded to 0.5-1.0 ulps.
-### 11.8. relative error
+## 11.8. relative error
 the difference between the real number and the approximated representation, devided by the real number.
 
 `relative error = (pi - pif) / pi = 2.864789e-8`
-### 11.9. rounding error
+## 11.9. rounding error
 induced by approximating an infinite range of numbers into a finite number of bits. math is done exactly, then rounded:
 * towards the nearest representable number
 * towards zero
@@ -1391,7 +1391,7 @@ induced by approximating an infinite range of numbers into a finite number of bi
 * towards negative infinity (round down)
 
 if there is a tie between rounding up & down, the number is rouneded to the one with the even mantissa. this avoids the bias of always rounding up or down.
-### 11.10. extra bits
+## 11.10. extra bits
 during calculations, 3 extra bits are considered per floating point number, although they are not saved in the float itself:
 * gaurd bit
 * rounding bit
@@ -1405,12 +1405,12 @@ gaurd bit and rounding bit are extra precision. the sticky bit is an OR of anyth
 | [1][0][1] |            round up           |
 | [1][1][0] |            round up           |
 | [1][1][1] |            round up           |
-### 11.11. algebraic assumption error
+## 11.11. algebraic assumption error
 mathematical identites (associative, commutative, distributive) do not hold for floating point numbers.
 * distributive: `x * y - x * z != x * (y - z)`
 * associative: `x + (y + z) != (x + y) + z`
 * cannot interchange division and multiplication: `x / 10.0 != x * 0.1`
-### 11.12. floating point exceptions
+## 11.12. floating point exceptions
 | IEEE exception | result when traps disabled | argument to trap handler |
 |:--------------:|:--------------------------:|:------------------------:|
 |    overflow    |     +/- ∞ or +/- xmax      |     round(x2^-alpha)     |
@@ -1420,7 +1420,7 @@ mathematical identites (associative, commutative, distributive) do not hold for 
 |     inexact    |          round(x)          |         round(x)         |
 
 where alpha is 192 for single precision, 1536 for double.
-### 11.13. float tricks
+## 11.13. float tricks
 there are some tricks for the IEEE specification. a famous one being quake's fast reciprocal square root approximation of numbers larger than 0.25:
 ```cpp
 inline float fast_inv_sqrt(float x) {
