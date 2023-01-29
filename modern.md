@@ -92,11 +92,12 @@
   17.10. [string_view](#1710-string_view)<br>
   17.11. [class template argument deduction](#1711-class-template-argument-deduction)<br>
   17.12. [fold expressions](#1712-fold-expressions)<br>
-  17.13. [concepts](#1713-concepts)<br>
 18. [C++20](#18-cpp20)<br>
   18.1. [constexpr vector and string](#181-constexpr-vector-and-string)<br>
   18.2. [safe integer comparison](#182-safe-integer-comparison)<br>
   18.3. [spaceship operator](#183-spaceship-operator)<br>
+  18.4. [consteval functions](#184-consteval-functions)<br>
+  18.5. [concepts](#185-concepts)<br>
 19. [C++23](#19-cpp23)<br>
   19.1. [if consteval](#191-if-consteval)<br>
 99. [Misc.](#99-misc.)<br>
@@ -111,7 +112,7 @@
   99.9. [nothrow](#999-nothrow)<br>
   99.10. [weird array indexing](#9910-weird-array-indexing)
 
-## 1. Parallel Algorithms
+# 1. Parallel Algorithms
 all standard library algorithms that can be parallelized are available as parallel algorithms, albeit only on GCC and MSVC compilers. the best candidates are the ones that have more than O(n) complexity like sort. the `<execution>` header needs to be included as well to make the execution policies available :
 * `std::execution::seq`: sequential policy (default)
 * `std::execution::par`: parallel execution policy: must be multi-threading safe
@@ -130,7 +131,7 @@ std::sort(doubles.begin(), doubles.end());
 std::sort(std::execution::par, doubles.begin(), doubles.end());
 ```
 
-### 1.1. more on par_unseq
+## 1.1. more on par_unseq
 in addition to the requirements exposed by the parallel policy, the parallel unsequenced policy requires that the element access functions tolerate weaker than concurrent forward progress guarantees. that means that they don’t take locks or otherwise perform operations that require threads to concurrently execute to make progress. for example, if a parallel algorithm runs on a GPU and tries to take a spinlock, the thread spinning on the spinlock may prevent other threads on the GPU from ever executing, meaning the spinlock may never be unlocked by the thread holding it, deadlocking the program.
 
 an algorithm invoked with the parallel unsequenced policy may perform the algorithm steps on unspecified threads of execution, unordered and unsequenced with respect to one another. this means that operations may now be interleaved with each other on a single thread, such that a second operation is started on the same thread before the first has finished, and may be migrated between threads, so a given operation may start on one thread, run further on a second thread, and complete on a third.
@@ -138,38 +139,38 @@ an algorithm invoked with the parallel unsequenced policy may perform the algori
 if you use the parallel unsequenced policy, then the operations invoked on the iterators, values, and callable objects supplied to the algorithm must not use any form of synchronization or call any function that synchronizes with another, or any function such that some other code synchronizes with it. this means that the operations must only operate on the relevant element, or any data that can be accessed based on that element, and must not modify any state shared between threads, or between elements.
 
 
-## 2. Advanced Memory Management
-### 2.1. in-place construction
+# 2. Advanced Memory Management
+## 2.1. in-place construction
 using the placement new operator, we can specify the memory location for an object to be constructed. this is used in the implementation of `std::vector.emplace_back()`.
 ```cpp
 template <typename ...Args>
 void emplace_back(Args&&... args) {
-	if (need_to_resize) {
-		...
-	}
-	new(&allocated_mem[size_]) T(std::forward<Args>(args)...);
+    if (need_to_resize) {
+        ...
+    }
+    new(&allocated_mem[size_]) T(std::forward<Args>(args)...);
     ++size;
 }
 ```
 naturally, the object must be destructed manually as with the normal `new` call.
-### 2.2. allocation without construction
+## 2.2. allocation without construction
 this is basically the C++ version of `malloc`:
 ```cpp
 Entity* memory_block = (Entity*)::operator new(count * sizeof(Entity));
 ```
-### 2.3. deallocation without destruction
+## 2.3. deallocation without destruction
 or the C++ version of free():
 ```cpp
 ::operator delete(memory_block, count * sizeof(Entity));
 ```
 
-## 3. Unit Tests
+# 3. Unit Tests
 install `libgtest-dev`, make a test subdirectory, edit top CMakeLists.txt: 
 ```cmake
 enable_testing()
 add_subdirectory(tests)
 ```
-### 3.1. CMakeLists
+## 3.1. CMakeLists
 ```cmake
 add_subdirectory(/usr/src/gtest
                  ${PROJECT_BINARY_DIR}/gtest)
@@ -185,7 +186,7 @@ add_test(
   NAME ${TEST_BINARY}
   COMMAND ${EXECUTABLE_OUTPUT_PATH}/${TEST_BINARY})
 ```
-### 3.2. writing tests
+## 3.2. writing tests
 mylib_test.cpp
 ```cpp
 #include <gtest/gtest.h>
@@ -195,7 +196,7 @@ TEST(MylibTest, DummyTest){
   EXPECT_EQ(1, Sum(1,1));
 }
 ```
-### 3.3. running tests
+## 3.3. running tests
 ```bash
 cd build
 cmake ..
@@ -203,8 +204,8 @@ make
 ctest -VV     # very verbose 
 ```
 
-## 4. Compilation
-### 4.1. flags
+# 4. Compilation
+## 4.1. flags
 | flag           | role                   |
 |----------------|------------------------|
 | -std=c++11     | standard library       |
@@ -215,7 +216,7 @@ ctest -VV     # very verbose
 | -Werror        | treat them as errors   |
 | -O0            | no optimization        |
 | -O3 or -Ofast  | full optimization      |
-### 4.2. gdb
+## 4.2. gdb
 some commands :
 `bt`
 `info threads`
@@ -225,15 +226,15 @@ some commands :
 `print <variable>`
 `step` or `s`
 `next` or `n`
-#### gdbgui
+### gdbgui
 pip3 install gdbgui; gdbgui a.out
-### 4.3. libraries
-#### static
+## 4.3. libraries
+### static
 `.a`, fast, is incorporated in the final binary. created using `ar rcs <libname.a> <modules>`
-#### dynamic
+### dynamic
 `.so`, slower, referenced by programs.
-### 4.4. compilation chain
-#### stupid way
+## 4.4. compilation chain
+### stupid way
 compile modules<br>
 `c++ -std=c++11 -c <input .cpp files> -o <output .o files>`<br>
 organize modules into libraries<br>
@@ -241,10 +242,10 @@ organize modules into libraries<br>
 link libraries<br>
 `c++ -std=c++11 main.cpp -L <lib path> -ltest -o <executable name>`<br>
 run
-#### or cmake
+### or cmake
 defines build receipt
 
-## 5. cmake
+# 5. cmake
 ```cmake
 projec(name)
 cmake_minimum_requiired(VERSION 3.1)
@@ -256,13 +257,13 @@ add_library(tools tools.cpp)
 add_executable(main main.cpp)
 target_link_libraries(main tools)
 ```
-### 5.1. messages, warnings, errors
+## 5.1. messages, warnings, errors
 ```cmake
 message(STATUS "message")
 message(WARNING "message")
 message(FATAL_ERROR "message")
 ```
-### 5.2. compiler flags
+## 5.2. compiler flags
 ```cmake
 set(CMAKE_CXX_STANDARD 11)
 if (NOT CMAKE_BUILD_TYPE)
@@ -273,22 +274,22 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ```
 by default, `CMAKE_BUILD_TYPE` is not set.
-### 5.3. using precompiled libraries
+## 5.3. using precompiled libraries
 ```cmake
 add_library(tools SHARED IMPORTED)
 set_property(TARGET tools
              PROPERTY IMPORTED_LOCATION
              "${LIBRARY_OUTPUT_PATH}/libtools.so")
 ```
-### 5.4. building
+## 5.4. building
 ```bash
 mkdir build
 cd build
 cmake ..
 make -j2 #pass number of cores here
 ```
-### 5.5. functions
-#### add_subdirectory
+## 5.5. functions
+### add_subdirectory
 add a subdirectory with its own CMakeLists.txt, helps modularity.
 ```cmake
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
@@ -297,7 +298,7 @@ src/CMakeLists.txt
 ```cmake
 add_executable(program source.cpp)
 ```
-#### finding and including headers
+### finding and including headers
 additional seach path for header files
 ```cmake
 find_path(INCLUDE_DIR 
@@ -305,13 +306,13 @@ find_path(INCLUDE_DIR
           <path_to_search_1> <path_to_search_2>)
 include_directories(${INCLUDE_DIR})
 ```
-#### add_library
+### add_library
 adding source files to be compiled into libraries, to be linked in the same or another project.
 ```cmake
 add_library(libstatic STATIC stat.cpp)
 add_library(libdynamic SHARED dyno.cpp)
 ```
-#### finding and linking libraries
+### finding and linking libraries
 ```cpp
 find_library(LIBS
              NAMES libstatic libdynamic
@@ -320,7 +321,7 @@ find_library(LIBS
 add_executable(program source.cpp)
 target_link_libraries(program ${LIBS})
 ```
-#### finding packages
+### finding packages
 `find_package` calls multiple `find_path` and `find_library` functions. to find a package, cmake must have a file called `Find<pkg>.cmake` in `CMAKE_MODULE_PATH` folders. this variable can be augmented.
 
 `Find<pkg>.cmake` defines which libraries and headers belong to `pkg`. this is predefined for most popular libraries. 
@@ -336,8 +337,8 @@ find_library(PKG_LIBRARIES
 message (STATUS "libraries ${LIBS})
 ```
 
-## 6. Move Semantics
-### 6.1. lvalue and rvalue
+# 6. Move Semantics
+## 6.1. lvalue and rvalue
 * an expression is an lvalue when *it can* be written on the left side of the assignment operator `=`.
 * other expressions are rvalues. 
 * explicit rvalue defined using `&&`
@@ -350,7 +351,7 @@ int b = a+2;              // b = lvalue, a+2 = rvalue
 int &&c = std::move(a);   // c = rvalue
 ```
 typically when using rvalues in functions, we want to move ownership, therefor using `const <type>&&` makes no senese.
-### 6.2. example
+## 6.2. example
 ```cpp
 void Print(const std::string& str) {
     std::cout << "lvalue : " << str;
@@ -368,7 +369,7 @@ int main()
 }
 ```
 by c++ standard, after an object has been moved, it should be empty. moving a variable transfers ownership of its resource to another variable. runtime is better than copying, worse than passing by reference.
-### 6.3. move constructor and assignment
+## 6.3. move constructor and assignment
 for copy contstructor/assignment we had to define the following:
 ```cpp
 MyClass::MyClass (const MyClass&);    // copy-constructor
@@ -394,7 +395,7 @@ MyClass baz = fn();         // move constructor
 baz = MyClass();            // move assignment
 ```
 the 4th syntax explicitly calls the move assignment, however compilers tend to recognize when a copy assignment is needed, specially when a big object returned from a function is being assigned to a variable. compilers already optimize many cases that formally require a move-construction call in what is known as Return Value Optimization. most notably, when the value returned by a function is used to initialize an object. in these cases, the move constructor may actually never get called. note that even though rvalue references can be used for the type of any function parameter, it is seldom useful for uses other than the move constructor/assignment. rvalue references are tricky, and unnecessary uses may be the source of errors quite difficult to track down. also look up copy elision.
-### 6.4. but wait, there's more
+## 6.4. but wait, there's more
 | member function     | implicitly defined                                                    | default definition |
 |---------------------|-----------------------------------------------------------------------|--------------------|
 | default constructor | if no other constructors                                              | does nothing       |
@@ -420,7 +421,7 @@ Rect a(b);  // error
 ```
 in general, and for future compatibility, classes that explicitly define one copy/move constructor or one copy/move assignment but not both, are encouraged to specify either delete or default on the other special member functions they don't explicitly define.
 
-## 7. Smart Pointers
+# 7. Smart Pointers
 they own the object they wrap. `#include <memory>` to use them. they have the same properties as raw pointers :
 
 * can be set to `nullptr`
@@ -432,7 +433,7 @@ additional functions
 
 * `ptr.get()` returns a raw pointer that the smart pointer manages
 * `ptr.reset(raw_ptr)` stops using the current raw pointer, frees its memory if needed, takes owenership of the new `raw_ptr`
-### 7.1. unique pointers
+## 7.1. unique pointers
 constructor of the `unique_pointer` takes ownership of the provided raw pointer. *no runtime overhead over raw pointers*. 
 ```cpp
 #include <memory>
@@ -444,7 +445,7 @@ auto p = std::make_unique<Type>(<params>);
 the copy constructor is explicitly deleted for the unique pointer, however it can be moved e.g. using `std::move`. accessing the unique pointer after move will *most likely* cause a runtime error.<br>
 it gurarantees that memory is always owned by a single unique pointer. to point to a new object use `ptr.reset(<new pointer>)`, most likely with `std::move` to take ownership. <br>
 the `std::make_unique` constructor is preferred for exception safety.
-### 7.2. shared pointers
+## 7.2. shared pointers
 just like `unique_pointer` but it can be copied. it also keeps a track of how many shared_pointers have a reference to this pointer. it frees memory when the counter hits zero. it can be initialized from a `unique_pointer`.
 ```cpp
 #include <memory>
@@ -456,7 +457,7 @@ auto p = std::make_shared<Type>(<params>);
 std::cout << "use count : " << ptr.use_count();
 ```
 it's much more efficient to use `std::make_shared` because shared pointers also have a control block that keeps track of the reference count. if the `new` keyword is used, the control block and the type will be created seperately, but with `std::make_shared` they're created together.
-### 7.3. weak pointers
+## 7.3. weak pointers
 this behaves the same as an extra instance of shared pointer without increasing the reference count. we would use this kind of pointer when we want access to the raw pointer, but don't want to take ownership.
 ```cpp
 class Test
@@ -478,9 +479,9 @@ int main()
     }
 }
 ```
-#### changed my mind
+### changed my mind
 we can use `weak_ptr.lock()` which returns a shared_ptr which shares ownership of the owned object if `std::weak_ptr::expired` returns false. otherwise it returns default-constructed shared_ptr of type T. 
-### 7.4. examples
+## 7.4. examples
 beginner error : both stack and the smart pointer own the object -> it gets deleted twice and produces errors.
 ```cpp
 int main(){
@@ -505,8 +506,8 @@ int main()
 }
 ```
 
-## 8. Associative Containers
-### 8.1. map
+# 8. Associative Containers
+## 8.1. map
 stores items under unique keys. usually implemented as red-black tree, i.e. random access in logarithmic time. key can be any type with `operator <` defined. 
 ```cpp
 #include <map>
@@ -528,9 +529,9 @@ for (const auto& kv : m) {
 }
 ```
 one common mistake is using brackets to get const reference to that key. if it's not available, it will be created and initialized based on the default value.
-### 8.2. unordered map
+## 8.2. unordered map
 same purpose as `std::map` implemented with a hash table. key type has to be hashable, typically `int` or `std::string`. same interface as `std::map`.
-#### example
+### example
 here we can see what the default hash function does to a string :
 ```cpp
 int main(int argc, char* argv[])
@@ -547,24 +548,24 @@ size_t name_hash( const std::pair<string, string> &name) {
 }
 int main(int argc, char* argv[])
 {
-	unordered_map<std::pair<string, string>,int ,decltype(&name_hash)> ids(100, name_hash);
-	ids[std::pair<string, string>("Mark", "Nelson")] = 40561;
-	ids[std::pair<string, string>("Andrew","Binstock")] = 40562;
-	for (auto ii = ids.begin() ; ii != ids.end() ; ++ii)
-		std::cout << ii->first.first 
+    unordered_map<std::pair<string, string>,int ,decltype(&name_hash)> ids(100, name_hash);
+    ids[std::pair<string, string>("Mark", "Nelson")] = 40561;
+    ids[std::pair<string, string>("Andrew","Binstock")] = 40562;
+    for (auto ii = ids.begin() ; ii != ids.end() ; ++ii)
+        std::cout << ii->first.first 
                   << " "
                   << ii->first.second 
                   << " : "
                   << ii->second
                   << std::endl;
-	return 0;
+    return 0;
 }
 ```
 more info [here](https://marknelson.us/posts/2011/09/03/hash-functions-for-c-unordered-containers.html).
 
-## 9. Padding and Packing
+# 9. Padding and Packing
 in order to align structs in memory and ease memory access, C and C++ sometimes add padding to struct members.
-### 9.1. alignof
+## 9.1. alignof
 every object type has the property called alignment requirement, which is an integer value (of type std::size_t, always a power of 2) representing the number of bytes between successive addresses at which objects of this type can be allocated. `alignof` returns this alignment, in bytes, required for any instance of the indicated type, which is either a complete object type, an array type whose element type is complete, or a reference type to one of those types. the alignment of a struct is always the maximum alignment of its members. the alignment for basic types are as follows:
 
 |   type        | alignment |
@@ -583,7 +584,7 @@ every object type has the property called alignment requirement, which is an int
 |  double       |     8     |
 |  long double  |     16    |
 
-### 9.2. calculating padding
+## 9.2. calculating padding
 the first member of the struct is always at offset zero. the next element is placed according to its alignment:
 
 __new offset__ = (offset + size) of last element + padding s.t. the offset of new element is divisble by its alignment
@@ -591,25 +592,25 @@ __new offset__ = (offset + size) of last element + padding s.t. the offset of ne
 for example:
 ```cpp
 stuct Test {
-	uint8_t a;
-	uint32_t b;
-	double c;
+    uint8_t a;
+    uint32_t b;
+    double c;
 };
 ```
 | element | size | alignment | (offset + size) of last element | required padding | offset |
 |:-------:|:----:|:---------:|:-------------------------------:|:----------------:|:------:|
 |    a    |   1  |     1     |                0                |         0        |    0   |
 |    b    |   4  |     4     |                1                |         3        |    4   |
-|    c    |   8  |     8     |                8                |         0        |    8   |	
+|    c    |   8  |     8     |                8                |         0        |    8   |    
 
-### 9.3. interalignment of objects
+## 9.3. interalignment of objects
 in addition to the mentioned rule, the compiler may also add extra padding to the end of the struct s.t. the final size of the struct is divisible by its alignment. this is done so that the CPU fetches the correct chunk of memory when handling objects of this type. for example:
 ```cpp
 stuct Test {
-	uint8_t a;
-	uint32_t b;
-	double c;
-	bool d;
+    uint8_t a;
+    uint32_t b;
+    double c;
+    bool d;
 };
 ```
 | element | size | alignment | (offset + size) of last element | required padding | offset |
@@ -622,22 +623,22 @@ stuct Test {
 
 size of `Test` = 24
 
-### 9.4. alignas
+## 9.4. alignas
 `alignas` changes the alignment of a struct, if it is a valid alignment (non zero and a power of 2) and is not weaker than the original alignment.
 ```cpp
 struct alignas(alignof(double)) st_1 {}; // alignof(st_1) = 8
-struct alignas(double) st_2 {};			 // alignof(st_2) = 8
-struct alignas(4) st_3 {				 // alignof(st_3) = 8, alignas ineffective
-	st_2 obj;
+struct alignas(double) st_2 {};          // alignof(st_2) = 8
+struct alignas(4) st_3 {                 // alignof(st_3) = 8, alignas ineffective
+    st_2 obj;
 };
-struct alignas(0) st_4 {				 // alignof(st_3) = 8, alignas ineffective
-	st_2 obj;
+struct alignas(0) st_4 {                 // alignof(st_3) = 8, alignas ineffective
+    st_2 obj;
 };
-struct alignas(7) st_4 {				 // error, invalid alignment
-	st_2 obj;
+struct alignas(7) st_4 {                 // error, invalid alignment
+    st_2 obj;
 };
 ```
-### 9.5. struct packing
+## 9.5. struct packing
 packing is the ordering of the struct members, such that minimal padding is done. struct packing can also be enforced (compiler dependent) using attributes:
 ```cpp
 struct __attribute__((__packed__)) mystruct_A {
@@ -652,7 +653,7 @@ struct mystruct_B {
 };
 ```
 the first struct will be only 6 bytes long while the second one takes 12. unaligned memory access is slower on architectures that allow it (like x86 and amd64), and is explicitly prohibited on strict alignment architectures like SPARC. 
-## 10. CPP lambdas
+# 10. CPP lambdas
 a simple example using `std::foreach` :
 ```cpp
 std::vector<int> v;
@@ -669,7 +670,7 @@ for_each(v.begin(), v.end(), [&evenCount] (int n) {
     }
 });
 ```
-### 10.1. definition
+## 10.1. definition
 lambdas are made of 6 parts : 
 ```cpp
 [] () mutable throw() -> int
@@ -684,7 +685,7 @@ lambdas are made of 6 parts :
 5. trailing-return-type Optional.
 6. lambda body.
 
-#### capture clause
+### capture clause
 A lambda can introduce new variables in its body (in C++14), and it can also access, or capture, variables from the surrounding scope. A lambda begins with the capture clause (lambda-introducer in the Standard syntax), which specifies which variables are captured, and whether the capture is by value or by reference. Variables that have the ampersand `&` prefix are accessed by reference and variables that do not have it are accessed by value. An empty capture clause, `[ ]`, indicates that the body of the lambda expression accesses no variables in the enclosing scope.
 `[&]` means all variables that you refer to are captured by reference, and `[=]` means they are captured by value. You can use a default capture mode, and then specify the opposite mode explicitly for specific variables. For example, if a lambda body accesses the external variable total by reference and the external variable factor by value, then the following capture clauses are equivalent:
 ```cpp
@@ -696,18 +697,18 @@ A lambda can introduce new variables in its body (in C++14), and it can also acc
 [&total, =]
 ```
 in C++14, you can introduce and initialize new variables in the capture clause, without the need to have those variables exist in the lambda function’s enclosing scope. 
-#### parameter list
+### parameter list
 in addition to capturing variables, a lambda can accept input parameters. A parameter list is optional and in most aspects resembles the parameter list for a function. in C++ 14, if the parameter type is generic, you can use the auto keyword as the type specifier.
 ```cpp
 auto y = [](int first, int second) {
     return first + second;
 };
 ```
-#### mutable
+### mutable
 typically, a lambda's function call operator is const-by-value, but use of the mutable keyword cancels this out. It does not produce mutable data members. The mutable specification enables the body of a lambda expression to modify variables that are captured by value. if we don't use `mutable` we'll get a compilation error.
-#### exception specification
+### exception specification
 you can use the noexcept exception specification to indicate that the lambda expression does not throw any exceptions. As with ordinary functions, the compiler generates warning C4297 if a lambda expression declares the noexcept exception specification and the lambda body throws an exception.
-#### return type
+### return type
 the return type of a lambda expression is automatically deduced. You don't have to use the auto keyword unless you specify a trailing-return-type. The trailing-return-type resembles the return-type part of an ordinary method or function. However, the return type must follow the parameter list, and you must include the trailing-return-type keyword `->` before the return type.
 
 You can omit the return-type part of a lambda expression if the lambda body contains just one return statement or the expression does not return a value. If the lambda body contains one return statement, the compiler deduces the return type from the type of the return expression. Otherwise, the compiler deduces the return type to be void.
@@ -716,7 +717,7 @@ auto x1 = [](int i){return i;}; // OK: return type is int
 auto x2 = []{return{1, 2};};    // ERROR: return type is void, deducing
                                 // return type from braced-init-list is not valid
 ```
-#### body
+### body
 The lambda body (compound-statement in the Standard syntax) of a lambda expression can contain anything that the body of an ordinary method or function can contain. The body of both an ordinary function and a lambda expression can access these kinds of variables:
 1. Captured variables from the enclosing scope, as described previously.
 2. Parameters
@@ -732,7 +733,7 @@ int main()
 }
 ```
 The `mutable` specification allows n to be modified within the lambda.
-### 10.2. function pointers
+## 10.2. function pointers
 we can use lambdas wherever a function pointer is needed. e.g. here ForEach function needs a function pointer
 ```cpp
 #include <algorithm>
@@ -776,34 +777,34 @@ int main()
     );
 }
 ```
-### 10.3. std examples
+## 10.3. std examples
 a lot of std functions take lambdas. 
-#### find_if
+### find_if
 ```cpp
 std::vector<int> values = {1,5,4,3,2};
 auto iter = std::find_if(values.begin(), values.end(), [](int value) { return value > 3; });
 std::cout << *iter << std::endl;
 ```
 this finds the first element that is larger than 3, i.e. 5.
-#### sort
+### sort
 ```cpp
 std::vector<int> vec = {10, 21, 3, 19, 32};
 std::sort(vec.begin(), vec.end(), [] (int x, int y) { return x<y ;});
 ```
-#### copy_if
+### copy_if
 ```cpp
 std::vector<int> vec = {10, 21, 3, 19, 32};
 std::vector<int> even_vec;
 std::copy_if(vec.begin(), vec.end(), std::back_inserter(even_vec),
               [] (int x) { return (x%2)==0 ;});
 ```
-#### foreach
+### foreach
 ```cpp
 std::vector<int> vec = {10, 21, 3, 19, 32};
 int sum = 0;
 std::for_each(vec.begin(), vec.end(), [&sum](int x){sum+=x;});
 ```
-#### transform
+### transform
 summing up two vectors:
 ```cpp
 std::vector<int> vec1 = {10, 21, 3, 19, 32};
@@ -812,7 +813,7 @@ std::vector<int> vec3;
 std::transform(vec1.begin(), vec1.end(), vec2.begin(), vec3.begin(),
               [](int x,int y){return x + y;} );
 ```
-### 10.4. recursive lambdas
+## 10.4. recursive lambdas
 by passing the reference of the `std::function` back to its lambda
 ```cpp
 std::function<int(int)> Fib = [&Fib](int n)  {
@@ -820,7 +821,7 @@ std::function<int(int)> Fib = [&Fib](int n)  {
 };
 std::cout << "Fib(4) :" << Fib(4);
 ```
-### 10.5. stateful lambdas
+## 10.5. stateful lambdas
 when values are captured by copy, they are not mutable unless the lambda is defined as one. afterwards they can be used as a state:
 ```cpp
 int main()
@@ -842,7 +843,7 @@ int main()
 }
 ```
 
-## 11. Multi-Threading
+# 11. Multi-Threading
 simple example
 ```cpp
 #include <iostream>
@@ -858,9 +859,9 @@ int main() {
     return 0;
 }
 ```
-#### note
+### note
 threads cannot be copied because the copy constructor is explicitly removed. we can however transfer ownership using `std::move`.
-### 11.1. daemon processes
+## 11.1. daemon processes
 usually it's on the main thread to reclaim the resources allocated to other threads. if a thread is supposed to run for a longer time, we detatch the thread. the c++ runtime library will be responsible for freeing the resources.
 ```
 int main(){
@@ -871,7 +872,7 @@ int main(){
 ```
 a detatched thread is also referred to as a _daemon process_. they may run until system restart. <br>
 after a process has been detatched, it cannot be joined again. to check if it's possible to join a thread, we can use `thread.joinable()`
-### 11.2. passing parameters
+## 11.2. passing parameters
 ```cpp
 #include <iostream>
 #include <thread>
@@ -902,12 +903,12 @@ int main()
 ```
 normally all function parameters are passed by value, even if explicitly defined as reference. to pass the arguement as reference, additionally we have to use `std::ref(arg)`. <br>
 another aproach would be to just share the pointer to the object. if there is no need to share the object between threads, it's good practice to transfer its ownership to the thread using `std::move(arg)`.
-#### note
+### note
 the functor is additionally wrapepd in parentheses because otherwise it could be interpreted as a function declaration. in general anything that can be regarded as function declaration, will.
-### 11.3. oversubscription
+## 11.3. oversubscription
 generally we make as many threads as we have cpu cores. to get a hint about how many is recommended, we can use the value of `std::thread::hardware_concurrency`.
 
-## 12. Mutex
+# 12. Mutex
 to control access to shared resources between threads, we need a control mechanism, namely a mutex. here we control access to `stdout`
 ```cpp
 #include <iostream>
@@ -938,7 +939,7 @@ int main()
 }
 ```
 this code is not _thread-safe_. if the resource access line produces an exception, we will have a locked out mutex. the standard library offers some alternatives.
-### 12.1. lock_guard
+## 12.1. lock_guard
 ```cpp
 void shared_print(string origin, int value) {
     std::lock_guard<std::mutex> guard(mtx);
@@ -951,7 +952,7 @@ typically thread-safe resource management is done with a class where the resourc
 * never return the resource handle
 * never pass the resource handle as an argument to user provided functions
 * design resource interface appropriately
-### 12.2. multiple mutexes
+## 12.2. multiple mutexes
 assuming we have multiple resources and use multiple mutexes to control access, it's very possible to reach a deadlock
 ```cpp
 void shared_access_1(string origin, int value) {
@@ -965,9 +966,9 @@ void shared_access_2(string origin, int value) {
     // access resources
 }
 ```
-#### solution 1
+### solution 1
 always lock the mutexes in the same order
-#### solution 2
+### solution 2
 we can simultaneously lock multiple mutexes using `std::lock`
 ```cpp
 void shared_access(string origin, int value) {
@@ -978,7 +979,7 @@ void shared_access(string origin, int value) {
 }
 ```
 `std::adopt_lock` tells the guards that the mutex is already locked, but it should be unlocked when the guard goes out of scope.
-#### solution 3
+### solution 3
 we can control the guards using arbitrary scopes
 ```cpp
 void shared_access(string origin, int value) {
@@ -992,7 +993,7 @@ void shared_access(string origin, int value) {
     }
 }
 ```
-### 12.3. unique lock
+## 12.3. unique lock
 `unique_lock` provides more flexibility w.r.t `lock_guard` however it's at the cost of performance.
 ```cpp
 void shared_access(string origin, int value) {
@@ -1017,7 +1018,7 @@ void shared_access(string origin, int value) {
 }
 ```
 we can also transfer ownership of `unique_lock`s using `std::move` as opposed to `lock_guard`s.
-#### dealing with lazy initialization
+### dealing with lazy initialization
 when we initialize a resource for the first time when we want to access it, we have lazy initialization. in this case we'd need two mutexes, one for initialization and one for access.
 ```cpp
 class FileAccess
@@ -1052,7 +1053,7 @@ class FileAccess
 };
 ```
 `call_once` will execute the function (or callable object) passed to it only once across several threads.
-### 12.4. sleeping and condition variable
+## 12.4. sleeping and condition variable
 ```cpp
 #include <deque>
 #include <mutex>
@@ -1114,7 +1115,7 @@ this setup would be fine if thread #2  would only wake up by the notification fr
 cond.wait(ulock, [](){ return !queue.empty(); });
 ```
 if we want every thread waiting on the condition variable to wake up, we can use `cond.notify_all()`.
-### 12.5. future
+## 12.5. future
 if we want to get the results back from a child thread, we can share a variable between the child and the parent. however since both might access it, we also need a `mutex`. the parent should access the variable after the child, so we also need a `condtion_variable`. <br>
 even for a simple task, we'd need to have 2 global variables and take care of locking and unlocking the mutex and the condition variable. standard library provides an interface for such cases
 ```cpp
@@ -1133,7 +1134,7 @@ int main()
 }
 ```
 the get function waits until the child thread is done. calling this function twice will cause a crash.
-#### thread or no thread
+### thread or no thread
 the async function takes a parameter that decides whether a thread is made for the function call or not
 ```cpp
 // creates a thread
@@ -1144,7 +1145,7 @@ std::future<int> cmp = std::async(std::launch::deferred, funct, 4);
 std::future<int> cmp = std::async(std::launch::async|std::launch::deferred, funct, 4);
 
 ```
-### 12.6. promise
+## 12.6. promise
 we used future to send a variable from the child thread to the parent. we can do the reverse with a promise
 ```cpp
 #include <future>
@@ -1173,7 +1174,7 @@ if we do not keep our promise (and also don't wait for the return variable), we'
 prm.set_exception(std::make_exception_ptr(std::runtime("oops")));
 ```
 futures and promises cannot be copied, they can only be moved.
-#### many promises
+### many promises
 if our function has to be executed e.g. 10 times, we cannot pass the same `std::future` & `std::promise` to them. one way is to create 10 of each. standard library also provides shared future
 ```cpp
 int funct(std::shared_future<int> sftr) {
@@ -1194,7 +1195,7 @@ int main()
 }
 ```
 a `shared_future` can be copied which means we can also send it to the threads by value.
-### 12.7. callable objects
+## 12.7. callable objects
 the standard library has a uniform interface when it comes to callable objects. e.g. we have a functor A
 ```cpp
 class A {
@@ -1212,22 +1213,22 @@ int main()
     return 0;
 }
 ```
-#### ways to call them
+### ways to call them
 ```cpp 
 int main()
 {
     A a;
-    std::thread t1(a, 6);  		// copy of a() as functor in a different thread
-    std::thread t2(std::ref(a), 6);	// a() as functor in a different thread
-    std::thread t2(std::move(a), 6);	// a() as functor moved to a different thread
-    std::thread t4(A(), 6);		// temporary A moved to a different thread
+    std::thread t1(a, 6);            // copy of a() as functor in a different thread
+    std::thread t2(std::ref(a), 6);  // a() as functor in a different thread
+    std::thread t2(std::move(a), 6); // a() as functor moved to a different thread
+    std::thread t4(A(), 6);          // temporary A moved to a different thread
     std::thread t5([](int x){ return x*x;}, 6);
     std::thread t6(foo, 7);
-    std::thread t7(&A::f, a, 8, 'w');	// copy of a.func(8, 'w') in a different thread
-    std::thread t8(&A::f, &a, 8, 'w');	// a.f(8, 'w') in a different thread
+    std::thread t7(&A::f, a, 8, 'w');    // copy of a.func(8, 'w') in a different thread
+    std::thread t8(&A::f, &a, 8, 'w');   // a.f(8, 'w') in a different thread
 }
 ```
-### 12.8. packaged tasks
+## 12.8. packaged tasks
 tasks that can be package and sent to different functions, objects or threads. tasks can be executed in different contexts from where they were created.
 ```cpp
 int funct(int N) {
@@ -1250,7 +1251,7 @@ std::packaged_task<int()> task(std::bind(funct, 10));
 task();
 ```
 note that this new function object cannot take a parameter anymore because it's already bundled with the function.
-#### why not just use the function object?
+### why not just use the function object?
 ```cpp
 auto func_obj = std::bind(func, 10);
 // some stuff
@@ -1286,14 +1287,14 @@ int main()
 }
 ```
 thread-safe and useless.
-### 12.9. time constraints
-#### thread
+## 12.9. time constraints
+### thread
 ```cpp
 std::this_thread::sleep_for(chrono::milliseconds(3));
 chrono::steady_clock::time_point tp = chrono::steady_clock::now() + chorno::microseconds(4);
 std::this_thread::sleep_until(tp);
 ```
-#### mutex
+### mutex
 ```cpp
 std::unique_lock<std::mutex> ulock(mtx, std::defer_lock);
 ulock.try_lock();
@@ -1301,13 +1302,13 @@ ulock.try_lock_for(chrono::nanoseconds(500));
 ulock.try_lock_until(tp); 
 ```
 `try_lock` returns if it cannot lock the mutex.
-#### condition variable
+### condition variable
 ```cpp
 std::condition_variable cond;
 cond.wait_for(ulock, chrono::microseconds(2));
 cond.wait_until(ulock, tp);
 ```
-#### future
+### future
 ```cpp
 std::future<int> ftr;
 ftr.wait();
@@ -1316,39 +1317,39 @@ ftr.wait_until(tp);
 ```
 the wait function waits until the output of future is read.`ftr.get()` internally calls the wait function.
 
-## 13. OpenCV
+# 13. OpenCV
 uses own types
-#### naming convention
+### naming convention
 types follow the patern `CV_<bit_count><identifier><num_of_channels>` e.g. `CV_8UC3` is 8-bit unsigned char with 3 channels for RGB. `CV_8UC1` is 9-bit unsigned char grayscale. 
 it's better to use `DataType`. e.g. `DataType<uint>::type == CV_8UC1`
-### 13.1. basic matrix type
-#### constructors
+## 13.1. basic matrix type
+### constructors
 ```cpp
 cv::Mat image(rows, cols, DataType, value);
 cv::Mat_<T> image(rows, cols, value);
 ```
-#### initialization
+### initialization
 ```
 cv::Mat iamge = cv::Mat::zeros(10, 10, CV_8UC3);
 using Matf = cv::Mat_<float>;
 Matf image = Matf::zeros(10, 10);
 ```
-#### properties
+### properties
 get type using `image.type()`<br>
 get size with `image.rows`, `image.cols`
-### 13.2. memory management
+## 13.2. memory management
 `cv::Mat` is a shared pointer, although not a `std::shared_ptr`. cloning can be done :
 ```cpp
 cv::Mat image = cv::Mat::zeros(10,10);
 cv::Mat nocopy = image;
 cv::Mat copy = image.clone();
 ```
-#### command line compiling
+### command line compiling
 ```bash
 c++ -std=c++11 -o main main.cpp `pkg-config --libs --cflags opencv`
 ```
-### 13.3. IO
-#### reading images from file
+## 13.3. IO
+### reading images from file
 ```cpp
 Mat imread(const string& file, int mode=1)
 ```
@@ -1362,7 +1363,7 @@ Mat_<unit8_t> i2 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
 std::out << (i1.type == i2.type) << std::endl;
 ```
 it's recommended to use typed matrices. This will help when we're assinging values to individual pixels.
-#### writing images to file
+### writing images to file
 ```cpp
 bool imwrite(const string& file, const Mat& img)
 ```
@@ -1376,9 +1377,9 @@ int main(){
   return 0;
 }
 ```
-#### exr files
+### exr files
 when stroing floating point images, OpenCV expects the values to be in 0-1 range. when storing arbitrary values, there might be cutoffs. to avoid this, we can save to `.exr` files. they will store and read the values as is without losing precision.
-#### showing images
+### showing images
 ```cpp
 void imshow(const string& window_name, const Mat& mat);
 ```
@@ -1392,7 +1393,7 @@ int main(){
   cv::waitKey();
 }
 ```
-### 13.4. vector type
+## 13.4. vector type
 ```cpp
 cv::Vec<Type, SIZE>
 ```
@@ -1404,9 +1405,9 @@ std::cout << mat.at<Vec3b>(5, 4);
 cv::Mat_<Vec3f> matf = cv::Mat_<Vec3f>::zeros(10, 10);
 std::cout << matf.at<Vec3f>(1, 5);
 ```
-#### using wrong types
+### using wrong types
 will not produce bugs, but it will generate unwanted behavior. 
-### 13.5. SIFT descriptors
+## 13.5. SIFT descriptors
 we have `SiftFeatureDetector` to detect the keypoints and `SiftDescriptorExtractor` to compute the descriptors.
 ```cpp
 // detect keypoints
@@ -1420,7 +1421,7 @@ drawKeypoints(input, keypoints, image_with_keypoitns);
 SiftDescriptorExtractor extractor;
 extractor.comput(input, keypoints, descriptors);
 ```
-### 13.6. FLANN
+## 13.6. FLANN
 Fast library for Aproximate Nearest Neighbors. builds K-d tree, searches for neighbors there.
 ```cpp
 // create a kdtree for searching the data
@@ -1433,7 +1434,7 @@ cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
 kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
 ```
 
-## 14. bind
+# 14. bind
 it "binds" parameters to callables and returns a new callable. usually `auto` is used to catch the return type but it can be cast to a `std::function` to pass it around. for better or worse callable objects returned by bind swallow all the extra parameters. bind has a bit of an overhead and in most cases can be replaced with lambdas.
 
 ```cpp
@@ -1441,72 +1442,72 @@ it "binds" parameters to callables and returns a new callable. usually `auto` is
 #include <iostream>
 
 void Print(int i) {
-	std::cout << i << '\n';
+    std::cout << i << '\n';
 }
 int main()
 {
-	int i = 5;
-	auto f = std::bind(&Print, i);
-	f();
+    int i = 5;
+    auto f = std::bind(&Print, i);
+    f();
 }
 ```
-### 14.1. binding with reference
+## 14.1. binding with reference
 ```cpp
 void Print(const int& i) {
-	std::cout << i << '\n';
+    std::cout << i << '\n';
 }
 int main()
 {
-	int i = 5;
-	auto f = std::bind(&Print, i);
-	f();	// 5
-	i = 6;
-	f();	// 5
-	f = std::bind(&Print, std::ref(i));
-	f();	// 5
-	i = 6;
-	f();	// 6
+    int i = 5;
+    auto f = std::bind(&Print, i);
+    f();    // 5
+    i = 6;
+    f();    // 5
+    f = std::bind(&Print, std::ref(i));
+    f();    // 5
+    i = 6;
+    f();    // 6
 }
 ```
-### 14.2. binding arbitrary arguments
+## 14.2. binding arbitrary arguments
 ```cpp
 void Print(const int& i, const std::string& str) {
-	std::cout << i << ' ' << str << '\n';
+    std::cout << i << ' ' << str << '\n';
 }
 int main()
 {
-	int i = 5;
-	auto f = std::bind(&Print, std::ref(i), std::placeholders::_1);
-	f("hi");
+    int i = 5;
+    auto f = std::bind(&Print, std::ref(i), std::placeholders::_1);
+    f("hi");
 }
 ```
-### 14.3. binding with arbitrary order
+## 14.3. binding with arbitrary order
 ```cpp
 void Print(const int& i, const std::string& str) {
-	std::cout << i << ' ' << str << '\n';
+    std::cout << i << ' ' << str << '\n';
 }
 int main()
 {
-	int i = 5;
-	auto f = std::bind(&Print, std::placeholders::_2, std::placeholders::_1);
-	f("hi", 20);
+    int i = 5;
+    auto f = std::bind(&Print, std::placeholders::_2, std::placeholders::_1);
+    f("hi", 20);
 }
 ```
-### 14.4. binding with template functions
+## 14.4. binding with template functions
 ```cpp
 template<typename T>
 void Print(T i, const std::string& str) {
-	std::cout << i << ' ' << str << '\n';
+    std::cout << i << ' ' << str << '\n';
 }
 int main()
 {
-	int i = 5;
-	auto f = std::bind(&Print, std::placeholders::_2, std::placeholders::_1); 		// fails
-	auto f = std::bind(&Print<int>, std::placeholders::_2, std::placeholders::_1);	// works
-	f("hi", 20);
+    int i = 5;
+    auto f = std::bind(&Print, std::placeholders::_2, std::placeholders::_1);         // fails
+    auto f = std::bind(&Print<int>, std::placeholders::_2, std::placeholders::_1);    // works
+    f("hi", 20);
 }
 ```
-### 14.5. bind sucks
+## 14.5. bind sucks
 same thing can be done with a lambda, maybe even with more flexibility. the variadic arg is added to swallow extra args just like bind would. we could also add another argument to be swallowed in the front by adding `auto &&`. doing the same thing with bind is up to 20x slower. it also removes the need to specifiy templates during declaration.
 ```cpp
 template<typename T>
@@ -1515,19 +1516,19 @@ void Print(T i, const std::string& str) {
 }
 int main()
 {
-	int i = 5;
-	const auto f = [] (const std::string &arg1, auto &&arg2, auto &&...) {
-		print(arg2, arg1);
-	};
-	f("hello", i, 5);
-	i = 6;
-	f("hello", i, 5, 2, 1.2f);
+    int i = 5;
+    const auto f = [] (const std::string &arg1, auto &&arg2, auto &&...) {
+        print(arg2, arg1);
+    };
+    f("hello", i, 5);
+    i = 6;
+    f("hello", i, 5, 2, 1.2f);
 }
 ```
 
-## 15. Attributes
+# 15. Attributes
 any code that contains attributes is automatically c++98 incompatible but who cares.
-### 15.1. fallthrough
+## 15.1. fallthrough
 `[[C++17]]` in switch statements we might need to only slightly differentiate between two cases, i.e. do a bunch of stuff for case A and proceed with what we would've done for case B. if they're identical, we won't have any problems but otherwise the compiler issues a fallthrough warning.
 ```cpp
 switch(expression) {
@@ -1539,7 +1540,7 @@ case 2:
     break;
 }
 ```
-### 15.2. unused
+## 15.2. unused
 `[[C++17]]` there are cases where it's possible to have a local variable that is technically unused but not needed. e.g. :
 ```cpp
 int main()
@@ -1548,7 +1549,7 @@ int main()
     assert(i == 6);
 }
 ```
-### 15.3. maybe_unused
+## 15.3. maybe_unused
 `[[C++17]]` there are a couple of ways to deal with unused arguements in a function.
 * don't give it a name
 * comment out the name
@@ -1563,7 +1564,7 @@ functions can also be `[[maybe_unused]]`:
 [[maybe_unused]] void do_nothing() {
 }
 ```
-### 15.4. nodiscard
+## 15.4. nodiscard
 `[[C++17]]` one difference between returned error codes & exceptions is that error codes can be ignored. it is possible to enforce a check and ignoring it requires a lot more effort.
 ```cpp
 [[nodiscard]] int read_file(const char* name, char* buf, int length) {
@@ -1577,8 +1578,8 @@ int main()
 ```
 it can also be applied to structs, classes, enums, unions, etc. 
 
-## 16. CPP14
-### 16.1. exchange
+# 16. CPP14
+## 16.1. exchange
 uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
 ```cpp
 #include <list>
@@ -1586,17 +1587,17 @@ uses move semantics to update a variable and it's history variable efficiently w
 #include <iostream>
 int main() 
 {
-	int var, var_last;
-	while (condition_not_met) {
-		// inefficient
-		var_last = var;
-		var = new_value;
-		// efficient
-		var_last = std::exchange(var, new_value);
-	}
+    int var, var_last;
+    while (condition_not_met) {
+        // inefficient
+        var_last = var;
+        var = new_value;
+        // efficient
+        var_last = std::exchange(var, new_value);
+    }
 }
 ```
-## 16.2. digit separators
+# 16.2. digit separators
 to make numbers more readable, we can use the single quote character:
 ```cpp
 auto binary_var = 0b0001'1010'0010'1100;
@@ -1606,8 +1607,8 @@ auto int_var  = 1'000'000'000;
 ```
 the digit separator is not sepcific to 
 
-## 17. CPP17
-### 17.1. structured bindings
+# 17. CPP17
+## 17.1. structured bindings
 when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
@@ -1615,25 +1616,25 @@ std::tuple<std::string, int> CreatePerson()
   return {"cherno", 48};
 }
 ```
-#### struct
+### struct
 this is the old fashioned way. we'd create a struct containing both types, instead of using tuple.
-#### std::get
+### std::get
 ```cpp
 auto person = CreatePerson();
 std::string name = std::get<0>(person);
 int age = std::get<1>(person);
 ```
-#### std::tie
+### std::tie
 ```cpp
 std::string name;
 int age;
 std::tie(name, age) = CreatePerson();
 ```
-#### structured binding
+### structured binding
 ```cpp
 auto[name, age] = CreatePerson();
 ```
-### 17.2. any
+## 17.2. any
 an experimental feature of C++17, it's a type-safe container that can contain any single object:
 ```cpp
 #include <experimental/any>
@@ -1641,58 +1642,58 @@ an experimental feature of C++17, it's a type-safe container that can contain an
 #include <string>
 int main()
 {
-	std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"));
-	std::cout << vec.size() << '\n';
-	std::cout << std::experimental::fundamentals_v1::any_cast<int>(v[0]) << '`\n';
-	std::cout << std::experimental::fundamentals_v1::any_cast<float>(v[0]) << '`\n'; // throws bad any_cast exception
-	std::cout << vec[1].type().name() << '`\n';
+    std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"));
+    std::cout << vec.size() << '\n';
+    std::cout << std::experimental::fundamentals_v1::any_cast<int>(v[0]) << '`\n';
+    std::cout << std::experimental::fundamentals_v1::any_cast<float>(v[0]) << '`\n'; // throws bad any_cast exception
+    std::cout << vec[1].type().name() << '`\n';
 }
 ```
 the type might require demangling as explained in the `typeid` section. for on-the-fly demangling : `./a.out | c++-filt -t`
 
-#### copy-constructible
+### copy-constructible
 all objects pushed into std::any must be copy constructible. e.g. this wouldn't compile:
 ```cpp
 struct S
 {
-	S(const S &s) = delete; // explicitly deleting copy constructor (implicitely deletes default constructors)
-	S() = default;          // explicitly redefining default constructor
+    S(const S &s) = delete; // explicitly deleting copy constructor (implicitely deletes default constructors)
+    S() = default;          // explicitly redefining default constructor
 };
 int main()
 {
-	std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"), S());
+    std::vector<std::experimental::fundamentals_v1::any> vec(1, 3.4f, 4.01, std::string("hWs"), S());
 }
 
 ```
 implementations are encouraged to avoid dynamic allocations as long as the object is small and `std::is_nothrow_move_constructible`.
-#### copies and references
+### copies and references
 the bracket operator doesn't return a reference as expected. we can only get points :
 ```cpp
 int main()
 {
-	std::vector<std::experimental::fundamentals_v1::any> vec(1, 2);
-	int &i = std::experimental::fundamentals_v1::any_cast<int>(v[0]);   // fails
-	int &i = std::experimental::fundamentals_v1::any_cast<int&>(v[0]);  // fails
-	int *i = std::experimental::fundamentals_v1::any_cast<int>(&v[0]);  // works
+    std::vector<std::experimental::fundamentals_v1::any> vec(1, 2);
+    int &i = std::experimental::fundamentals_v1::any_cast<int>(v[0]);   // fails
+    int &i = std::experimental::fundamentals_v1::any_cast<int&>(v[0]);  // fails
+    int *i = std::experimental::fundamentals_v1::any_cast<int>(&v[0]);  // works
 }
 ```
-### 17.3. if and switch initialization
+## 17.3. if and switch initialization
 it's possible to initialize the expression that is used in an if or switch statement. it lives on for the entire scope of if/else or switch. it's simillar to having opening/closing braces around the entire scope.
 ```cpp
 #include <vector>
 
 int main()
 {
-	std::vector<int> vec{1,2,3,4};
-	if (auto itr = vec.find(2);
-			itr != vec.end()) {
-		*itr = 5;
-	} else {
-		vec.emplace_back(2);
-	}
+    std::vector<int> vec{1,2,3,4};
+    if (auto itr = vec.find(2);
+            itr != vec.end()) {
+        *itr = 5;
+    } else {
+        vec.emplace_back(2);
+    }
 }
 ```
-### 17.4. nested namespaces
+## 17.4. nested namespaces
 to avoid having multiple levels braces for nested namespaces, we can directly use the nested namespace:
 ```cpp
 namespace torch::tensor::float
@@ -1700,7 +1701,7 @@ namespace torch::tensor::float
 
 }
 ```
-### 17.5. has include
+## 17.5. has include
 this macro gives us the ability to check the availability of header files
 ```cpp
 // before C++17
@@ -1718,7 +1719,7 @@ this macro gives us the ability to check the availability of header files
 #include <windows.h>
 #endif
 ```
-### 17.6. aggregate initialization
+## 17.6. aggregate initialization
 C++11 allowed uniform intializations even in the absence of a constructor using `{}`. this however runs into problems if the object we're initializing is from a child class.
 ```cpp
 struct Base
@@ -1739,7 +1740,7 @@ int main()
     Child ch_3{{15.1}, 1, 2.4f};
 }
 ```
-### 17.7. deduction guides
+## 17.7. deduction guides
 we can help the compiler deduce types where it's confused. it has to be in the same namespace:
 ```cpp
 #include <functional>
@@ -1770,7 +1771,7 @@ int main()
     std::function cm_f(&MyClass::const_member_function);
 }
 ```
-### 17.8. enable_if
+## 17.8. enable_if
 can be used to specialize the underlying structure by deducing the template type in conjunction with SFINAE.
 ```cpp
 #include <type_traits>
@@ -1818,12 +1819,12 @@ int main() {
     return 0;
 }
 ```
-### 17.9. constexpr lambdas
+## 17.9. constexpr lambdas
 starting with C++17, lambdas can be defined and used in `constexpr` contexts:
 ```cpp
 constexpr auto l = [](){};
 ```
-### 17.10. string_view
+## 17.10. string_view
 `std::string_view` provides a view into another string without making any copies. read-only standard strings are used often in functions. even if the string can be evaluated at compile time, a copy is made to intialize the string. this can be avoided with `std::string_view`. naturally views can also be created and used in `constexpr` contexts.
 ```cpp
 std::string str1{"check"}; // "check" is in the compiled binary, but is copied at runtime
@@ -1836,27 +1837,27 @@ std::string_view view3{"mate"}; // no copy is created, points to original string
 ```
 `std::string_view` objects can be constructed using an `std::string`, a c-string, `std::string_view` or a string literal. for the first two cases, it is advised not to change the underlying string during the lifetime of the `string_view` to avoid confusions. if the underlying string is destroyed, using the view causes undefined behavior.
 
-#### view window modification
+### view window modification
 in addition to useful functions from `std::string`, string views also implement functions for limiting the view window such as `remove_prefix()` and `remove_suffix()`. similar to standard strings, they keep track of their length and **don't use null termination**.  
 
-#### conversions
+### conversions
 views cannot be implicitly converted to strings but we can do it explicitly:
 ```cpp
 void print(const std::string& ss) {}
 
 std::string_view view{"hi"};
-print(view); 				// compiler error
-std::string str{view};  	      	// okay
-print(static_cast<std::string>(view)); 	// okay
+print(view);                           // compiler error
+std::string str{view};                 // okay
+print(static_cast<std::string>(view)); // okay
 ```
 views can be converted to a c-string through an intermediate `std::string`. if the underlying string is null terminated **and** the view window has not been modified, `std::string_view::data()` can be used a a c-string without the need for conversion. note that string literals are **always** implicitly null terminated.
-### 17.11. class template argument deduction
+## 17.11. class template argument deduction
 starting with cpp17, the template arguments can be implicitly deduced.
 ```cpp
 std::array<int, 5> data{1, 2, 3, 4, 5}; // necessary before C++17
-std::array data{1, 2, 3, 4, 5}; 	// ok as of C++17
+std::array data{1, 2, 3, 4, 5};     // ok as of C++17
 ```
-### 17.12. fold expressions
+## 17.12. fold expressions
 fold expression allows us to unfold variadic template arguments more easily:
 ```cpp
 template<typename ... T>
@@ -1887,29 +1888,9 @@ auto avg(T ... t) {
     return (t + ...) / sizeof...(t);
 }
 ```
-### 17.13. concepts
-for a given template type, a concept defines the syntax requirements for correct compilation and the semantic requirements for correct behavior. before concepts, we would enforce such behavior using SFINAE/type traits, e.g. if we wanted all templated`Body` types to have a `value_type` type alias and a static function called write that takes sepcific arguements:
-```cpp
-// necessary for mapping types to void, availabe since C++17
-template <class...>
-using void_t = void;
-
-// by default, nothing is valid
-template<class B, class = void>
-struct is_valid_body : false_type {};
-
-// catch conditions
-template<class B>
-struct is_valid_body<B, void_t<
-	typename B::value_type,
-	decltype(B::write(declval<std::string>(),
-			  declval<typename B::value_type const&>()),
-	(void)0) // ?, but has to be here
-    >> : true_type {};
-```
-## 18. CPP20
+# 18. CPP20
 TODO: add all the stuff about concepts & generators, constexpr new and delete.
-### 18.1. constexpr vector and string
+## 18.1. constexpr vector and string
 since visual studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
 this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
 
@@ -1917,7 +1898,7 @@ this does not mean that we can have a `constexpr std::vector` or a `constexpr st
 constexpr int get_constexpr_sum() {
     std::vector<int> vec{10, 20, 30, 40};
     if (vec[2] == 30) {
-    	vec.push_back(200);
+        vec.push_back(200);
     }
     return std::accumulate(std::begin(vec), std::end(vec), 0);
 }
@@ -1934,8 +1915,7 @@ int main()
 }
 ```
 the second expression is not allowed because memory allocated inside a `constexpr` context must be freed before leaving said context. it is however possible to create another constexpr context (e.g. a function) that copies that data into a static storage such as `std::array<>`. this still is happening at compile time but we maintain some of the runtime flexibility.
-
-### 18.2. safe integer comparison
+## 18.2. safe integer comparison
 the following snippet happens too often:
 ```cpp
 ...
@@ -1946,7 +1926,7 @@ if (a < b) {
 }
 ```
 if `a` is negative, the condition is always false. probably because `a` gets promoted to `unsigned int`, making it a the maximum possible value. on way around this is to demote `b` to `int` using a `static_cast`. the standard library provides a safer way of comparing different types of integers inside the `<utility>` header. the functions are `std::cmp_equal`,  `std::cmp_not_equal`, `std::cmp_less`, `std::cmp_greater`, `std::cmp_less_equal` and `std::cmp_greater_equal`. they are all constexpr capable and templated for rhs and lhs operands.
-### 18.3. spaceship operator
+## 18.3. spaceship operator
 since c++20, we can ask the compiler to generate all comparison operators for us, given that the struct is basic enough.
 ```cpp
 #include <compare>
@@ -1962,7 +1942,7 @@ we do not have to do anything else. `constexpr` and `noexcept` will be added if 
 this is due to a new concept in c++20 referred to as _rewritten expressions_. `<=>` and `==` are the first applications of this concept. _synthesized expression_ is another concept in c++20 which allows us to avoid having to write a number of friend functions for comparison cases where our struct instance is on rhs. the expression is in these cases *rewritten* in reverse order to see if there is a matching overload. for `==` and `!=` we run into an issue because a deep lexicographic comparison of e.g. strings is not efficient. checking the size must be the first step. this case is also considered by the spaceship operator through a slightly altered rewrite rule.
 
 the new operator will not break old code by choosing the synthesized or rewritten operator over an explicit overload. we can therefor have our special cases where the implementation for a single operator is written separately.
-### 18.4. consteval functions
+## 18.4. consteval functions
 calls to `consteval` or _immediate_ functions must always be evaluated at compile time, as opposed to `constexpr` functions that _can_ be evaluated at compile time. `consteval` functions can only call other `consteval` functions. similarly, non-`consteval` functions are not allowed to enclose `consteval` functions.
 ```cpp
 consteval int f() { return 42; }
@@ -1972,7 +1952,7 @@ constexpr int r = h();  // OK
 constexpr auto e = g(); // ill-formed: a pointer to an immediate function is
                         // not a permitted result of a constant expression
 ```
-### 18.5. is_constant_evaluated
+## 18.5. is_constant_evaluated
 the standard library offers a new type trait **runtime** evaluation functions that determines whether a context has been evaluated at compile-time:
 ```cpp
 int y;
@@ -1990,10 +1970,178 @@ if constexpr (std::is_constant_evaluated()) { // error
     ...
 }
 ```
+## 18.5. concepts
+for a given template type, a concept defines the syntax requirements for correct compilation and the semantic requirements for correct behavior. before concepts, we would enforce such behavior using SFINAE/type traits, e.g. if we wanted all templated `Body` types to have a `value_type` type alias and a static function called write that takes sepcific arguements:
+```cpp
+// necessary for mapping types to void, availabe since C++17
+template <class...>
+using void_t = void;
 
-## 19. CPP23
+// by default, nothing is valid
+template<class B, class = void>
+struct is_valid_body : false_type {};
 
-### 19.1. if consteval
+// catch conditions
+template<class B>
+struct is_valid_body<B, void_t<
+    typename B::value_type,
+    decltype(B::write(declval<std::string>(),
+             std::declval<typename B::value_type const&>()),
+    (void)0) // ?, but has to be here
+    >> : true_type {};
+```
+the syntax and the compilation errors can easily become unreadable. C++17 offers the same level of control using concepts and the `requires` keyword:
+```cpp
+template <typename Body>
+concept valid_body = requires (Body b) {
+    typename Body::value_type;
+    Body::write(std::string{}, typename Body::value_type{});
+};
+```
+a templated function can be limited easily using `requires` and type traits, instead of `std::enable_if`:
+```cpp
+template<typename Float>
+auto add(const Float v1, const Float v2) requires std::is_floating_point_v<Float>
+{
+    return v1 + v2;
+}
+/// OR
+template<typename Float>
+requires std::is_floating_point_v<Float>
+auto add(const Float v1, const Float v2)
+{
+    return v1 + v2;
+}
+```
+the same thing can be achieved with a `concept`:
+```cpp
+template<typename T>
+concept floating_point = std::is_floating_point_v<T>;
+
+template<floating_point Float>
+auto add(const Float v1, const Float v2)
+{
+    return v1 + v2;
+}
+```
+in fact, the above example is rolled out to its former example at compile time, similar to how `auto f(auto p)` is replaced with templates.
+### terse syntax
+we could also use the _terse_ syntax using concepts and `auto` to reduce the range of what `auto` can accept:
+```cpp
+auto add(const floating_point auto v1, const floating_point auto v2)
+{
+    return v1 + v2;
+}
+```
+note that in this version, `v1` and `v2` can have different floating point types. the return type can also be constrained using concepts.
+a variable can also be used in conjunction with concepts in order to force the rvalue into conforming with the concept:
+```cpp
+floating_point auto val = add(2.3, 14.0f);
+```
+### constexpr if
+concepts can be converted to bool. they can therefor be mixed in with `constexpr if` to branch at compile time based on the type:
+```cpp
+template <typename T>
+auto test_something_about_T(T arg)
+{
+    if constexpr(some_concept<T>) {
+        ...
+    } else {
+        ...
+    }
+}
+```
+or we could define a concept on the fly using `requires`:
+```cpp
+auto allocated_size(const auto& container) 
+{
+    if constexpr (requires {container.capacity();})
+        return container.capacity();
+    else
+        return container.size();
+}
+```
+or use them in assertions:
+```cpp
+template <typename Iter>
+struct S
+{
+    static_assert(requires(Iter i){ ++i; }, "no increment");
+};
+```
+### concept list
+**core language concepts**:
+* std::same_as
+* std::derived_from
+* std::convertible_to
+* std::common_reference_with
+* std::common_with
+* std::integral
+* std::signed_integral
+* std::unsigned_integral
+* std::floating_point
+* std::assignable_from
+* std::swappable    
+* std::destructible
+* std::constructible_from
+* std::default_initializable
+* std::move_constructible
+* std::copy_constructible
+
+**comparison concepts**:
+* boolean-testable: a type can be used in boolean test cases
+* std::equality_comparable/equality_comparable_with
+* std::totally_ordered/totally_ordered_with: defined in <compare>
+* std::three_way_comparable/three_way_comparable_with
+
+**object concepts**:
+* std::movable
+* std::copyable
+* std::semiregular: a type can be copied, moved, swapped, and default constructed
+* std::regular: a type is both semiregular and equality_comparable
+
+**callable concepts**:
+* std::invocable/regular_invocable
+* std::predicate
+* std::relation: specifies a binary relation
+* std::equivalence_relation    
+* std::strict_weak_order
+
+### requires requires
+`requires` is used both to define a concept and two define the contraints on a function. in order to define a concept on the fly for a function, we would need something like:
+```cpp
+template <typename FuncObj>
+auto use_function_object(FuncObj obj)
+    requires requires { &FuncObj::operator(); }
+{
+    return obj();
+}
+```
+### more examples
+```cpp
+requires(T v, int i) {
+    { v.f(i) } noexcept -> std::convertible_to<int>;
+}
+```
+```cpp
+requires(Iter it) {
+    typename Iter::value_type;
+    { *it++ } noexcept -> std::same_as<typename Iter::value_type>;
+}
+```
+## 18.6. multiple destructors
+before C++20, we would need a conditional inheritance (using `std::conditional_t`) from different base classes if we wanted to have different destructors based on compile time information (e.g. whether the contained type of a `std::optional` is trivially destructible). With C++20 concepts we can use:
+```
+constexpr ~optional() requires (!std::is_trivially_destructible_v<Type>)
+{
+    if (_initialized)
+        ...
+}
+constexpr ~optional() = default;
+```
+we must note that only 
+# 19. CPP23
+## 19.1. if consteval
 c++20 allowed us to distinguish between the contexts at runtime using `std::is_constant_evaluated()`. this however is a runtime call. that means, we cannot call `consteval` functions within a scope defined by this condition. `if consteval` allows us to check for `consteval` contexts at compile time and therefor enables calling of immediate functions within its local scope:
 ```cpp
 consteval sqr(int s) {
@@ -2024,8 +2172,8 @@ int main()
 }
 ```
 
-## 99. Misc.
-### 99.1. timing
+# 99. Misc.
+## 99.1. timing
 `chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
 the following code measures duration in seconds
 ```cpp
@@ -2045,7 +2193,7 @@ int main()
 }
 ```
 for easier use of sleep functions we can use `chrono_literals`.
-#### structured timing
+### structured timing
 ```cpp
 struct Timer
 {
@@ -2069,7 +2217,7 @@ void Function() {
 }
 ```
 now any function that declares a `Timer` object will be timed.
-### 99.2. variadic templates
+## 99.2. variadic templates
 In C++11 there are two new options, as the Variadic functions reference page in the Alternatives section states:
 * Variadic templates can also be used to create functions that take variable number of arguments. They are often the better choice because they do not impose restrictions on the types of the arguments, do not perform integral and floating-point promotions, and are type safe. (since C++11)
 * If all variable arguments share a common type, a std::initializer_list provides a convenient mechanism (albeit with a different syntax) for accessing variable arguments.
@@ -2115,7 +2263,7 @@ void func(T, Args...) [T = double, Args = <char, std::basic_string<char>>]: 2.5
 void func(T, Args...) [T = char, Args = <std::basic_string<char>>]: a
 void func(T) [T = std::basic_string<char>]: Hello
 ```
-### 99.3. next
+## 99.3. next
 gets the next iterator. for vector, we can directly increment the iterator because they're random access. list on the other hand isn't.
 
 ```cpp
@@ -2129,7 +2277,7 @@ int main()
     std::cout << std::is_sorted(std::next(begin(lst)), std::end(lst)) << '\n';  // true
 }
 ```
-### 99.4. type traits
+## 99.4. type traits
 used to infer information about the underlying template type. they're usually implemented using template specialization. the boolean value can be further used in the standard library, or statically analyzed e.g. using `if constexpr`.
 ```cpp
 namespace algo
@@ -2149,8 +2297,8 @@ struct uses_A<algo::A>
     static const bool value = true;
 };
 ```
-### 99.5. preprocessor directives
-#### predefined
+## 99.5. preprocessor directives
+### predefined
 ```cpp
 int main()
 {
@@ -2162,19 +2310,19 @@ int main()
   return 0;
 }
 ```
-#### line control
+### line control
 ```cpp
 #line 20 "assigning variable"
 int a?;
 ```
 this code will generate an error that will be shown as error in file "assigning variable", line 20.
-#### error directives
+### error directives
 ```cpp
 #ifndef __cplusplus
 #error A C++ compiler is required!
 #endif
 ```
-#### macros
+### macros
 ```cpp
 #define WAIT std::cin.get();
 #ifdef DEBUG
@@ -2187,7 +2335,7 @@ int main(){
     LOG("hello");
 }
 ```
-### 99.6. hidden namespaces
+## 99.6. hidden namespaces
 ```cpp
 namespace multiply
 {
@@ -2212,9 +2360,9 @@ namespace multiply
 }
 ```
 calc is hidden from the user. const values are also better defined in a nameless namespace in the same cpp file.
-### 99.7. string streams
+## 99.7. string streams
 c++ equivalent of sprintf. also good for reverse sprintf.
-#### writing
+### writing
 ```cpp
 #include <sstream>
 stringstream sstr;
@@ -2224,11 +2372,11 @@ std::string str = "hi";
 sstr << i << str << d;
 std::cout << sstr.str();
 ```
-#### clearing
+### clearing
 ```cpp
 sstr.str("")
 ```
-#### reading
+### reading
 ```cpp
 int i;
 double d;
@@ -2236,7 +2384,7 @@ std::string str;
 stringstream sstr("23times5.4");
 sstr>> i >> str >> d;
 ```
-### 99.8. type punning
+## 99.8. type punning
 low level access in c++ to cast any object of any type to any other type. e.g. we could use it to pass a class object as a byte array and then just read/write it.
 ```cpp
 int main() {
@@ -2262,7 +2410,7 @@ int main() {
 }
 ```
 this also writes to memory that's not ours and will probably crash.
-#### useful stuff
+### useful stuff
 ```cpp
 #include <iostream>
 struct Entity {
@@ -2278,12 +2426,12 @@ int main() {
 }
 ```
 this struct is basically just a byte in the memory.
-### 99.9. nothrow
+## 99.9. nothrow
 ```cpp
 int *ptr = new (nothrow) int[1000000000];
 if (ptr == nullptr) std::cout << "producing null pointer instead of runtime exception";
 ```
-### 99.10. weird array indexing
+## 99.10. weird array indexing
 i don't know why.
 ```cpp
 int main()
