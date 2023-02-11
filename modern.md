@@ -1,4 +1,4 @@
-# C++ Reference ([Part 1](https://github.com/hos-b/cpp-ref))
+# C++ Reference ([Part 1](README.md))
 
 1. [Parallel Algorithms](#1-parallel-algorithms)<br>
   1.1. [more on par_unseq](#11-more-on-par_unseq)
@@ -98,6 +98,8 @@
   18.3. [spaceship operator](#183-spaceship-operator)<br>
   18.4. [consteval functions](#184-consteval-functions)<br>
   18.5. [concepts](#185-concepts)<br>
+  18.6. [multiple destructors](#186-multiple-destructors)<br>
+  18.7. [coroutines](coroutines.md)<br>
 19. [C++23](#19-cpp23)<br>
   19.1. [if consteval](#191-if-consteval)<br>
 99. [Misc.](#99-misc.)<br>
@@ -2139,7 +2141,7 @@ constexpr ~optional() requires (!std::is_trivially_destructible_v<Type>)
 }
 constexpr ~optional() = default;
 ```
-we must note that only 
+only one of these destructors must be available after compilation.
 # 19. CPP23
 ## 19.1. if consteval
 c++20 allowed us to distinguish between the contexts at runtime using `std::is_constant_evaluated()`. this however is a runtime call. that means, we cannot call `consteval` functions within a scope defined by this condition. `if consteval` allows us to check for `consteval` contexts at compile time and therefor enables calling of immediate functions within its local scope:

@@ -1,4 +1,4 @@
-# C++ Reference ([Part 2](https://github.com/hos-b/cpp-ref/blob/master/modern.md))
+# C++ Reference ([Part 2](modern.md))
 1. [Types and Stuff](#1-types-and-stuff)<br>
   1.1. [decltype and auto](#11-decltype-and-auto)<br>
   1.2. [declval](#12-declval)<br>
