@@ -417,7 +417,7 @@ Coroutine f1()
 ```
 this would hand over control to the other coroutine if available, otherwise it wakes itself up. it has to wake itself up, because we explicitly wanted to wait on the other coroutine (using the `Transfer` awaitable), which is not available.
 
-further reading: it is possible to have a `ReturnType` that is also an `Awaitable` (coroutine inside a coroutine?).
+further reading: it is possible to have a `ReturnType` that is also an `Awaitable`. Coroutine A calls `co_await` on coroutine B which has overloaded the `co_await` operator. it returns an `Awaitable` which stores A's `coroutine_handle` inside its `await_suspend` and returns the expected value back to A using its `await_resume`. 
 
 ## 2.9. notes
 * always use `std::suspend_always` for the `final_suspend` and destroy the coroutine through its handle. there is no clean way of actually checking whether the coroutine has been destroyed. if `destroy()` is not called, the only other way is for the control to fall off the coroutine body, which is not a reliable way of memory management, unless we use a smart pointer.
