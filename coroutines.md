@@ -383,7 +383,7 @@ NewNumberAwaitable yield_value(int i) {
     return NewNumberAwaitable{i};
 }
 ```
-which will let us use `co_await i1`. is it necessary to create the new object if we're already inside the `promise_type`? nope:
+which will let us use `co_yield i1`. is it necessary to create the new object if we're already inside the `promise_type`? nope:
 ```cpp
 std::suspend_always prmoise_type::yield_value(int i)
 {
