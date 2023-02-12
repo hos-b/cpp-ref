@@ -338,7 +338,7 @@ int main()
 ```
 the `co_await` call suspends the coroutine and return control back to main. the `provide` function from the `ReturnType` stores the provided data somewhere inside the `promise_type` and wakes the coroutine. 
 ```cpp
-void Coroutine::proive(int value)
+void Coroutine::provide(int value)
 {
     handle.promise().value = value;
     handle.resume();
@@ -420,4 +420,4 @@ this would hand over control to the other coroutine if available, otherwise it w
 further reading: it is possible to have a `ReturnType` that is also an `Awaitable` (coroutine inside a coroutine?).
 
 ## 2.9. notes
-* always use `std::suspend_always` for the `final_suspend` and destroy the coroutine through its handle. there is no clean way of actually checking whether the coroutine has been destroyed. if `destroy()` is not called, the only other way is for the control to fall off the coroutine body, which is not a reliable way of memory management. 
+* always use `std::suspend_always` for the `final_suspend` and destroy the coroutine through its handle. there is no clean way of actually checking whether the coroutine has been destroyed. if `destroy()` is not called, the only other way is for the control to fall off the coroutine body, which is not a reliable way of memory management, unless we use a smart pointer.
