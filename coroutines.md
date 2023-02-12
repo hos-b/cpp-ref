@@ -155,7 +155,7 @@ struct Awaitable
 };
 ```
 1. `await_ready`: decides whether we go into suspension by returning a the readiness flag, i.e. `true` = the info is ready, do not suspend and do not call `await_resume()`.
-2. `await_suspend`: executed shortly before we go into suspension. it takes as its argument the coroutine handle, which can be thought of a raw pointer to the coroutine frame. it's templated but can also be used without a type (`<>`), s.t. it can refer to any coroutine. if we use the specialization, it means that the awaitable can only work with coroutines that use a speicifc `promise_type`. it is very rare that we leave open what coroutine `co_await`s on our `Awaitable`.
+2. `await_suspend`: executed shortly before we go into suspension. it takes as its argument the `coroutine_handle` of the coroutine that called the `co_await`. it's templated but can also be used without a type (`<>`), s.t. it can refer to any coroutine. if we use the specialization, it means that the awaitable can only be waited upon by coroutines that use a specific `promise_type`. it is possible that we would want to leave open what coroutines `co_await` on our `Awaitable`.
 3. `await_resume`: this is the function that gets called **right before** the coroutine retakes the control.
 
 ### mind blown
