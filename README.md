@@ -164,6 +164,18 @@ union mix_t
     char c[4];
 }mix;
 ```
+union trivia:
+- a union always has the size of its largest member
+- unions can have constructors and destructors since C++11
+  - there is no way of knowing whether a union member was constructed
+  - it is therefor impossible to get the destructor right using information just within the union :) proposal pending
+- unions can also have member functions and operator overloading
+- a union can have at most one active member at a time. there is no default member
+  - accessing a non-active member is undefined behavior
+- wrapping an object inside a (nameless) union can delay its initialization, e.g. `union UT { std::string s; }`
+  - `s` will remain inactive until it is constructed, which is "impossibe" the normal way
+  - such objects can be constructed using placement new: `new (&ut.s) std::string();`
+  - or since C++23: `std::construct_at(&ut.s);`
 ## 1.5. enums
 ```cpp
 //numbered starting from 0
