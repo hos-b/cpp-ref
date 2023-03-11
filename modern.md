@@ -101,7 +101,11 @@
   18.6. [multiple destructors](#186-multiple-destructors)<br>
   18.7. [coroutines](coroutines.md)<br>
 19. [C++23](#19-cpp23)<br>
-  19.1. [if consteval](#191-if-consteval)<br>
+  19.1. [deducing this](#191-deducing-this)<br>
+  19.2. [std::expected](#192-std-expected)<br>
+  19.3. [std::mdspan](#193-std-mdspan)<br>
+  19.4. [formatted output library](#194-formatted-output-library)<br>
+  19.5. [if consteval](#195-if-consteval)<br>
 99. [Misc.](#99-misc.)<br>
   99.1. [timing](#991-timing)<br>
   99.2. [variadic templates](#992-variadic-templates)<br>
@@ -1891,7 +1895,7 @@ auto avg(T ... t) {
 }
 ```
 # 18. CPP20
-TODO: add all the stuff about concepts & generators, constexpr new and delete.
+TODO: constexpr new and delete.
 ## 18.1. constexpr vector and string
 since visual studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
 this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
@@ -2143,7 +2147,132 @@ constexpr ~optional() = default;
 ```
 only one of these destructors must be available after compilation.
 # 19. CPP23
-## 19.1. if consteval
+## 19.1. deducing this
+we can now pass the deduced _self_ type as an argument to each member function. one use is to remove repitions in code, e.g.:
+```cpp
+struct T
+{
+    T& value() &;
+    T&& value() &&;
+    T& value() const &;
+    T&& value() const &&;
+}
+```
+can now be replace with:
+```cpp
+struct T
+{
+    template <typename Self>
+    auto&& value(this Self&& self);
+    // or simply
+    auto&& value(this auto&& self);
+}
+```
+### CRTP
+it helps simplify CRTP to the point where the `static_cast` to the derived type becomes unnecessary, since we can just deduce `this`. it also makes templated inheritance from the base unnecessary, which is not always optimal, because now the derived classes can be cast to (non-templated) base.
+### recursive lambdas
+can now do this:
+```cpp
+auto factorial = [](this auto&& self, int) {
+    if (i == 0)
+        return 1;
+    return i * self(i - 1);
+};
+```
+## 19.2. std::expected
+it's like an optional variant that either returns an expected type, or an error type:
+```cpp
+std::expected<double, parse_error> parse_double(std::string_view& str)
+{
+    const char* begin = str.data();
+    char* end;
+    double parsed = std::strtod(begin, &end);
+    if (begin == end)
+        return std::unexpected(parse_error{"invalid_char"});
+    else if (parsed == INF)
+        return std::unexpected(parse_error{"too large"});
+
+    str.remove_prefix(end - begin);
+    return parsed;
+}
+...
+auto result = parse_double(...);
+std::cout << *result;            // UB if it contains an error
+std::cout << result.value();     // throws if it contains an error
+std::cout << result.value_or(0); // nice
+std::cout << result.error();     // UB if no error
+```
+it's a nice way of avoiding the overhead of try-catch. it can also be mixed in with std::variant:
+```cpp
+auto getWidget() -> std::expected<Widget, std::variant<ParseError, IOError, NetworkError>>;
+template <typename... Ts>
+struct overload : Ts... { using Ts::operator()...; };
+...
+
+auto widget = getWidget();
+if (widget) {
+    process(*widget);
+} else {
+    std::visit(overload {
+        [](ParseError& error) {
+            // handle code
+        },
+        [](IOError& error) {
+            // handle code
+        },
+        [](NetworkError& error) {
+            // handle code
+        },
+    }, widget.error());
+}
+```
+## 19.3. std::mdspan
+it introduces multi-dimensional array support into the standard library. assuming we have already allocated the memory:
+
+```cpp
+int nx = 5, ny = 5, nz = 3;
+double *data = ...;
+
+std::mdspan data3d(data, nx, ny, nz);
+
+for (int i = 0; i < nx; ++i)
+    for (int j = 0; j < ny; ++j)
+        for (int k = 0; k < nz; ++k)
+            data3rd[i, j, k] = ...;
+
+```
+it is non-owning, can handle static, dynamic and mixed extents and uses the available optimizations based on the type:
+```cpp
+using IndexType = int;
+int nz = ...;
+double* data = ...;
+
+std::extents<IndexType, 4, 4, std::dynamic_extent> exts(nz);
+std::mdspan data3d(data, exts);
+// or
+std::mdspan<double, std::extents<int, 4, 4, std::dynamic_extent>> data3d(data, nz);
+```
+if we only have dynamic extents, we can use `std::dextents<IndexType, size_t NDim>`.
+
+`std::mdspan` takes 4 templated arguements:
+```cpp
+templat <
+typename T,
+typename Extents,
+typename LayoutPolicy = std::layout_right,
+typename AcessorPolicy = std::default_accessor<T>>
+
+```
+### layout policy
+the layout policy defines how the given indices translate into memory locations. `std::layout_right` is the cstyle row major, where the right-most dimension is contiguous and therefor the fastest and similarly `std::layout_left` is the fortran-style column-major with the left-most dimension being contiguous. the layout policy is however arbitrary and can be customized, e.g. for symmetric matrices s.t. we don't save all elements.
+
+### accessor policy
+this decides how the element is accessed once found using the layout policy. the default returns a reference.
+
+## 19.4. formatted output library
+we finally get `std::print` which has the same syntax as `std::format`. it correctly handles unicode characters by calling the native unicode API of the underlying terminal, if it is writing to one. by default it writes to `stdout` which can be changed just by passing another stream to it, like `stderr`.
+
+## 19.5. if consteval
 c++20 allowed us to distinguish between the contexts at runtime using `std::is_constant_evaluated()`. this however is a runtime call. that means, we cannot call `consteval` functions within a scope defined by this condition. `if consteval` allows us to check for `consteval` contexts at compile time and therefor enables calling of immediate functions within its local scope:
 ```cpp
 consteval sqr(int s) {
