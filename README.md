@@ -19,7 +19,9 @@
   3.2. [member initialization](#32-member-initialization)<br>
   3.3. [static members](#33-static-members)<br>
   3.4. [const objects and functions](#34-const-objects-and-functions)<br>
-  3.5. [template specialization](#35-template-specialization)
+  3.5. [template specialization](#35-template-specialization)<br>
+  3.6. [template instantiation](#36-template-instantiation)<br>
+  3.7. [extern templates](#37-extern-templates)
 4. [Inheritance](#4-inheritance)<br>
   4.1. [friend functions and classes](#41-friend-functions-and-classes)<br>
   4.2. [access specifiers](#42-access-specifiers)<br>
@@ -461,7 +463,48 @@ public:
 };
 ```
 notice that we precede the class name with `template<>` with an empty parameter list. this is because all types are known and no template arguments are required for this specialization, but still, it is the specialization of a class template, and thus it requires to be noted as such. when we declare specializations for a template class, we must also define all its members, even those identical to the generic template class, because there is no "inheritance" of members from the generic template to the specialization.
-
+## 3.6. template instantiation
+explicit instantiation can be used when the templated type or function is declared inside a header and defined inside a source file. having only access to the header, a separate translation unit cannot instantiate a template at compile time. one must explicitly instantiate the templated type or function where it is defined, so that it can provide the symbols during linkage.
+```cpp
+// header.hpp
+struct Test
+{
+    template <typename T>
+    T get_default_value();
+};
+// template.cpp
+template <typename T>
+T get_default_value() {
+    return T{};
+}
+/* explicit instantiation for int */
+template int Test::get_default_value();
+// main.cpp
+#include "header.hpp"
+int main()
+{
+    Test t;
+    auto fdef = t.get_default_value<float>(); // undefined reference
+    auto idef = t.get_default_value<int>();   // works
+}
+```
+## 3.7. extern templates
+for templated functions or types that require a considerable amount of compilation time, we can defer the instantiation to another translation unit by using the `extern` keyword. the instantation may be a normal use that would lead to implicit instantation, or an explicit instantiation:
+```cpp
+// header.hpp
+template <typename T>
+T large_function() {
+    ...
+}
+// file1.cpp
+bool some_test() {
+    ...
+    /* compiles large_function<double> */
+    return large_function<double>() > 0;
+}
+// file2.cpp
+extern template double large_function<double>();
+```
 # 4. Inheritance
 ## 4.1. friend functions and classes
 a non-member function can access the private and protected members of a class if it is declared a friend of that class. that is done by including a declaration of this external function within the class, and preceding it with the keyword friend.
