@@ -2148,7 +2148,7 @@ constexpr ~optional() = default;
 only one of these destructors must be available after compilation.
 # 19. CPP23
 ## 19.1. deducing this
-we can now pass the deduced _self_ type as an argument to each member function. one use is to remove repitions in code, e.g.:
+we can now pass the deduced _self_ type as an argument to each member function. one use is to remove repetitions in code, e.g.:
 ```cpp
 struct T
 {
@@ -2158,7 +2158,7 @@ struct T
     T&& value() const &&;
 }
 ```
-can now be replace with:
+can now be replaced with:
 ```cpp
 struct T
 {
