@@ -106,6 +106,7 @@
   19.3. [std::mdspan](#193-std-mdspan)<br>
   19.4. [formatted output library](#194-formatted-output-library)<br>
   19.5. [if consteval](#195-if-consteval)<br>
+  19.6. [enumerate](#196-enumerate)<br>
 99. [Misc.](#99-misc.)<br>
   99.1. [timing](#991-timing)<br>
   99.2. [variadic templates](#992-variadic-templates)<br>
@@ -2302,7 +2303,14 @@ int main()
     return 0;
 }
 ```
-
+## 19.6. enumerate
+finally:
+```cpp
+std::array<std::string, 5> data{"this", "is", "now", "possible", "!"};
+for (const auto [index, str] : data | std::ranges::views::enumerate) {
+    std::cout << index << ": " << str << "\n";
+}
+```
 # 99. Misc.
 ## 99.1. timing
 `chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
