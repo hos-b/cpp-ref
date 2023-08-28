@@ -2303,6 +2303,7 @@ int main()
     return 0;
 }
 ```
+
 ## 19.6. enumerate
 finally:
 ```cpp
@@ -2311,6 +2312,7 @@ for (const auto [index, str] : data | std::ranges::views::enumerate) {
     std::cout << index << ": " << str << "\n";
 }
 ```
+
 # 99. Misc.
 ## 99.1. timing
 `chrono` is a platform independent mechanism for timing introduced to the standard library after C++11. <br>
