@@ -59,54 +59,55 @@
   12.7. [callable objects](#127-callable-objects)<br>
   12.8. [packaged tasks](#128-packaged-tasks)<br>
   12.9. [time constraints](#129-time-constraints)
-13. [OpenCV](#13-opencv)<br>
-  13.1. [basic matrix type](#131-basic-matrix-type)<br>
-  13.2. [memory management](#132-memory-management)<br>
-  13.3. [IO](#133-io)<br>
-  13.4. [vector type](#134-vector-type)<br>
-  13.5. [SIFT descriptors](#135-sift-descriptors)<br>
-  13.6. [FLANN](#136-flann)
-14. [bind](#14-bind)<br>
-  14.1. [binding with reference](#141-binding-with-reference)<br>
-  14.2. [binding arbitrary arguments](#142-binding-arbitrary-arguments)<br>
-  14.3. [binding with arbitrary order](#143-binding-with-arbitrary-order)<br>
-  14.4. [binding with template functions](#144-binding-with-template-functions)
-15. [Attributes](#15-attributes)<br>
-  15.1. [fallthrough](#151-fallthrough)<br>
-  15.2. [unused](#152-unused)<br>
-  15.3. [maybe_unused](#153-maybe_unused)<br>
-  15.4. [nodiscard](#154-nodiscard)
-16. [C++14](#16-cpp14)<br>
-  16.1. [exchange](#161-exchange)<br>
-  16.2. [digit separators](#162-digit-separators)
-17. [C++17](#17-cpp17)<br>
-  17.1. [structured bindings](#171-structured-bindings)<br>
-  17.2. [any](#172-any)<br>
-  17.3. [if and switch initialization](#173-if-and-switch-initialization)<br>
-  17.4. [nested namespaces](#174-nested-namespaces)<br>
-  17.5. [has include](#175-has-include)<br>
-  17.6. [aggregate initialization](#176-aggregate-initialization)<br>
-  17.7. [deduction guides](#177-deduction-guides)<br>
-  17.8. [enable_if](#178-enable_if)<br>
-  17.9. [constexpr lambdas](#179-constexpr-lambdas)<br>
-  17.10. [string_view](#1710-string_view)<br>
-  17.11. [class template argument deduction](#1711-class-template-argument-deduction)<br>
-  17.12. [fold expressions](#1712-fold-expressions)<br>
-18. [C++20](#18-cpp20)<br>
-  18.1. [constexpr vector and string](#181-constexpr-vector-and-string)<br>
-  18.2. [safe integer comparison](#182-safe-integer-comparison)<br>
-  18.3. [spaceship operator](#183-spaceship-operator)<br>
-  18.4. [consteval functions](#184-consteval-functions)<br>
-  18.5. [concepts](#185-concepts)<br>
-  18.6. [multiple destructors](#186-multiple-destructors)<br>
-  18.7. [coroutines](coroutines.md)<br>
-19. [C++23](#19-cpp23)<br>
-  19.1. [deducing this](#191-deducing-this)<br>
-  19.2. [std::expected](#192-std-expected)<br>
-  19.3. [std::mdspan](#193-std-mdspan)<br>
-  19.4. [formatted output library](#194-formatted-output-library)<br>
-  19.5. [if consteval](#195-if-consteval)<br>
-  19.6. [enumerate](#196-enumerate)<br>
+13. [bind](#13-bind)<br>
+  13.1. [binding with reference](#131-binding-with-reference)<br>
+  13.2. [binding arbitrary arguments](#132-binding-arbitrary-arguments)<br>
+  13.3. [binding with arbitrary order](#133-binding-with-arbitrary-order)<br>
+  13.4. [binding with template functions](#134-binding-with-template-functions)<br>
+  13.5. [bind sucks](#135-bind-sucks)<br>
+14. [Attributes](#14-attributes)<br>
+  14.1. [fallthrough](#141-fallthrough)<br>
+  14.2. [unused](#142-unused)<br>
+  14.3. [maybe_unused](#143-maybe_unused)<br>
+  14.4. [nodiscard](#144-nodiscard)
+15. [C++14](#15-cpp14)<br>
+  15.1. [exchange](#151-exchange)<br>
+  15.2. [digit separators](#152-digit-separators)
+16. [C++17](#16-cpp17)<br>
+  16.1. [structured bindings](#161-structured-bindings)<br>
+  16.2. [any](#162-any)<br>
+  16.3. [if and switch initialization](#163-if-and-switch-initialization)<br>
+  16.4. [nested namespaces](#164-nested-namespaces)<br>
+  16.5. [has include](#165-has-include)<br>
+  16.6. [aggregate initialization](#166-aggregate-initialization)<br>
+  16.7. [deduction guides](#167-deduction-guides)<br>
+  16.8. [enable_if](#168-enable_if)<br>
+  16.9. [constexpr lambdas](#169-constexpr-lambdas)<br>
+  16.10. [string_view](#1610-string_view)<br>
+  16.11. [class template argument deduction](#1611-class-template-argument-deduction)<br>
+  16.12. [fold expressions](#1612-fold-expressions)<br>
+17. [C++20](#17-cpp20)<br>
+  17.1. [constexpr vector and string](#171-constexpr-vector-and-string)<br>
+  17.2. [safe integer comparison](#172-safe-integer-comparison)<br>
+  17.3. [spaceship operator](#173-spaceship-operator)<br>
+  17.4. [consteval functions](#174-consteval-functions)<br>
+  17.5. [concepts](#175-concepts)<br>
+  17.6. [multiple destructors](#176-multiple-destructors)<br>
+  17.7. [coroutines](coroutines.md)<br>
+18. [C++23](#18-cpp23)<br>
+  18.1. [deducing this](#181-deducing-this)<br>
+  18.2. [std::expected](#182-std-expected)<br>
+  18.3. [std::mdspan](#183-std-mdspan)<br>
+  18.4. [formatted output library](#184-formatted-output-library)<br>
+  18.5. [if consteval](#185-if-consteval)<br>
+  18.6. [enumerate](#186-enumerate)<br>
+98. [OpenCV](#98-opencv)<br>
+  98.1. [basic matrix type](#981-basic-matrix-type)<br>
+  98.2. [memory management](#982-memory-management)<br>
+  98.3. [IO](#983-io)<br>
+  98.4. [vector type](#984-vector-type)<br>
+  98.5. [SIFT descriptors](#985-sift-descriptors)<br>
+  98.6. [FLANN](#986-flann)
 99. [Misc.](#99-misc.)<br>
   99.1. [timing](#991-timing)<br>
   99.2. [variadic templates](#992-variadic-templates)<br>
@@ -660,7 +661,7 @@ struct mystruct_B {
 };
 ```
 the first struct will be only 6 bytes long while the second one takes 12. unaligned memory access is slower on architectures that allow it (like x86 and amd64), and is explicitly prohibited on strict alignment architectures like SPARC. 
-# 10. CPP lambdas
+# 10. CPP Lambdas
 a simple example using `std::foreach` :
 ```cpp
 std::vector<int> v;
@@ -1324,124 +1325,7 @@ ftr.wait_until(tp);
 ```
 the wait function waits until the output of future is read.`ftr.get()` internally calls the wait function.
 
-# 13. OpenCV
-uses own types
-### naming convention
-types follow the patern `CV_<bit_count><identifier><num_of_channels>` e.g. `CV_8UC3` is 8-bit unsigned char with 3 channels for RGB. `CV_8UC1` is 9-bit unsigned char grayscale. 
-it's better to use `DataType`. e.g. `DataType<uint>::type == CV_8UC1`
-## 13.1. basic matrix type
-### constructors
-```cpp
-cv::Mat image(rows, cols, DataType, value);
-cv::Mat_<T> image(rows, cols, value);
-```
-### initialization
-```
-cv::Mat iamge = cv::Mat::zeros(10, 10, CV_8UC3);
-using Matf = cv::Mat_<float>;
-Matf image = Matf::zeros(10, 10);
-```
-### properties
-get type using `image.type()`<br>
-get size with `image.rows`, `image.cols`
-## 13.2. memory management
-`cv::Mat` is a shared pointer, although not a `std::shared_ptr`. cloning can be done :
-```cpp
-cv::Mat image = cv::Mat::zeros(10,10);
-cv::Mat nocopy = image;
-cv::Mat copy = image.clone();
-```
-### command line compiling
-```bash
-c++ -std=c++11 -o main main.cpp `pkg-config --libs --cflags opencv`
-```
-## 13.3. IO
-### reading images from file
-```cpp
-Mat imread(const string& file, int mode=1)
-```
-modes<br>
-* unchanged   `CV_LOAD_IMAGE_UNCHANGED < 0`
-* 1 channel   `CV_LOAD_IMAGE_GRAYSCALE == 0`
-* 3 channels  `CV_LOAD_IMAGE_COLOR > 0`
-```cpp
-Mat i1 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
-Mat_<unit8_t> i2 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
-std::out << (i1.type == i2.type) << std::endl;
-```
-it's recommended to use typed matrices. This will help when we're assinging values to individual pixels.
-### writing images to file
-```cpp
-bool imwrite(const string& file, const Mat& img)
-```
-simple type conversion
-```cpp
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-int main(){
-  cv::Mat image = imread("logo.png", CV_LOAD_IMAGE_COLOR);
-  cv::imwrite("copy.jpg", image);
-  return 0;
-}
-```
-### exr files
-when stroing floating point images, OpenCV expects the values to be in 0-1 range. when storing arbitrary values, there might be cutoffs. to avoid this, we can save to `.exr` files. they will store and read the values as is without losing precision.
-### showing images
-```cpp
-void imshow(const string& window_name, const Mat& mat);
-```
-use 
-```cpp
-#include <opencv2/opencv.hpp>
-int main(){
-  cv::Mat mat = cv::imread(...);
-  cv::namedWindow("window", cv::WINDOW_AUTOSIZE);
-  cv::imshow("window", mat);
-  cv::waitKey();
-}
-```
-## 13.4. vector type
-```cpp
-cv::Vec<Type, SIZE>
-```
-many typedefs available, e.g. `Vec3f`, `Vec3b`, etc. used ofr pixels in multidimensional images :
-```cpp
-cv::Mat mat = cv::Mat::zeros(10, 10, CV_8UC3);
-std::cout << mat.at<Vec3b>(5, 4);
-
-cv::Mat_<Vec3f> matf = cv::Mat_<Vec3f>::zeros(10, 10);
-std::cout << matf.at<Vec3f>(1, 5);
-```
-### using wrong types
-will not produce bugs, but it will generate unwanted behavior. 
-## 13.5. SIFT descriptors
-we have `SiftFeatureDetector` to detect the keypoints and `SiftDescriptorExtractor` to compute the descriptors.
-```cpp
-// detect keypoints
-SiftFeatureDetector detector;
-vector<KeyPoint> keypoints;
-decetor.detect(input, keypoints);
-// show keypoints
-cv::Mat image_with_keypoints;
-drawKeypoints(input, keypoints, image_with_keypoitns);
-// extract SIFT descriptors
-SiftDescriptorExtractor extractor;
-extractor.comput(input, keypoints, descriptors);
-```
-## 13.6. FLANN
-Fast library for Aproximate Nearest Neighbors. builds K-d tree, searches for neighbors there.
-```cpp
-// create a kdtree for searching the data
-cv::flann::KDTreeIndexParams index_params;
-cv::flann::Index kdtree(data, index_params);
-// search the nearest vector to some query
-int k = 1;
-cv::Mat nearerst_vector_idx(1, k, DataType<int>::type);
-cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
-kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
-```
-
-# 14. bind
+# 13. bind
 it "binds" parameters to callables and returns a new callable. usually `auto` is used to catch the return type but it can be cast to a `std::function` to pass it around. for better or worse callable objects returned by bind swallow all the extra parameters. bind has a bit of an overhead and in most cases can be replaced with lambdas.
 
 ```cpp
@@ -1458,7 +1342,7 @@ int main()
     f();
 }
 ```
-## 14.1. binding with reference
+## 13.1. binding with reference
 ```cpp
 void Print(const int& i) {
     std::cout << i << '\n';
@@ -1476,7 +1360,7 @@ int main()
     f();    // 6
 }
 ```
-## 14.2. binding arbitrary arguments
+## 13.2. binding arbitrary arguments
 ```cpp
 void Print(const int& i, const std::string& str) {
     std::cout << i << ' ' << str << '\n';
@@ -1488,7 +1372,7 @@ int main()
     f("hi");
 }
 ```
-## 14.3. binding with arbitrary order
+## 13.3. binding with arbitrary order
 ```cpp
 void Print(const int& i, const std::string& str) {
     std::cout << i << ' ' << str << '\n';
@@ -1500,7 +1384,7 @@ int main()
     f("hi", 20);
 }
 ```
-## 14.4. binding with template functions
+## 13.4. binding with template functions
 ```cpp
 template<typename T>
 void Print(T i, const std::string& str) {
@@ -1514,7 +1398,7 @@ int main()
     f("hi", 20);
 }
 ```
-## 14.5. bind sucks
+## 13.5. bind sucks
 same thing can be done with a lambda, maybe even with more flexibility. the variadic arg is added to swallow extra args just like bind would. we could also add another argument to be swallowed in the front by adding `auto &&`. doing the same thing with bind is up to 20x slower. it also removes the need to specifiy templates during declaration.
 ```cpp
 template<typename T>
@@ -1533,9 +1417,9 @@ int main()
 }
 ```
 
-# 15. Attributes
+# 14. Attributes
 any code that contains attributes is automatically c++98 incompatible but who cares.
-## 15.1. fallthrough
+## 14.1. fallthrough
 `[[C++17]]` in switch statements we might need to only slightly differentiate between two cases, i.e. do a bunch of stuff for case A and proceed with what we would've done for case B. if they're identical, we won't have any problems but otherwise the compiler issues a fallthrough warning.
 ```cpp
 switch(expression) {
@@ -1547,7 +1431,7 @@ case 2:
     break;
 }
 ```
-## 15.2. unused
+## 14.2. unused
 `[[C++17]]` there are cases where it's possible to have a local variable that is technically unused but not needed. e.g. :
 ```cpp
 int main()
@@ -1556,7 +1440,7 @@ int main()
     assert(i == 6);
 }
 ```
-## 15.3. maybe_unused
+## 14.3. maybe_unused
 `[[C++17]]` there are a couple of ways to deal with unused arguements in a function.
 * don't give it a name
 * comment out the name
@@ -1571,7 +1455,7 @@ functions can also be `[[maybe_unused]]`:
 [[maybe_unused]] void do_nothing() {
 }
 ```
-## 15.4. nodiscard
+## 14.4. nodiscard
 `[[C++17]]` one difference between returned error codes & exceptions is that error codes can be ignored. it is possible to enforce a check and ignoring it requires a lot more effort.
 ```cpp
 [[nodiscard]] int read_file(const char* name, char* buf, int length) {
@@ -1585,8 +1469,8 @@ int main()
 ```
 it can also be applied to structs, classes, enums, unions, etc. 
 
-# 16. CPP14
-## 16.1. exchange
+# 15. CPP14
+## 15.1. exchange
 uses move semantics to update a variable and it's history variable efficiently without making any copies. typical use case:
 ```cpp
 #include <list>
@@ -1604,7 +1488,7 @@ int main()
     }
 }
 ```
-# 16.2. digit separators
+# 15.2. digit separators
 to make numbers more readable, we can use the single quote character:
 ```cpp
 auto binary_var = 0b0001'1010'0010'1100;
@@ -1614,8 +1498,8 @@ auto int_var  = 1'000'000'000;
 ```
 the digit separator is not sepcific to 
 
-# 17. CPP17
-## 17.1. structured bindings
+# 16. CPP17
+## 16.1. structured bindings
 when dealing with multiple return types we had several options
 ```cpp
 std::tuple<std::string, int> CreatePerson()
@@ -1641,7 +1525,7 @@ std::tie(name, age) = CreatePerson();
 ```cpp
 auto[name, age] = CreatePerson();
 ```
-## 17.2. any
+## 16.2. any
 an experimental feature of C++17, it's a type-safe container that can contain any single object:
 ```cpp
 #include <experimental/any>
@@ -1684,7 +1568,7 @@ int main()
     int *i = std::experimental::fundamentals_v1::any_cast<int>(&v[0]);  // works
 }
 ```
-## 17.3. if and switch initialization
+## 16.3. if and switch initialization
 it's possible to initialize the expression that is used in an if or switch statement. it lives on for the entire scope of if/else or switch. it's simillar to having opening/closing braces around the entire scope.
 ```cpp
 #include <vector>
@@ -1700,7 +1584,7 @@ int main()
     }
 }
 ```
-## 17.4. nested namespaces
+## 16.4. nested namespaces
 to avoid having multiple levels braces for nested namespaces, we can directly use the nested namespace:
 ```cpp
 namespace torch::tensor::float
@@ -1708,7 +1592,7 @@ namespace torch::tensor::float
 
 }
 ```
-## 17.5. has include
+## 16.5. has include
 this macro gives us the ability to check the availability of header files
 ```cpp
 // before C++17
@@ -1726,7 +1610,7 @@ this macro gives us the ability to check the availability of header files
 #include <windows.h>
 #endif
 ```
-## 17.6. aggregate initialization
+## 16.6. aggregate initialization
 C++11 allowed uniform intializations even in the absence of a constructor using `{}`. this however runs into problems if the object we're initializing is from a child class.
 ```cpp
 struct Base
@@ -1747,7 +1631,7 @@ int main()
     Child ch_3{{15.1}, 1, 2.4f};
 }
 ```
-## 17.7. deduction guides
+## 16.7. deduction guides
 we can help the compiler deduce types where it's confused. it has to be in the same namespace:
 ```cpp
 #include <functional>
@@ -1778,7 +1662,7 @@ int main()
     std::function cm_f(&MyClass::const_member_function);
 }
 ```
-## 17.8. enable_if
+## 16.8. enable_if
 can be used to specialize the underlying structure by deducing the template type in conjunction with SFINAE.
 ```cpp
 #include <type_traits>
@@ -1826,12 +1710,12 @@ int main() {
     return 0;
 }
 ```
-## 17.9. constexpr lambdas
+## 16.9. constexpr lambdas
 starting with C++17, lambdas can be defined and used in `constexpr` contexts:
 ```cpp
 constexpr auto l = [](){};
 ```
-## 17.10. string_view
+## 16.10. string_view
 `std::string_view` provides a view into another string without making any copies. read-only standard strings are used often in functions. even if the string can be evaluated at compile time, a copy is made to intialize the string. this can be avoided with `std::string_view`. naturally views can also be created and used in `constexpr` contexts.
 ```cpp
 std::string str1{"check"}; // "check" is in the compiled binary, but is copied at runtime
@@ -1858,13 +1742,13 @@ std::string str{view};                 // okay
 print(static_cast<std::string>(view)); // okay
 ```
 views can be converted to a c-string through an intermediate `std::string`. if the underlying string is null terminated **and** the view window has not been modified, `std::string_view::data()` can be used a a c-string without the need for conversion. note that string literals are **always** implicitly null terminated.
-## 17.11. class template argument deduction
+## 16.11. class template argument deduction
 starting with cpp17, the template arguments can be implicitly deduced.
 ```cpp
 std::array<int, 5> data{1, 2, 3, 4, 5}; // necessary before C++17
 std::array data{1, 2, 3, 4, 5};     // ok as of C++17
 ```
-## 17.12. fold expressions
+## 16.12. fold expressions
 fold expression allows us to unfold variadic template arguments more easily:
 ```cpp
 template<typename ... T>
@@ -1895,9 +1779,9 @@ auto avg(T ... t) {
     return (t + ...) / sizeof...(t);
 }
 ```
-# 18. CPP20
+# 17. CPP20
 TODO: constexpr new and delete.
-## 18.1. constexpr vector and string
+## 17.1. constexpr vector and string
 since visual studio 16.10 (preview release), `std::vector` and `std::string` can be used in a `constexpr` context. this is yet to be added to other compilers.
 this does not mean that we can have a `constexpr std::vector` or a `constexpr std::string`, but are rather just able to work with them in that context.
 
@@ -1922,7 +1806,7 @@ int main()
 }
 ```
 the second expression is not allowed because memory allocated inside a `constexpr` context must be freed before leaving said context. it is however possible to create another constexpr context (e.g. a function) that copies that data into a static storage such as `std::array<>`. this still is happening at compile time but we maintain some of the runtime flexibility.
-## 18.2. safe integer comparison
+## 17.2. safe integer comparison
 the following snippet happens too often:
 ```cpp
 ...
@@ -1933,7 +1817,7 @@ if (a < b) {
 }
 ```
 if `a` is negative, the condition is always false. probably because `a` gets promoted to `unsigned int`, making it a the maximum possible value. on way around this is to demote `b` to `int` using a `static_cast`. the standard library provides a safer way of comparing different types of integers inside the `<utility>` header. the functions are `std::cmp_equal`,  `std::cmp_not_equal`, `std::cmp_less`, `std::cmp_greater`, `std::cmp_less_equal` and `std::cmp_greater_equal`. they are all constexpr capable and templated for rhs and lhs operands.
-## 18.3. spaceship operator
+## 17.3. spaceship operator
 since c++20, we can ask the compiler to generate all comparison operators for us, given that the struct is basic enough.
 ```cpp
 #include <compare>
@@ -1949,7 +1833,7 @@ we do not have to do anything else. `constexpr` and `noexcept` will be added if 
 this is due to a new concept in c++20 referred to as _rewritten expressions_. `<=>` and `==` are the first applications of this concept. _synthesized expression_ is another concept in c++20 which allows us to avoid having to write a number of friend functions for comparison cases where our struct instance is on rhs. the expression is in these cases *rewritten* in reverse order to see if there is a matching overload. for `==` and `!=` we run into an issue because a deep lexicographic comparison of e.g. strings is not efficient. checking the size must be the first step. this case is also considered by the spaceship operator through a slightly altered rewrite rule.
 
 the new operator will not break old code by choosing the synthesized or rewritten operator over an explicit overload. we can therefor have our special cases where the implementation for a single operator is written separately.
-## 18.4. consteval functions
+## 17.4. consteval functions
 calls to `consteval` or _immediate_ functions must always be evaluated at compile time, as opposed to `constexpr` functions that _can_ be evaluated at compile time. `consteval` functions can only call other `consteval` functions. similarly, non-`consteval` functions are not allowed to enclose `consteval` functions.
 ```cpp
 consteval int f() { return 42; }
@@ -1959,7 +1843,7 @@ constexpr int r = h();  // OK
 constexpr auto e = g(); // ill-formed: a pointer to an immediate function is
                         // not a permitted result of a constant expression
 ```
-## 18.5. is_constant_evaluated
+## 17.5. is_constant_evaluated
 the standard library offers a new type trait **runtime** evaluation functions that determines whether a context has been evaluated at compile-time:
 ```cpp
 int y;
@@ -1977,7 +1861,7 @@ if constexpr (std::is_constant_evaluated()) { // error
     ...
 }
 ```
-## 18.5. concepts
+## 17.5. concepts
 for a given template type, a concept defines the syntax requirements for correct compilation and the semantic requirements for correct behavior. before concepts, we would enforce such behavior using SFINAE/type traits, e.g. if we wanted all templated `Body` types to have a `value_type` type alias and a static function called write that takes sepcific arguements:
 ```cpp
 // necessary for mapping types to void, availabe since C++17
@@ -2115,7 +1999,7 @@ struct S
 * std::strict_weak_order
 
 ### requires requires
-`requires` is used both to define a concept and two define the contraints on a function. in order to define a concept on the fly for a function, we would need something like:
+`requires` is used both to define a concept and to define the contraints on a function. in order to define a concept on the fly for a function, we would need something like:
 ```cpp
 template <typename FuncObj>
 auto use_function_object(FuncObj obj)
@@ -2136,7 +2020,7 @@ requires(Iter it) {
     { *it++ } noexcept -> std::same_as<typename Iter::value_type>;
 }
 ```
-## 18.6. multiple destructors
+## 17.6. multiple destructors
 before C++20, we would need a conditional inheritance (using `std::conditional_t`) from different base classes if we wanted to have different destructors based on compile time information (e.g. whether the contained type of a `std::optional` is trivially destructible). With C++20 concepts we can use:
 ```
 constexpr ~optional() requires (!std::is_trivially_destructible_v<Type>)
@@ -2147,8 +2031,9 @@ constexpr ~optional() requires (!std::is_trivially_destructible_v<Type>)
 constexpr ~optional() = default;
 ```
 only one of these destructors must be available after compilation.
-# 19. CPP23
-## 19.1. deducing this
+
+# 18. CPP23
+## 18.1. deducing this
 we can now pass the deduced _self_ type as an argument to each member function. one use is to remove repetitions in code, e.g.:
 ```cpp
 struct T
@@ -2180,7 +2065,7 @@ auto factorial = [](this auto&& self, int) {
     return i * self(i - 1);
 };
 ```
-## 19.2. std::expected
+## 18.2. std::expected
 it's like an optional variant that either returns an expected type, or an error type:
 ```cpp
 std::expected<double, parse_error> parse_double(std::string_view& str)
@@ -2227,7 +2112,7 @@ if (widget) {
     }, widget.error());
 }
 ```
-## 19.3. std::mdspan
+## 18.3. std::mdspan
 it introduces multi-dimensional array support into the standard library. assuming we have already allocated the memory:
 
 ```cpp
@@ -2270,10 +2155,10 @@ the layout policy defines how the given indices translate into memory locations.
 ### accessor policy
 this decides how the element is accessed once found using the layout policy. the default returns a reference.
 
-## 19.4. formatted output library
+## 18.4. formatted output library
 we finally get `std::print` which has the same syntax as `std::format`. it correctly handles unicode characters by calling the native unicode API of the underlying terminal, if it is writing to one. by default it writes to `stdout` which can be changed just by passing another stream to it, like `stderr`.
 
-## 19.5. if consteval
+## 18.5. if consteval
 c++20 allowed us to distinguish between the contexts at runtime using `std::is_constant_evaluated()`. this however is a runtime call. that means, we cannot call `consteval` functions within a scope defined by this condition. `if consteval` allows us to check for `consteval` contexts at compile time and therefor enables calling of immediate functions within its local scope:
 ```cpp
 consteval sqr(int s) {
@@ -2304,13 +2189,130 @@ int main()
 }
 ```
 
-## 19.6. enumerate
+## 18.6. enumerate
 finally:
 ```cpp
 std::array<std::string, 5> data{"this", "is", "now", "possible", "!"};
 for (const auto [index, str] : data | std::ranges::views::enumerate) {
     std::cout << index << ": " << str << "\n";
 }
+```
+
+# 98. OpenCV
+uses own types
+### naming convention
+types follow the patern `CV_<bit_count><identifier><num_of_channels>` e.g. `CV_8UC3` is 8-bit unsigned char with 3 channels for RGB. `CV_8UC1` is 9-bit unsigned char grayscale. 
+it's better to use `DataType`. e.g. `DataType<uint>::type == CV_8UC1`
+## 98.1. basic matrix type
+### constructors
+```cpp
+cv::Mat image(rows, cols, DataType, value);
+cv::Mat_<T> image(rows, cols, value);
+```
+### initialization
+```
+cv::Mat iamge = cv::Mat::zeros(10, 10, CV_8UC3);
+using Matf = cv::Mat_<float>;
+Matf image = Matf::zeros(10, 10);
+```
+### properties
+get type using `image.type()`<br>
+get size with `image.rows`, `image.cols`
+## 98.2. memory management
+`cv::Mat` is a shared pointer, although not a `std::shared_ptr`. cloning can be done :
+```cpp
+cv::Mat image = cv::Mat::zeros(10,10);
+cv::Mat nocopy = image;
+cv::Mat copy = image.clone();
+```
+### command line compiling
+```bash
+c++ -std=c++11 -o main main.cpp `pkg-config --libs --cflags opencv`
+```
+## 98.3. IO
+### reading images from file
+```cpp
+Mat imread(const string& file, int mode=1)
+```
+modes<br>
+* unchanged   `CV_LOAD_IMAGE_UNCHANGED < 0`
+* 1 channel   `CV_LOAD_IMAGE_GRAYSCALE == 0`
+* 3 channels  `CV_LOAD_IMAGE_COLOR > 0`
+```cpp
+Mat i1 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
+Mat_<unit8_t> i2 = imread("logo.png", CV_LOAD_IMAGE_GRAYSCALE);
+std::out << (i1.type == i2.type) << std::endl;
+```
+it's recommended to use typed matrices. This will help when we're assinging values to individual pixels.
+### writing images to file
+```cpp
+bool imwrite(const string& file, const Mat& img)
+```
+simple type conversion
+```cpp
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+int main(){
+  cv::Mat image = imread("logo.png", CV_LOAD_IMAGE_COLOR);
+  cv::imwrite("copy.jpg", image);
+  return 0;
+}
+```
+### exr files
+when stroing floating point images, OpenCV expects the values to be in 0-1 range. when storing arbitrary values, there might be cutoffs. to avoid this, we can save to `.exr` files. they will store and read the values as is without losing precision.
+### showing images
+```cpp
+void imshow(const string& window_name, const Mat& mat);
+```
+use 
+```cpp
+#include <opencv2/opencv.hpp>
+int main(){
+  cv::Mat mat = cv::imread(...);
+  cv::namedWindow("window", cv::WINDOW_AUTOSIZE);
+  cv::imshow("window", mat);
+  cv::waitKey();
+}
+```
+## 98.4. vector type
+```cpp
+cv::Vec<Type, SIZE>
+```
+many typedefs available, e.g. `Vec3f`, `Vec3b`, etc. used ofr pixels in multidimensional images :
+```cpp
+cv::Mat mat = cv::Mat::zeros(10, 10, CV_8UC3);
+std::cout << mat.at<Vec3b>(5, 4);
+
+cv::Mat_<Vec3f> matf = cv::Mat_<Vec3f>::zeros(10, 10);
+std::cout << matf.at<Vec3f>(1, 5);
+```
+### using wrong types
+will not produce bugs, but it will generate unwanted behavior. 
+## 98.5. SIFT descriptors
+we have `SiftFeatureDetector` to detect the keypoints and `SiftDescriptorExtractor` to compute the descriptors.
+```cpp
+// detect keypoints
+SiftFeatureDetector detector;
+vector<KeyPoint> keypoints;
+decetor.detect(input, keypoints);
+// show keypoints
+cv::Mat image_with_keypoints;
+drawKeypoints(input, keypoints, image_with_keypoitns);
+// extract SIFT descriptors
+SiftDescriptorExtractor extractor;
+extractor.comput(input, keypoints, descriptors);
+```
+## 98.6. FLANN
+Fast library for Aproximate Nearest Neighbors. builds K-d tree, searches for neighbors there.
+```cpp
+// create a kdtree for searching the data
+cv::flann::KDTreeIndexParams index_params;
+cv::flann::Index kdtree(data, index_params);
+// search the nearest vector to some query
+int k = 1;
+cv::Mat nearerst_vector_idx(1, k, DataType<int>::type);
+cv::Mat nearerst_vector_dist(1, k, DataType<float>::type);
+kdtree.knnSearch(query, nearest_vector_idx, nearest_vector_dist, k);
 ```
 
 # 99. Misc.
