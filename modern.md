@@ -93,7 +93,13 @@
   17.4. [consteval functions](#174-consteval-functions)<br>
   17.5. [concepts](#175-concepts)<br>
   17.6. [multiple destructors](#176-multiple-destructors)<br>
-  17.7. [coroutines](coroutines.md)<br>
+  17.7. [templated lambdas](#177-templated-lambdas)<br>
+  17.8. [jthread](#178-jthread)<br>
+  17.9. [thread sync mechanisms](#179-thread-sync-mechanisms)<br>
+  17.10. [small but useful](#1710-small-but-useful)<br>
+  17.11. [ranges](ranges.md)<br>
+  17.12. [coroutines](coroutines.md)<br>
+  17.13. [modules](modules.md)<br>
 18. [C++23](#18-cpp23)<br>
   18.1. [deducing this](#181-deducing-this)<br>
   18.2. [std::expected](#182-std-expected)<br>
@@ -2031,7 +2037,121 @@ constexpr ~optional() requires (!std::is_trivially_destructible_v<Type>)
 constexpr ~optional() = default;
 ```
 only one of these destructors must be available after compilation.
+## 17.7. templated lambdas
+before C++20:
+```cpp
+// normal case
+[](const auto& vec) {
+    using V = std::decay_t<decltype(vec)>;
+    using T = typename V::value_type;
+    T x{};
+    ...
+};
+// variadic types
+[](auto&& ... args) {
+    return foo(std::forward<decltype(args)>(args)...);
+};
+```
+now:
+```cpp
+// normal case
+[]<typename T> (const std::vector<T>& vec) {
+    T x{};
+    ...
+};
+// variadic types
+[]<typename ...Ts>(T&& ... args) {
+    return foo(std::forward<Ts>(args)...);
+};
+```
+## 17.8. jthread
+a normal thread with cooperative cancellation. the destructor automatically asks the thread to cancel and calls `join()`. canelling works through:
+- `std::stop_token`
+  - supports actively checking for a stop request
+  - can be used with `condition_variable_any`
+- `std::stop_source`
+  - used to request a thread to stop execution
+  - stop requests are visible to all associated `stop_source`s and `stop_token`s
+- `std::stop_callback`
+  - callback is called when stop is requested on associated `stop_token`
+  - `std::stop_callback my_cb {my_stop_token, []{ ... }};`
 
+```cpp
+std::jthread job { [](std::stop_token token) {
+    while (!token.stop_requested()) {
+        ...
+    }
+}};
+
+// directly requesting stop
+job.request_stop();
+
+// request stopping through source 
+auto source{job.get_stop_source()};
+source.request_stop();
+
+// check whether stop was requested through the token
+auto token{job.get_stop_token()};
+bool b{token.stop_requested()}'
+```
+## 17.9. thread sync mechanisms
+### `<semaphore>`
+a `semaphore` can be used to implement any other sync. concept: mutex, latches, barriers, etc. it has two types:
+- counting semaphore: models a non-negative resource count
+- binary semaphore: a single slot, free/occupied. perfect for a mutex
+### `<latch>`
+a `latch` is a single-use thread coordination point where a counter is decremented on each thread arrival and execution is resumed for all threads once the counter reaches zero.
+### `<barrier>`
+a `barrier` is a multi-use `latch` containing a sequence of phases. in each phase:
+- a number of threads block until the requested number of threads arrive at the barrier
+  - after which a phase completion callback is executed
+  - thread counter is reset
+- next phase starts
+- threads continue exectuion
+### waiting and notifying on `std::atomic`
+we can now wait or block for an atomic object to change its value, notified by a notification function. this can be more performant than polling.
+### atomic reference
+same as `std::atomic` but works with references. `std::atomic` always copies the value it is provided.
+### atomic shared pointers
+`std::shared_ptr` is thread safe, as in the object gets only deleted once. accessing it however is not. one thread could be reading it while another one is storing a new pointer. to make it thread-safe, you'd have to:
+- manually wrap with mutex
+- use global non-member atomic operations e.g. `std::atomic_load()`, `std::atomic_store()`, etc: error prone
+
+C++20 brings `std::atomic<std::shared_ptr>`. it might use mutexes internally but we don't care.
+## 17.10. small but useful
+### named aggregate initialization
+```cpp
+struct Data {
+    int itest{0};
+    std::string istr;
+};
+Data d{.istr = "test"};
+```
+### more intializers
+```cpp
+if (data=get_data(); data.valid)
+switch (data=get_data(); data.status)
+for (data=get_data(); auto& ele: data.elements)
+```
+### non-type template parameters
+now allows floating types and class types (with some limitations), but we now have string literals!
+```cpp
+ctre::match<"^c\+{0,2}$">(str);
+```
+### branch optimization
+tell the compiler which one is normally taken:
+```cpp
+switch (test) {
+    case 1:
+        break;
+    [[likely]] case 2:
+        break;
+    [[unlikely]] case 4:
+        break;
+}
+```
+### `<numbers>`
+finally we get a header with compile time mathematical constants, e.g. std::numbers::pi
 # 18. CPP23
 ## 18.1. deducing this
 we can now pass the deduced _self_ type as an argument to each member function. one use is to remove repetitions in code, e.g.:
