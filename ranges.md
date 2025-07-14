@@ -162,6 +162,11 @@ int total = rng::fold_left(sqaure_view, 0, add);
 // 30
 std::print("{}\n": total);
 ```
+### adjacent (C++23)
+```cpp
+std::vector v{1, 2, 3, 4};
+auto r3 { v | std::views::adjacent<2>}; // {(1, 2), (2, 3), (3, 4)}
+```
 
 # range adaptors
 these are algorithms that transform a `range` into a `view` with custom behaviour.
@@ -210,6 +215,24 @@ std::vector<int> numbers = {1, 2, 3, 4, 5};
 auto squared = numbers | ranges::views::transform([](int n) { return n*n; })
                        | ranges::to<std::deque>();
 std::print("{}\n", squared);
+```
+
+this also has makes container conversions much easier:
+```cpp
+std::vector<int> vec{11, 22, 33};
+
+auto set1 { std::ranges::to<std::set>() };
+auto set2 = vec | std::ranges::to<std::set<double>>();
+std::set<double> set3 {std::from_range, vec};
+```
+
+or splitting:
+```cpp
+std::string lorem{"lorem ipsum dolor sit amet"};
+auto words = lorem
+            | std::views::split(' ')
+            | std::views::transform([](const auto& v) {return std::string(std::from_range, v)})
+            | std::ranges::to<std::vector>();
 ```
 
 ### another example with join

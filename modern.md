@@ -106,7 +106,13 @@
   18.3. [std::mdspan](#183-std-mdspan)<br>
   18.4. [formatted output library](#184-formatted-output-library)<br>
   18.5. [if consteval](#185-if-consteval)<br>
-  18.6. [enumerate](#186-enumerate)<br>
+  18.6. [multidimensional subscript operator](#186-multidimensional-subscript-operator)<br>
+  18.7. [unreachable code](#187-unreachable-code)<br>
+  18.8. [assumptions](#188-assumptions)<br>
+  18.9. [string format improvements](#189-string-format-improvements)<br>
+  18.10. [flat containers](#1810-flat-containers)<br>
+  18.11. [optional improvements](#1811-optional-improvements)<br>
+  18.12. [stacktrace](#1812-stacktrace)<br>
 98. [OpenCV](#98-opencv)<br>
   98.1. [basic matrix type](#981-basic-matrix-type)<br>
   98.2. [memory management](#982-memory-management)<br>
@@ -2308,16 +2314,84 @@ int main()
     return 0;
 }
 ```
-
-## 18.6. enumerate
-finally:
+### std::is_constant_evaluated()
+there are minor but very important differences between `if consteval` and `if (std::is_constant_evaluated())`:
+- `if consteval` is part of the core language and does not need a header
+- you can call immediate (`consteval`) functions within `if consteval`, but not for the other
+- `if consteval` *cannot* be used wrong: `if constexpr (is_constant_evaluated())` would only executed the first branch and never the second one.
+## 18.6. multidimensional subscript operator
 ```cpp
-std::array<std::string, 5> data{"this", "is", "now", "possible", "!"};
-for (const auto [index, str] : data | std::ranges::views::enumerate) {
-    std::cout << index << ": " << str << "\n";
+T& operator[](size_t x, size_t y, size_t z) noexcept { ... };
+```
+## 18.7. unreachable code
+compilers often generate verification code for value based branches. we can prevent that by marking some unreachable:
+```cpp
+switch (int between_0_and_3 = get_data(); between_0_and_3)
+{
+    case 0:
+    case 2:
+        handle_0_or_2();
+    case 1:
+        handle_1();
+    case 3:
+        handle_3();
+    default:
+        // invokes undefined behavior
+        std::unreachable();
 }
 ```
+## 18.8. assumptions
+another way to help the compiler optimize the output assembly:
+```cpp
+int devide_by_32(int x)
+{
+    [[assume(x >= 0)]];
+    return x / 32;
+}
+```
+## 18.9. string format improvements
+```cpp
+std::vector strings{"hello"s, "world\t2023"s};
+std::println("{}", strings);   // ["hello", "world\t2023"]
+std::println("{::}", strings); // [hello, world    2023]
 
+std::vector<std::vector<int>> vv {{11, 22}, {33, 44, 55}};
+std::println("{}", vv);         // [[11, 22], [33, 44, 55]]
+std::println("{:n}", vv);       // [11, 22], [33, 44, 55]
+std::println("{:n:n}", vv);     // 11, 22, 33, 44, 55
+std::println("{:n:n:*^4}", vv); // **11**, **22**, **33**, **44**, **55**
+```
+## 18.10. flat containers
+we get `std::flat_map` and `std::flat_multimap` as associative containers with fast retrieval based on a key.
+keys are sorted, keys and values are stored in separate sequence containers like `vectors` or `deque`s.
+similarly we get `std::flat_set` and `std::flat_multiset`.
+## 18.11. optional improvements
+we get more functions on `std::optional`:
+- `transform(F)`: returns optional containing the result of invoking `F(*this)` if the value exists, otherwise an empty optional.
+- `and_then(F)`: returns optional containing the result of invoking `F(*this)` if the value exists, otherwise an empty optional.
+- `or_else(F)`: returns `*this` if `this` has value otherswise the result of invoking `F`.
+```cpp
+while (true) {
+    std::string str;
+    std::geline(std::cin, str);
+    std::optional<int> = Parse(str)
+        .and_then ([](int value) -> { return value * 2; })
+        .transform([](int value) -> { return std::to_string(value); } )
+        .or_else  ([]               { return std::optional<std::string>{"no integer"}; });
+    std::println("{}", *result);
+}
+```
+## 18.12. stacktrace
+new header added for dumping stacktrace:
+```cpp
+#include <stacktrace>
+
+std::println("{}", std::stacktrace::current());
+// or
+for (auto&& frame : std::stacktrace::current()) {
+    std::println("{}", frame.description());
+}
+```
 # 98. OpenCV
 uses own types
 ### naming convention

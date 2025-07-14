@@ -421,3 +421,22 @@ further reading: it is possible to have a `ReturnType` that is also an `Awaitabl
 
 ## 2.9. notes
 * always use `std::suspend_always` for the `final_suspend` and destroy the coroutine through its handle. there is no clean way of actually checking whether the coroutine has been destroyed. if `destroy()` is not called, the only other way is for the control to fall off the coroutine body, which is not a reliable way of memory management, unless we use a smart pointer.
+
+# 3. standard library support
+## 3.1. std::generator
+in C++23 we get the generator coroutine:
+```c++
+std::generator<int> get_sequence_generator(int start, int num)
+{
+    for (int i = start; i < start + num; ++i)
+        co_yield i;
+}
+int main()
+{
+    auto get = get_sequence_generator(0, 5);
+    for (auto v : gen) {
+        std::print("{} press a key for next value", v);
+        std::cin.ignore();
+    }
+}
+```

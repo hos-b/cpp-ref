@@ -30,3 +30,7 @@ namespace MyModule {
 - comparable to precompiled headers
 
 this trick can also work on custom headers, but is compiler dependent.
+
+## C++23 improvement
+we now get the `std` module which imports all standard library types and functions as well as C functions under the `std` namespace.
+we also get the `std.compat` module where the C functions are imported into the global namespace.
