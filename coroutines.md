@@ -114,14 +114,14 @@ struct promise_type
 ```
 1. `get_return_object`: its return type is the coroutine's return type (`ReturnType`). when the coroutine starts, the compiler implicitly calls this function. it is now up to the `promise_type` to construct the return object that will be handed back to the caller (in the basic example, `FiboGenerator` would be constructed here).
 
-we do not have direct access to where it is stored (compiler magic): the result lives as a local in the call and is only handed to the caller when the coroutine first suspends or finishes. it is created *before* `initial_suspend` is evaluated. so, with `suspend_always` as `initial_suspend`, the caller gets it right away; with `suspend_never` the body runs up to its first suspension point (e.g. the first `co_yield`) or to completion, and only then does the caller get the object.
+   we do not have direct access to where it is stored (compiler magic): the result lives as a local in the call and is only handed to the caller when the coroutine first suspends or finishes. it is created *before* `initial_suspend` is evaluated. so, with `suspend_always` as `initial_suspend`, the caller gets it right away; with `suspend_never` the body runs up to its first suspension point (e.g. the first `co_yield`) or to completion, and only then does the caller get the object.
 
-2. `return_void`: decides what happens when we reach an empty `co_return;` statement or when the control flow falls off the end of the body. there's also a corresponding `return_value` for when the `co_return` is used in conjunction with a value, but in our example, that is not done. a promise must not have both. falling off the end of a coroutine whose promise has no `return_void` is undefined behaviour.
+3. `return_void`: decides what happens when we reach an empty `co_return;` statement or when the control flow falls off the end of the body. there's also a corresponding `return_value` for when the `co_return` is used in conjunction with a value, but in our example, that is not done. a promise must not have both. falling off the end of a coroutine whose promise has no `return_void` is undefined behaviour.
 
-3. `unhandled_exception`: called inside the implicit `catch` block around the body when an exception escapes it. it can inspect it with `std::current_exception()` and store it, rethrow it, or terminate. afterwards the coroutine proceeds to `final_suspend`.
+4. `unhandled_exception`: called inside the implicit `catch` block around the body when an exception escapes it. it can inspect it with `std::current_exception()` and store it, rethrow it, or terminate. afterwards the coroutine proceeds to `final_suspend`.
 
-4. `initial_suspend`
-5. `final_suspend`: these two are the customization points that allow us to execute some code, when the coroutine first starts executing (initial_suspend) and shortly before when the coroutine stops executing for good (final_suspend), e.g. if we return from the coroutine or the control flow falls off the end or if we exit via an exception. both return an `Awaitable`. `final_suspend` must be `noexcept`.
+5. `initial_suspend`
+6. `final_suspend`: these two are the customization points that allow us to execute some code, when the coroutine first starts executing (initial_suspend) and shortly before when the coroutine stops executing for good (final_suspend), e.g. if we return from the coroutine or the control flow falls off the end or if we exit via an exception. both return an `Awaitable`. `final_suspend` must be `noexcept`.
 
 `std::suspend_always` tells the compiler, that we always want to suspend at that particular point (intial, final) and hand the control flow back to the caller.
 `std::suspend_never` lets the coroutine continue executing without relinquishing control.
